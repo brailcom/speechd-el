@@ -1,7 +1,14 @@
 2003-04-15  Milan Zamazal  <pdm@brailcom.org>
 
+	* speechd-emacspeak.el (emacspeak-keymap): Assign "s" to
+	speechd-stop.
+
+	* speechd.el (speechd-cancel, speechd-stop, speechd-pause) 
+	(speechd-resume): Add `self' as the command argument.
+
 	* dtk-interp.el (dtk-interp-set-punctuations): `mode' is a string,
 	not a symbol.
+	(dtk-interp-stop): Call `speechd-cancel', not `speechd-stop'.
 
 2003-04-14  Milan Zamazal  <pdm@brailcom.org>
 
