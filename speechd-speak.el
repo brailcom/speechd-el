@@ -33,7 +33,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.1 2003-06-13 09:32:02 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.2 2003-06-13 13:10:47 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -196,6 +196,8 @@ Level 1 is the slowest, level 9 is the fastest."
 (speechd-speak--def-speak-object page)
 (speechd-speak--def-speak-object sexp)
 
+(defvar speechd-speak--command-start-info nil)
+
 (defmacro* speechd-speak--command-feedback (commands position &body body)
   (let ((commands* (if (listp commands) commands (list commands)))
 	(position* position)
@@ -308,7 +310,7 @@ Level 1 is the slowest, level 9 is the fastest."
   (speechd-speak-read-sexp))
 
 (speechd-speak--command-feedback (kill-sentence) before
-  (speechd-speak--speak-sentence))
+  (speechd-speak-read-sentence))
 
 (speechd-speak--command-feedback (zap-to-char) after
   (speechd-speak-read-line))
@@ -338,10 +340,9 @@ Level 1 is the slowest, level 9 is the fastest."
 (defun speechd-speak--speak-new-message (beg end length)
   (when (= length 0)
     (let ((text (buffer-substring-no-properties beg end)))
-      (push text pokus)
       (unless (save-match-data (string-match "times[]]$" text))
 	(setq speechd-speak--last-message text))
-      (speechd-speak--text text :priority :message))))
+      (speechd-speak--text text :priority :progress))))
 (save-excursion
   (set-buffer "*Messages*")
   (add-hook 'after-change-functions 'speechd-speak--speak-new-message nil t))
@@ -376,8 +377,6 @@ Level 1 is the slowest, level 9 is the fastest."
 ;;; Commands
 
 
-(defvar speechd-speak--command-start-info nil)
-
 (defun speechd-speak--pre-command-hook ()
   (when (= (minibuffer-depth) 0)
     (setq speechd-speak--command-start-info (ignore-errors
@@ -389,7 +388,7 @@ Level 1 is the slowest, level 9 is the fastest."
   (let ((message (current-message)))
     (when message
       (setq speechd-speak--last-message message)
-      (speechd-speak--text message :priority :message)))
+      (speechd-speak--text message :priority :progress)))
   (when (and (= (minibuffer-depth) 0)
 	     speechd-speak--command-start-info)
 ;    (speechd-speak--text (symbol-name this-command) :priority :notice)
@@ -478,7 +477,7 @@ Level 1 is the slowest, level 9 is the fastest."
   (speechd-speak-read-line))
 
 (speechd-speak--command-feedback transpose-chars after
-  (speechd-speak--char (following char)))
+  (speechd-speak--char (following-char)))
 
 (speechd-speak--command-feedback transpose-lines after
   (speechd-speak-read-line))
