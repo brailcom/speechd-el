@@ -91,7 +91,7 @@ processed in a different way by speechd-speak or user definitions."
   :group 'speechd-speak)
 
 (defcustom speechd-speak-insertions-in-buffers
-  '(" widget-choose" "*Choices*")
+  '(" widget-choose" "*Choices*" "*shell*")
   "List of names of buffers, in which insertions are automatically spoken.
 See also `speechd-speak-buffer-insertions'."
   :type '(repeat (string :tag "Buffer name"))
