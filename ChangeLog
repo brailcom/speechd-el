@@ -1,3 +1,22 @@
+2003-07-19  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak-empty-message)
+	(speechd-speak-beginning-of-line-message)
+	(speechd-speak-end-of-line-message): Changed to internal
+	variables, naming standard speechd icons.
+	(speechd-speak-signal-empty) 
+	(speechd-speak-signal-beginning-of-line) 
+	(speechd-speak-signal-end-of-line): New user options.
+	(speechd-speak--post-command-hook, speechd-speak-read-region):
+	Consider the previous changes.
+
+2003-07-18  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak-toggle-quiet): New argument
+	SILENTLY.
+	(speechd-speak--shutdown): New function.
+	(speechd-speak): Add it to kill-emacs-hook.
+
 2003-07-17  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd.el (speechd--send-string): Don't assign CONNECTION
