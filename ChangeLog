@@ -1,3 +1,35 @@
+2003-05-15  Milan Zamazal  <pdm@brailcom.org>
+
+	* emacspeak.patch: dtk-speak.el patched to avoid
+	dtk-speaker-process processing.
+
+	* install-debian.sh: Test for need of patch of dtk-tcl.el too.
+	Install dtk-interp.el.
+	Don't recompile Emacspeak if not patched.
+
+	* speechd.el (queue-f): Require queue-f.
+	(speechd--make-queue, speechd--queue-empty-p, speechd--enqueue)
+	(speechd--dequeue): Removed.
+	(speechd--queue-too-long-p, speechd--connection)
+	(speechd--send-string, speechd--command-answer)
+	(speechd--send-command): Use Elib queue functions.
+	(speechd--connection): Create new connection if it doesn't exist.
+	New argument create-if-needed.
+	(speechd-close): Call speechd--connection with the argument.
+	(speechd--command-answer): Be robust against nil output.
+	(speechd--send-string): New argument expect-answer, use it in
+	queuing.
+	(speechd--send-command): Utilize previous change.
+	(speechd--command-answer): Update for the change.
+	(speechd--set-parameter): Use `equal', not `eq', when comparing
+	parameter values.  Set the updated parameter list.
+	(speechd-say-char, speechd-say-key): Wrap the command argument by
+	double quotes.
+	(speechd--command-answer): Call reading recursive answer reading
+	too.
+	(speechd--send-command): Don't set connection process output in
+	reading answer.
+
 2003-05-14  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-emacspeak.el (dtk-initialize): Do nothing.
