@@ -466,7 +466,21 @@ documentation for more information about particular tables.
 @node Other commands,  , Parameter setting commands, Commands
 @subsection Other commands
 
-These commands are rarely used, mostly for diagnosting purposes.
+In case Emacs gets completely crazy and refuses to run commands
+because of a bug in speechd-el or in a speech output related custom
+definition, you can try to invoke the following command as the last
+resort:
+
+@table @kbd
+@item C-e C-x
+@kindex C-e C-x
+@findex speechd-unspeak
+Try to disable all modes, hooks and wrappers installed by
+@code{speechd-speak} (@code{speechd-unspeak}).
+@end table
+
+The following commands are rarely used, mostly for diagnosting
+purposes:
 
 @table @kbd
 @item C-e C-r
