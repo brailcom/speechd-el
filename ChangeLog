@@ -1,3 +1,22 @@
+2003-05-26  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-say-char): If CHAR is space, transform it to
+	the argument `space'.
+	(speechd-open): Only try to set the connection parameters, if the
+	connection was successfully opened.
+	(speechd--process-request): Only try to reopen an invalid-state
+	connection or to read an answer if no permanent failure is
+	indicated.
+	(speechd--permanent-connection-failure): New function.
+	(speechd--send-string): Use it.
+	(speechd--generate-set-command): Support for ARGDESC nil added.
+	(speechd--set-output-module): New command.
+	(speechd--parameter-names): :output-module added
+	(speechd--process-request): Collect answer data.
+	(speechd--list): Data is in the second, not first, result element.
+	(speechd--generate-set-command): Insert result of completing-read
+	into list.
+
 2003-05-25  Hynek Hanke  <hanke@localhost.localdomain>
 
 	* speechd.el (speechd-say-char): CHAR and KEY commands are sent without doublequotes.
