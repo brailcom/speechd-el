@@ -1,3 +1,13 @@
+2003-08-05  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak): Message about the (re)started
+	state fixed.
+	(speechd-speak--minibuffer-prompt): New function.
+	(minibuffer-message, read-key-sequence)
+	(speechd-speak--current-message): Use it.
+	(speechd-speak--read-other-changes): New function.
+	(speechd-speak--after-change-hook): Use it.
+
 2003-08-04  Milan Zamazal  <pdm@brailcom.org>
 	
 	* speechd-speak.el (speechd-speak): Belong to group `speechd', not
@@ -10,6 +20,11 @@
 	Enclose body in save-match-data.
 
 2003-07-31  Milan Zamazal  <pdm@brailcom.org>
+ 
+	* speechd-speak.el (speechd-speak--command-info-struct): New slot
+	OTHER-CHANGES.
+	(speechd-speak--after-change-hook): Use it; speak other changes
+	only on minibuffer change.
 
 	* speechd-speak.el (speechd-speak--post-command-hook):
 	message-priority in block parameters, not `priority'.
