@@ -215,7 +215,7 @@ but may create a new connection.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.37 2003-07-25 11:49:37 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.38 2003-07-27 16:25:02 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -870,9 +870,11 @@ initiates sending text data to speechd immediately."
   (speechd--set-parameter :message-priority priority)
   (unless (string= text "")
     (flet ((properties (point)
-             (list :voice (cdr (assq (get-text-property point 'face text)
-                                     speechd-face-voices))
-                   :language (get-text-property point 'language text))))
+             (let ((voice (cdr (assq (get-text-property point 'face text)
+                                     speechd-face-voices)))
+                   (language (get-text-property point 'language text)))
+               (append (when voice (list :voice voice))
+                       (when language (list :language language))))))
       (speechd-block ()
         (let* ((beg 0)
                (new-properties (properties beg)))
