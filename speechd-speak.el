@@ -31,7 +31,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.18 2003-07-15 17:36:08 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.19 2003-07-16 17:51:33 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -379,6 +379,7 @@ Level 1 is the slowest, level 9 is the fastest."
   (speechd-speak-read-buffer (window-buffer (get-lru-window))))
 
 (defun speechd-speak--window-contents ()
+  (sit-for 0)                           ; to update window start and end
   (speechd-speak-read-region (window-start) (window-end)))
 
 (defun speechd-speak--uniform-text-around-point ()
@@ -403,8 +404,11 @@ Level 1 is the slowest, level 9 is the fastest."
     `(defun ,function-name ()
        (interactive)
        (save-excursion
-	 (let ((end (progn (,forward-function 1) (point)))
-	       (beg (progn (,backward-function 1) (point))))
+	 (let* ((point (point))
+                (end (progn (,forward-function 1) (point)))
+                (beg (progn (,backward-function 1) (point))))
+           (when (<= (progn (,forward-function 1) (point)) point)
+             (setq beg end))
 	   (speechd-speak-read-region beg end))))))
 
 (speechd-speak--def-speak-object word)
