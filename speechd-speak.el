@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.40 2003-08-07 18:58:43 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.41 2003-08-08 17:41:06 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -86,6 +86,14 @@ processed in a different way by speechd-speak or user definitions."
   '(" widget-choose" "*Choices*")
   "List of names of buffers, in which insertions are automatically spoken.
 See also `speechd-speak-buffer-insertions'."
+  :type '(repeat string)
+  :group 'speechd-speak)
+
+(defcustom speechd-speak-priority-insertions-in-buffers '()
+  "List of names of buffers, in which insertions are spoken immediately.
+Unlike `speechd-speak-insertions-in-buffers', speaking is not delayed until a
+command is completed.
+This is typically useful in comint buffers."
   :type '(repeat string)
   :group 'speechd-speak)
 
@@ -640,9 +648,6 @@ connections, otherwise create completely new connection."
 (speechd-speak--command-feedback (forward-page backward-page) after
   (speechd-speak-read-page))
 
-(speechd-speak--command-feedback (beginning-of-defun end-of-defun) after
-  (speechd-speak-read-line))
-
 (speechd-speak--command-feedback (scroll-up scroll-down) after
   (speechd-speak--window-contents))
 
@@ -852,17 +857,19 @@ connections, otherwise create completely new connection."
     (speechd-speak--with-command-start-info
       (unless (= beg end)
         (cond
+         ((member (buffer-name) speechd-speak-priority-insertions-in-buffers)
+          (speechd-speak--text (speechd-speak--buffer-substring beg end)
+                               :priority 'message))
+         ((member (buffer-name) speechd-speak-insertions-in-buffers)
+          (push (speechd-speak--buffer-substring beg end)
+                (speechd-speak--command-info-struct-other-changes info)))
          ((eq (current-buffer)
               (speechd-speak--command-info-struct-buffer info))
           (if (speechd-speak--in-minibuffer-p)
               (progn
                 (speechd-speak--read-other-changes)
                 (speechd-speak--minibuffer-update beg end len))
-            (speechd-speak--add-command-text info beg end)))
-         ((member (buffer-name (current-buffer))
-                  speechd-speak-insertions-in-buffers)
-          (push (speechd-speak--buffer-substring beg end)
-                (speechd-speak--command-info-struct-other-changes info))))))))
+            (speechd-speak--add-command-text info beg end))))))))
 
 (defun speechd-speak--pre-command-hook ()
   (speechd-speak--set-command-start-info)
@@ -1000,10 +1007,6 @@ connections, otherwise create completely new connection."
 
 (speechd-speak--command-feedback comint-show-output after
   (speechd-speak-read-region))
-
-(speechd-speak--defadvice comint-output-filter around
-  ;; TODO:
-  ad-do-it)
 
 
 ;;; Completions, menus, etc.
