@@ -1,4 +1,38 @@
+2003-07-04  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak-report): New function.
+	(speechd-speak-empty-message)
+	(speechd-speak-beginning-of-line-message)
+	(speechd-speak-end-of-line-message): New user options.
+	(speechd-speak-read-region): Use them.
+	(speechd-speak--post-command-hook): Report beginnings and ends of
+	lines.
+
+	* speechd.el (speechd-default-voice): New user option.
+	(speechd-open): Call speechd-set-voice.
+	(speechd-default-voice): May be string only.
+	(speechd-speak-connection-parameters): New user option.
+	(speechd-open): Consider it.
+	(speechd-speak-connection-parameters): Moved to the `speechd'
+	group.
+
+2003-07-03  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak--connection-name): New function.
+	(speechd-speak--maybe-speak): Bound its return value to
+	speechd-client-naem.
+	(speechd-speak-connections): New user option.
+	(speechd-speak--last-buffer-mode)
+	(speechd-speak--last-connection-name)
+	(speechd-speak--default-connection-name)
+	(speechd-speak--special-area): New variables.
+	(speechd-speak--current-message): Set speechd-speak--special-area.
+
 2003-07-02  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-face-voices): New user option.
+	(speechd--with-connection-parameter): New macro.
+	(speechd-say-text): Map text faces to appropriate voices.
 
 	* speechd-speak.el (speechd-speak--current-message): New optional
 	argument REPEATABLE.
@@ -16,6 +50,7 @@
 	(speechd-speak--next-property-change) 
 	(speechd-speak--previous-property-change): Use
 	*-char-property-change functions.
+	(speechd-speak-connections): New variable.
 
 2003-07-01  Milan Zamazal  <pdm@brailcom.org>
 
