@@ -236,13 +236,14 @@ key, can be invoked as @kbd{C-e C-e}.
 
 @menu
 * Reading Commands::            Reading pieces of text.
+* Informatory Commands::        Information about buffer, modes, etc.
 * Control Commands::            Stopping, setting speech rate, etc.
 * Parameter Setting Commands::  Modifying speech output.
 * Spelling::                    How to spell a piece of text.
 * Other Commands::              Auxiliary commands.
 @end menu
 
-@node Reading Commands, Control Commands, Commands, Commands
+@node Reading Commands, Informatory Commands, Commands, Commands
 @subsection Reading Commands
 
 @table @kbd
@@ -369,7 +370,47 @@ If non-@code{nil}, allow the speechd-speak commands mentioned above in
 read-char prompts.
 @end vtable
 
-@node Control Commands, Parameter Setting Commands, Reading Commands, Commands
+@node Informatory Commands, Control Commands, Reading Commands, Commands
+@subsection Informatory Commands
+
+@table @kbd
+@item C-e C-i b
+@findex speechd-speak-buffer-info
+@cindex buffer
+Speak information about current buffer
+(@code{speechd-speak-buffer-info}).
+
+@item C-e C-i f
+@findex speechd-speak-frame-info
+@cindex frame
+Speak information about current frame (@code{speechd-speak-frame-info}).
+
+@item C-e C-i m
+@findex speechd-speak-mode-info
+@cindex modes
+Speak information about current major and minor modes
+(@code{speechd-speak-mode-info}).
+
+@item C-e C-i c
+@findex speechd-speak-coding-info
+@cindex coding systems
+Speak information about current coding systems
+(@code{speechd-speak-coding-info}).
+
+@item C-e C-i i
+@findex speechd-speak-input-method-info
+@cindex input method
+Speak information about current input method
+(@code{speechd-speak-input-method-info}).
+
+@item C-e C-i p
+@findex speechd-speak-process-info
+@cindex process
+Speak status of the process associated with the current buffer
+(@code{speechd-speak-process-info}).
+@end table
+
+@node Control Commands, Parameter Setting Commands, Informatory Commands, Commands
 @subsection Control Commands
 
 @table @kbd
@@ -1344,16 +1385,6 @@ so easily provided in the standard speech output interface.
 Some examples:
 
 @itemize @bullet
-@cindex buffer name
-@item
-@emph{Reporting current buffer name:}
-
-@lisp
-(defun report-current-buffer ()
-  (interactive)
-  (message "%s" (buffer-name)))
-@end lisp
-
 @item
 @emph{Reporting current date in calendar:}
 

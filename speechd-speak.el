@@ -1579,6 +1579,142 @@ When the mode is enabled, all spoken text is spelled."
   
 
 
+;;; Informatory commands
+
+
+(defvar speechd-speak-info-map (make-sparse-keymap))
+
+(defvar speechd-speak--info-updates nil)
+
+(defmacro* speechd-speak--watch (name get-function
+                                 &key on-change info info-string key)
+  `(locally
+     (fset (quote ,(speechd-speak--name 'speechd-speak--get name))
+           ,get-function)
+     ,(when info
+        `(fset (quote ,(speechd-speak--name 'speechd-speak name 'info))
+               #'(lambda (info)
+                   (interactive)
+                   (funcall ,info info))))
+     ,(when info-string
+        `(fset (quote ,(speechd-speak--name 'speechd-speak name 'info))
+               #'(lambda ()
+                   (interactive)
+                   (speechd-speak--text
+                    (format ,info-string
+                            (funcall
+                             (function ,(speechd-speak--name
+                                         'speechd-speak--get name))))))))
+     ,(when (and (or info info-string) key)
+        `(define-key speechd-speak-info-map ,key
+           (quote ,(speechd-speak--name 'speechd-speak name 'info))))
+     ,(when on-change
+        `(defun ,(speechd-speak--name 'speechd-speak--update name) (old new)
+           (speechd-speak--maybe-speak
+            (funcall ,on-change old new))))
+     ,(when on-change
+        `(add-to-list 'speechd-speak--info-updates (quote ,name)))))
+
+(speechd-speak--watch buffer-name #'buffer-name
+  :on-change #'(lambda (old new)
+                 (speechd-speak--text "Old buffer: %s; new buffer: %s"
+                                      old new)))
+
+(speechd-speak--watch buffer-modified #'buffer-modified-p
+  :on-change #'(lambda (old new)
+                 (speechd-speak--text
+                  (if new "Buffer modified" "No buffer modification"))))
+
+(speechd-speak--watch buffer-read-only #'(lambda () buffer-read-only)
+  :on-change #'(lambda (old new)
+                 (speechd-speak--text
+                  (if new "Buffer writable" "Buffer read-only"))))
+
+(defun speechd-speak-buffer-info ()
+  "Speak current buffer name."
+  (interactive)
+  (speechd-speak--text
+   (format "Buffer %s, %s %s %s" (speechd-speak--get-buffer-name)
+           (or vc-mode "")
+           (if (speechd-speak--get-buffer-read-only) "read only" "")
+           (if (speechd-speak--get-buffer-modified) "modified" ""))))
+(define-key speechd-speak-info-map "b" 'speechd-speak-buffer-info)
+
+(speechd-speak--watch frame #'(lambda () (frame-parameter nil 'name))
+  :on-change #'(lambda (old new)
+                 (speechd-speak--text
+                  (format "Old frame: %s; new frame: %s" old new)))
+  :info-string "Frame %s"
+  :key "f")
+
+(speechd-speak--watch major-mode #'(lambda () mode-name)
+  :on-change #'(lambda (old new)
+                 (speechd-speak--text
+                  (format "Major mode changed from %s to %s" old new))))
+
+(speechd-speak--watch minor-modes
+  #'(lambda () (remove-if #'(lambda (mode) (or (not (boundp mode))
+                                               (not (symbol-value mode))))
+                          (mapcar #'car minor-mode-alist)))
+  :on-change #'(lambda (old new)
+                 (let ((disabled (set-difference old new))
+                       (enabled (set-difference new old)))
+                   (when disabled
+                     (speechd-speak--text
+                      (format "Disabled minor modes: %s" disabled)))
+                   (when enabled
+                     (speechd-speak--text
+                      (format "Enabled minor modes: %s" enabled))))))
+
+(defun speechd-speak-mode-info ()
+  "Speak information about current major and minor modes."
+  (interactive)
+  (speechd-speak--text
+   (format "Major mode: %s; minor modes: %s"
+           (speechd-speak--get-major-mode)
+           (speechd-speak--get-minor-modes))))
+(define-key speechd-speak-info-map "m" 'speechd-speak-mode-info)
+
+(speechd-speak--watch buffer-file-coding
+  #'(lambda () buffer-file-coding-system)
+  :on-change #'(lambda (old new)
+                 (speechd-speak--text
+                  (format "Buffer file coding changed from %s to %s"
+                          old new))))
+
+(speechd-speak--watch terminal-coding #'terminal-coding-system
+  :on-change #'(lambda (old new)
+                 (speechd-speak--text
+                  (format "Terminal coding changed from %s to %s" old new))))
+
+(defun speechd-speak-coding-info ()
+  "Speak information about current codings."
+  (interactive)
+  (speechd-speak--text
+   (format "Buffer file coding is %s, terminal coding is %s"
+           (speechd-speak--get-buffer-file-coding)
+           (speechd-speak--get-terminal-coding))))
+(define-key speechd-speak-info-map "c" 'speechd-speak-coding-info)
+
+(speechd-speak--watch input-method #'(lambda ()
+                                       (or current-input-method "none"))
+  :on-change #'(lambda (old new)
+                 (speechd-speak--text
+                  (format "Input method changed from %s to %s" old new)))
+  :info-string "Input method %s"
+  :key "i")
+
+(speechd-speak--watch process
+  #'(lambda ()
+      (let ((process (get-buffer-process (current-buffer))))
+        (and process (process-status process))))
+  :on-change #'(lambda (old new)
+                 (speechd-speak--text
+                  (format "Process status changed from %s to %s" old new)))
+  :info-string "Process status: %s"
+  :key "p")
+
+
 ;;; Mode definition
 
 
@@ -1608,6 +1744,7 @@ When the mode is enabled, all spoken text is spelled."
 (define-key speechd-speak-mode-map ">" 'speechd-speak-read-rest-of-buffer)
 (define-key speechd-speak-mode-map "\C-a" 'speechd-add-connection-settings)
 (define-key speechd-speak-mode-map "\C-c" 'speechd-speak-new-connection)
+(define-key speechd-speak-mode-map "\C-i" speechd-speak-info-map)
 (define-key speechd-speak-mode-map "\C-l" 'speechd-speak-spell)
 (define-key speechd-speak-mode-map "\C-m" 'speechd-speak-read-mode-line)
 (define-key speechd-speak-mode-map "\C-n" 'speechd-speak-read-next-line)

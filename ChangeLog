@@ -1,8 +1,20 @@
 2004-09-21  Milan Zamazal  <pdm@brailcom.org>
 
+	* speechd-speak.el (speechd-speak-info-map): New keymap.
+	(speechd-speak-mode-map): Assign it to a key.
+	(speechd-speak--watch): New macro.
+	(speechd-speak--info-updates): New variable.
+	(speechd-speak-buffer-info, speechd-speak-mode-info)
+	(speechd-speak-coding-info): New commands.
+	(buffer-name, buffer-modified, buffer-read-only, frame)
+	(major-mode, minor-modes, buffer-file-coding, terminal-coding)
+	(input-method, process): New watch definitions.
+
+2004-09-21  Milan Zamazal  <pdm@brailcom.org>
+
 	* speechd-speak.el (speechd-speak--name): New function.
 	(speechd-speak--def-speak-object, speechd-speak--cinfo)
-	(speechd-speak--post-defun): 
+	(speechd-speak--post-defun): Use it.
 
 2004-09-20  Milan Zamazal  <pdm@brailcom.org>
 

@@ -13,6 +13,10 @@ It allows you to control speaking of repeated messages.
 
 See the command speechd-speak-read-mode-line bound to the `C-e RET' key.
 
+** New commands providing basic information about current environment.
+
+Type `C-e C-i C-h' to see the list of those commands.
+
 ** The SPEECHD_HOST environment variable is honored now.
 
 ** Changes in communication with Speech Dispatcher.
