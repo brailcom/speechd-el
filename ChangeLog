@@ -1,3 +1,12 @@
+2003-10-15  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak-buffer-name): New value `text';
+	set as the default value.
+	(buffer-switch): Consider the previous change; enclose the whole
+	signalization into a block with the priority `text'.  Read only
+	rest of the current line.
+	* speechd-el.texi (Basic Speaking): The change documented.
+
 2003-10-14  Milan Zamazal  <pdm@brailcom.org>
 	
 	* speechd-speak.el (speechd-speak--signal): Return t if really
