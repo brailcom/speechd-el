@@ -297,9 +297,6 @@ This may be useful when debugging speechd-el itself."
   :type 'sexp
   :group 'speechd-speak)
 
-(defvar speechd-speak-quiet-functions '(imap-arrival-filter)
-  "List of functions, which shouldn't produce any spoken output.")
-
 
 ;;; Internal constants
 
@@ -799,11 +796,6 @@ connections, otherwise create completely new connection."
                              (speechd-speak--new-connection-name)))))
     (set (make-local-variable 'speechd-client-name) name)
     (setq speechd-speak--client-name-set t)))
-
-(dolist (f speechd-speak-quiet-functions)
-  (eval `(speechd-speak--defadvice ,f around
-           (let ((speechd-speak-mode nil))
-             ad-do-it))))
 
 
 ;;; Basic speaking

@@ -1,5 +1,9 @@
 2004-09-20  Milan Zamazal  <pdm@brailcom.org>
 
+	* speechd-speak.el (speechd-speak-quiet-functions): Removed.
+
+2004-09-20  Milan Zamazal  <pdm@brailcom.org>
+
 	* speechd-speak.el (speechd-speak--last-spoken-message-time): New
 	variable.
 	(speechd-speak-message-time-interval): New user option.
