@@ -60,18 +60,29 @@ Nil if no connection is currently open.")
   :type 'integer
   :group 'speechd)
 
+(defconst speechd-priority-tags
+  '(radio (const :tag "High"   :value :high)
+	  (const :tag "Medium" :value :medium)
+	  (const :tag "Low"    :value :low)))
+
 (defcustom speechd-default-text-priority :medium
   "*Default Speech Daemon priority of sent texts."
-  :type '(radio (const :tag "High"   :value :high)
-		(const :tag "Medium" :value :medium)
-		(const :tag "Low"    :value :low))
+  :type speechd-priority-tags
   :group 'speechd)
 
-(defcustom speechd-default-letter-priority :low
+(defcustom speechd-default-sound-priority :medium
+  "*Default Speech Daemon priority of sent sound icons."
+  :type speechd-priority-tags
+  :group 'speechd)
+
+(defcustom speechd-default-char-priority :low
   "*Default Speech Daemon priority of sent single letters."
-  :type '(radio (const :tag "High"   :value :high)
-		(const :tag "Medium" :value :medium)
-		(const :tag "Low"    :value :low))
+  :type speechd-priority-tags
+  :group 'speechd)
+
+(defcustom speechd-default-key-priority :low
+  "*Default Speech Daemon priority of sent symbols of keys."
+  :type speechd-priority-tags
   :group 'speechd)
 
 (defcustom speechd-debug nil
@@ -80,7 +91,7 @@ Nil if no connection is currently open.")
   :group 'speechd)
 
 
-(defconst speechd-el-version "speechd-el $Id: speechd.el,v 1.5 2003-04-16 08:26:39 pdm Exp $"
+(defconst speechd-el-version "speechd-el $Id: speechd.el,v 1.6 2003-04-16 19:40:15 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -324,15 +335,13 @@ for closer description of those arguments."
   (when finish
     (speechd-send-data-end)))
 
-(defun* speechd-say-char (char &key (priority speechd-default-letter-priority))
+(defun* speechd-say-sound (name &key (priority speechd-default-sound-priority))
   (speechd-set-priority priority)
-  (speechd-send-command "SND_ICON"
-			(format "%s%c"
-				(case char
-				  ((?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9) "digit_")
-				  ((?+ ?-) "sgn_")
-				  (t "letter_"))
-				char)))
+  (speechd-send-command "SOUND_ICON" name))
+
+(defun* speechd-say-char (char &key (priority speechd-default-char-priority))
+  (speechd-set-priority priority)
+  (speechd-send-command "CHAR" (char-to-string char)))
 
   
 ;;;###autoload
