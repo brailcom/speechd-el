@@ -121,6 +121,9 @@ parameter values.  Valid parameter names are the following:
 :pitch, :output-module.  See the corresponding speechd-set-* functions for
 valid parameter values.
 
+The :message-priority parameter has a special meaning: It overrides priority of
+all messages sent through the connection.
+
 You must reopen the connections to apply the changes to this variable."
   :get #'(lambda (name)
            (mapcar
@@ -181,6 +184,12 @@ You must reopen the connections to apply the changes to this variable."
   :type 'string
   :group 'speechd)
 
+(defcustom speechd-default-language "en"
+  "Language to be used by default.
+If nil, no default language is defined and the last language set is used."
+  :type '(choice (string :tag "ISO code") (const :tag "None" nil))
+  :group 'speechd)
+
 (defcustom speechd-face-voices '()
   "Alist mapping faces to voices.
 Each of the alist element is of the form (FACE . STRING) where FACE is a face
@@ -206,7 +215,7 @@ current voice."
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.34 2003-07-17 17:13:19 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.35 2003-07-24 14:42:48 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -278,10 +287,12 @@ Useful only for diagnosing problems.")
   (process-output nil)
   (request-queue (queue-create))
   (paused-p nil)
+  (in-block nil)
   (transaction-state 'nil)
   (new-state nil)
   (reading-answer-p nil)
-  (parameters ()))
+  (parameters ())
+  (forced-priority nil))
 
 (defstruct speechd--request
   string
@@ -327,28 +338,39 @@ wrapped by this macro."
 	     ,@body)
 	 (setf (,accessor connection) ,orig-value)))))
 
-(defmacro* speechd--with-connection-parameter ((parameter value) &body body)
-  (let (($parameter (gensym))
-        ($value (gensym))
-        ($orig-value (gensym))
-        ($change-needed (gensym)))
-    `(let* ((,$parameter ,parameter)
-            (,$value ,value)
-            (,$orig-value (plist-get
-                           (speechd--connection-parameters connection)
-                           ,$parameter))
-            (,$change-needed (not (equal ,$value ,$orig-value))))
+(defmacro* speechd--with-connection-parameters (parameters &body body)
+  (let (($parameters (gensym))
+        ($orig-parameters (gensym))
+        ($p (gensym))
+        ($v (gensym))
+        ($orig-v (gensym))
+        ($pv (gensym)))
+    `(let* ((,$parameters ,parameters)
+            (,$orig-parameters ()))
        (unwind-protect
            (progn
-             (when ,$change-needed
-               (speechd--set-parameter ,$parameter ,$value))
+             (while ,$parameters
+               (let* ((,$p (first ,$parameters))
+                      (,$v (second ,$parameters))
+                      (,$orig-v (plist-get
+                                 (speechd--connection-parameters connection)
+                                 ,$p)))
+                 (unless (equal ,$v ,$orig-v)
+                   (push (cons ,$p ,$orig-v) ,$orig-parameters)
+                   (speechd--set-parameter ,$p ,$v)))
+               (setq ,$parameters (nthcdr 2 ,$parameters)))
              ,@body)
-         (when ,$change-needed
-           (speechd--set-parameter ,$parameter ,$orig-value))))))
+         (dolist (,$pv ,$orig-parameters)
+           (speechd--set-parameter (car ,$pv) (cdr ,$pv)))))))
 
 (defconst speechd--maximum-queue-length 10)
 (defun speechd--queue-too-long-p (queue)
   (>= (queue-length queue) speechd--maximum-queue-length))
+
+(defun speechd-language (string language)
+  "Put language property LANGUAGE on whole STRING."
+  (put-text-property 0 (length string) 'language language string)
+  string)
 
 
 ;;; Process management functions
@@ -420,10 +442,12 @@ Return the opened connection on success, nil otherwise."
 	(setq host (speechd--connection-host connection)
 	      port (speechd--connection-port connection)))
       (let* ((name speechd-client-name)
+             (default-parameters (cdr (assoc speechd-client-name
+                                             speechd-connection-parameters)))
 	     (parameters (if connection
                              (speechd--connection-parameters connection)
-                           (cdr (assoc speechd-client-name
-                                       speechd-connection-parameters))))
+                           default-parameters))
+             (forced-priority (plist-get default-parameters :message-priority))
 	     (process (when (or
                              (not connection)
                              (not (speechd--connection-failure-p connection))
@@ -453,11 +477,19 @@ Return the opened connection on success, nil otherwise."
 	(when process
 	  (speechd--set-connection-name name)
           (speechd-set-voice speechd-default-voice)
+          (when speechd-default-language
+            (speechd-set-language speechd-default-language))
 	  (while parameters
 	    (destructuring-bind (parameter value . next) parameters
 	      (when (not (eq parameter :client-name))
 		(speechd--set-parameter parameter value))
-	      (setq parameters next))))))
+	      (setq parameters next))))
+        (let ((priority (and
+                         connection
+                         (plist-get default-parameters :message-priority))))
+          (when priority
+            (speechd--set-parameter :message-priority priority)
+            (setf (speechd--connection-forced-priority connection) t)))))
     connection))
 
 (defun* speechd-close (&optional (name speechd-client-name))
@@ -705,7 +737,9 @@ Return the opened connection on success, nil otherwise."
 	   (orig-value (if (plist-member plist parameter)
 			   (plist-get plist parameter)
 			 'unknown)))
-      (unless (equal orig-value value)
+      (unless (or (equal orig-value value)
+                  (and (eq parameter :message-priority)
+                       (speechd--connection-forced-priority connection)))
 	(let ((answer
 	       (speechd--send-command
 		(list "SET" "self"
@@ -775,6 +809,34 @@ Language must be an RFC 1766 language code, as a string."
 (speechd--generate-set-command :output-module "Output module" nil)
 
 
+;;; Blocks
+
+
+(defmacro* speechd-block (parameters &body body)
+  (let (($parameters (gensym)))
+    `(progn
+       (let ((,$parameters (list ,@parameters)))
+         (while ,$parameters
+           (speechd--set-parameter (first ,$parameters) (second ,$parameters))
+           (setq ,$parameters (nthcdr 2 ,$parameters))))
+       ,(if t
+            `(progn ,@body)
+       (speechd--with-current-connection
+        (if (and connection (speechd--connection-in-block connection))
+            (progn ,@body)
+          (speechd--send-command '("BLOCK BEGIN"))
+          (unwind-protect
+              (progn
+                (speechd--with-current-connection
+                 (when connection
+                   (setf (speechd--connection-in-block connection) t)))
+                ,@body)
+            (speechd--with-current-connection
+             (when connection
+               (setf (speechd--connection-in-block connection) nil)
+               (speechd--send-command '("BLOCK END")))))))))))
+
+
 ;;; Speaking functions
 
 
@@ -793,27 +855,31 @@ initiates sending text data to speechd immediately."
   (interactive "sText: ")
   (speechd--set-parameter :message-priority priority)
   (unless (string= text "")
-    (flet ((voice (point)
-             (cdr (assq (get-text-property point 'face text)
-                        speechd-face-voices))))
-      (let* ((beg 0)
-             (new-voice (voice beg)))
-        (while beg
-          (let* ((voice new-voice)
-                 (change-point beg)
-                 (end (progn
-                        (while (and (setq change-point (next-property-change
-                                                        change-point text))
-                                    (equal voice (setq new-voice
-                                                       (voice change-point)))))
-                        change-point))
-                 (substring (substring text beg end)))
-            (if voice
-                (speechd--with-current-connection
-                  (speechd--with-connection-parameter (:voice voice)
-                    (speechd--send-data substring)))
-              (speechd--send-data substring))
-            (setq beg end))))))
+    (flet ((properties (point)
+             (list :voice (cdr (assq (get-text-property point 'face text)
+                                     speechd-face-voices))
+                   :language (get-text-property point 'language text))))
+      (speechd-block ()
+        (let* ((beg 0)
+               (new-properties (properties beg)))
+          (while beg
+            (let* ((properties new-properties)
+                   (change-point beg)
+                   (end (progn
+                          (while (and
+                                  (setq change-point (next-property-change
+                                                      change-point text))
+                                  (equal properties
+                                         (setq new-properties
+                                               (properties change-point)))))
+                          change-point))
+                   (substring (substring text beg end)))
+              (if properties
+                  (speechd--with-current-connection
+                   (speechd--with-connection-parameters properties
+                     (speechd--send-data substring)))
+                (speechd--send-data substring))
+              (setq beg end)))))))
   (when finish
     (speechd--send-data-end)))
 
