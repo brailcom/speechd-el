@@ -22,9 +22,10 @@ install-strip:
 uninstall:
 
 mostlyclean:
+	rm -f *.aux *.cp *.cps *.fn *.ky *.log *.pg *.toc *.tp *.vr
 
 clean: mostlyclean
-	rm -f *.dvi *.pdf *.ps
+	rm -f *.dvi *.elc speechd-el.pdf *.ps
 
 distclean: clean
 
