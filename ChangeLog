@@ -1,3 +1,9 @@
+2003-10-22  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd--send-data): When sending final eol, check
+	the original string, not the final rest of string.  Omit the final
+	newline only for empty texts.
+
 2003-10-21  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-el.texi (Auto-Speaking Buffers):
