@@ -1,5 +1,15 @@
 2003-11-05  Milan Zamazal  <pdm@brailcom.org>
 
+	* speechd-bug.el (speechd-bug): Use key-description for formatting
+	the prefix key; use the speechd-bug--finish-repro-key variable.
+	(speechd-bug--dribble-file): New variable.
+	(speechd-bug--start-repro): Start outputting to a dribble file.
+	(speechd-bug--insert-dribble-file): New function.
+	(speechd-bug--finish-repro): Call it.
+	(speechd-bug--finish-repro-key): Value changed to "\C-z".
+	(speechd-bug--insert-config-file): Ask the user for the config
+	file location if not found.
+
 	* speechd-el.texi (Problems): Buffer modification reading added.
 
 	* speechd-speak.el (special-face-movement): Don't set finished
