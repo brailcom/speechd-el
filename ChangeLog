@@ -12,6 +12,8 @@
 
 2003-08-19  Milan Zamazal  <pdm@brailcom.org>
 
+	* speechd-el.texi: Direntry fixed.
+
 	* speechd.el (speechd--priority-tags): Extra quotes removed.
 
 2003-08-13  Milan Zamazal  <pdm@brailcom.org>
