@@ -31,7 +31,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.9 2003-06-29 19:40:57 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.10 2003-06-30 15:22:55 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -57,15 +57,59 @@
   :type 'boolean
   :group 'speechd-speak)
 
+(defcustom speechd-speak-auto-speak-buffers '("*Help*")
+  "List of names of other-window buffers to speak is nothing else fits.
+If nothing else is to be spoken after a command and a visible window in the
+current frame displaying a buffer with a name contained in this list is
+changed, the contents of the window buffer is spoken."
+  :type '(repeat string)
+  :group 'speechd-speak)
+
 (defcustom speechd-speak-by-properties-on-movement t
   "Method of selection of the piece of text to be spoken on movement.
 Unless a command provides its speechd feedback in a different way, it speaks
 the current line by default if the cursor has moved.  However, if this variable
-is non-nil, it speaks the uniform text around the cursor, where \"uniform\"
+is t, it speaks the uniform text around the cursor, where \"uniform\"
 means the maximum amount of text without any text property change.
+
+If the variable is a list of faces, uniform text is spoken only when the cursor
+is on one of the named faces.
+
 Speaking uniform text only works if font-lock-mode is enabled for the current
-buffer."
-  :type 'boolean
+buffer.
+
+See also `speechd-speak-by-properties-always' and
+`speechd-speak-by-properties-never'."
+  :type '(choice (const t) (repeat face))
+  :group 'speechd-speak)
+
+(defcustom speechd-speak-by-properties-always '()
+  "List of commands to always speak by properties on movement.
+The elements of the list are command names, symbols.
+
+See `speechd-speak-by-properties-on-movement' for more information about
+property speaking."
+  :type '(repeat symbol)
+  :group 'speechd-speak)
+
+(defcustom speechd-speak-by-properties-never '()
+  "List of commands to never speak by properties on movement.
+The elements of the list are command names, symbols.
+
+See `speechd-speak-by-properties-on-movement' for more information about
+property speaking."
+  :type '(repeat symbol)
+  :group 'speechd-speak)
+
+(defcustom speechd-speak-faces '()
+  "Alist of faces and speaking functions.
+Each element of the list is of the form (FACE . ACTION).
+If a movement command leaves the cursor on a FACE and there is no explicit
+speaking bound to the command, ACTION is invoked.
+
+If ACTION is a string, the string is spoken.
+If ACTION is a function, it is invoked, with no arguments."
+  :type '(repeat (cons face (choice string function)))
   :group 'speechd-speak)
 
 (defcustom speechd-speak-whole-line nil
@@ -84,6 +128,7 @@ Otherwise from the point to the end of line on movement by default."
 
 
 ;;; Control functions
+
 
 (defvar speechd-speak-quiet t
   "If non-nil in the current buffer, no speech output is produced.")
@@ -184,15 +229,17 @@ Level 1 is the slowest, level 9 is the fastest."
   (interactive)
   (speechd-speak--char (or char (following-char))))
 
-(defun speechd-speak-read-region (&optional beg end)
+(defun speechd-speak-read-region (&optional beg end empty-text)
   (interactive "r")
   (let ((text (buffer-substring (or beg (mark)) (or end (point)))))
-    (speechd-speak--text (if (string= text "") "empty" text) :priority :text)))
+    (speechd-speak--text (if (string= text "") (or empty-text "empty") text)
+			 :priority :text)))
 
-(defun speechd-speak-read-line (&optional rest-only)
+(defun speechd-speak-read-line (&optional rest-only in-minibuffer)
   (interactive)
   (speechd-speak-read-region (if rest-only (point) (line-beginning-position))
-			     (line-end-position)))
+			     (line-end-position)
+			     (when in-minibuffer "")))
 
 (defun speechd-speak-read-next-line ()
   (interactive)
@@ -256,6 +303,13 @@ Level 1 is the slowest, level 9 is the fastest."
 (speechd-speak--def-speak-object page)
 (speechd-speak--def-speak-object sexp)
 
+(defstruct speechd-speak--command-info-struct
+  buffer
+  point
+  modified
+  other-window
+  other-buffer-modified)
+
 (defvar speechd-speak--command-start-info (make-vector 5 nil))
 
 (defmacro* speechd-speak--with-minibuffer-depth (&body body)
@@ -269,6 +323,9 @@ Level 1 is the slowest, level 9 is the fastest."
 		       nil))))
      ,@body))
 
+(defun speechd-speak--in-minibuffer-p ()
+  (window-minibuffer-p (selected-window)))
+
 (defun speechd-speak--command-start-info ()
   (speechd-speak--with-minibuffer-depth
     (aref speechd-speak--command-start-info depth)))
@@ -276,9 +333,18 @@ Level 1 is the slowest, level 9 is the fastest."
 (defun speechd-speak--set-command-start-info (&optional reset)
   (speechd-speak--with-minibuffer-depth
     (aset speechd-speak--command-start-info depth
-	  (if reset nil (ignore-errors (list (current-buffer)
-					     (point)
-					     (buffer-modified-tick)))))))
+	  (if reset
+	      nil
+	    (ignore-errors
+	      (let ((other-window (next-window)))
+		(make-speechd-speak--command-info-struct
+		 :buffer (current-buffer) :point (point)
+		 :modified (buffer-modified-tick)
+		 :other-window other-window
+		 :other-buffer-modified (and other-window
+					     (buffer-modified-tick
+					      (window-buffer other-window)
+					      )))))))))
 
 (defun speechd-speak--reset-command-start-info ()
   (speechd-speak--set-command-start-info t))
@@ -512,33 +578,75 @@ Level 1 is the slowest, level 9 is the fastest."
   (let ((command-info (speechd-speak--command-start-info)))
     (when command-info
       ;(speechd-speak--text (symbol-name this-command) :priority :notice)
-      (multiple-value-bind (buffer position modification) command-info
-	(let* ((buffer-changed (not (eq buffer (current-buffer))))
+      (macrolet ((info (slot)
+		  `(,(intern (concat "speechd-speak--command-info-struct-"
+				     (symbol-name slot)))
+		    command-info)))
+	(let* ((buffer-changed (not (eq (info buffer) (current-buffer))))
 	       (buffer-modified (and (not buffer-changed)
-				     (/= modification
+				     (/= (info modified)
 					 (buffer-modified-tick))))
 	       (point-moved (and (not buffer-changed)
-				 (not (= position (point))))))
+				 (not (= (info point) (point)))))
+	       (in-minibuffer (speechd-speak--in-minibuffer-p)))
 	  (cond
+	   ;; Speak commands that do can't speak in a regular way
 	   ((eq this-command 'self-insert-command)
 	    (speechd-speak-read-char (preceding-char)))
 	   ((memq this-command '(forward-char backward-char))
 	    (speechd-speak-read-char))
+	   ;; Buffer switch
 	   (buffer-changed
 	    (if speechd-speak-buffer-name
 		(speechd-speak--text (buffer-name) :priority :message)
 	      (speechd-speak-read-line)))
-	   ((and speechd-speak-by-properties-on-movement
-		 (not buffer-modified)
+	   ;; Buffer modification
+	   (buffer-modifified
+	    nil)
+	   ;; Special face hit
+	   ((and (not in-minibuffer)
+		 point-moved
+		 (assq (get-text-property (point) 'face) speechd-speak-faces))
+	    (let ((action (cdr (assq (get-text-property (point) 'face) 
+				     speechd-speak-faces))))
+	      (cond
+	       ((stringp action)
+		(speechd-speak--text action))
+	       ((functionp action)
+		(ignore-errors
+		  (funcall action))))))
+	   ;; General text property hit
+	   ((and (not in-minibuffer)
+		 (or (eq speechd-speak-by-properties-on-movement t)
+		     (memq (get-text-property (point) 'face)
+			   speechd-speak-by-properties-on-movement)
+		     (memq this-command speechd-speak-by-properties-always))
+		 (not (memq this-command speechd-speak-by-properties-never))
 		 point-moved
 		 (get-text-property (point) 'face)
-		 (or (> (previous-property-change (1+ (point)) nil position)
-			position)
-		     (<= (next-property-change (point) nil (1+ position))
-			 position)))
+		 (let ((position (info point)))
+		   (or (> (previous-property-change (1+ (point)) nil position)
+			  position)
+		       (<= (next-property-change (point) nil (1+ position))
+			   position))))
 	    (speechd-speak--uniform-text-around-point))
+	   ;; Boring movement
 	   (point-moved
-	    (speechd-speak-read-line (not speechd-speak-whole-line))))))))
+	    (speechd-speak-read-line (not speechd-speak-whole-line)
+				     in-minibuffer))
+	   ;; Something interesting in other window
+	   ((let* ((other-window (next-window))
+		   (other-buffer (and other-window
+				      (window-buffer other-window))))
+	      (and other-window
+		   (not in-minibuffer)
+		   (member (buffer-name other-buffer)
+			   speechd-speak-auto-speak-buffers)
+		   (not (eq other-buffer (current-buffer)))
+		   (or (not (eq other-window (info other-window)))
+		       (not (= (buffer-modified-tick other-buffer)
+			       (info other-buffer-modified))))))
+	    (speechd-speak-read-buffer (window-buffer (next-window)))))))))
   (add-hook 'post-command-hook 'speechd-speak--post-command-hook))
 
 
