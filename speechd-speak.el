@@ -31,7 +31,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.11 2003-07-01 09:52:32 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.12 2003-07-02 09:01:55 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -272,8 +272,8 @@ Level 1 is the slowest, level 9 is the fastest."
   (speechd-speak-read-region (window-start) (window-end)))
 
 (defun speechd-speak--uniform-text-around-point ()
-  (let ((beg (previous-property-change (1+ (point))))
-	(end (next-property-change (point))))
+  (let ((beg (previous-property-change (1+ (point)) nil (point-min)))
+	(end (next-property-change (point) nil (point-max))))
     (speechd-speak-read-region beg end)))
 
 (defun speechd-speak--speak-piece (start)
@@ -491,13 +491,15 @@ Level 1 is the slowest, level 9 is the fastest."
   (interactive)
   (speechd-speak--text speechd-speak--last-message))
 
-(defun speechd-speak--current-message ()
+(defun speechd-speak--current-message (&optional reset-last-spoken)
   (let ((message (current-message)))
     (when (and message
 	       (not (string= message speechd-speak--last-spoken-message)))
       (setq speechd-speak--last-message message
 	    speechd-speak--last-spoken-message message)
-      (speechd-speak--text message :priority :progress))))
+      (speechd-speak--text message :priority :progress)))
+  (when reset-last-spoken
+    (setq speechd-speak--last-spoken-message "")))
 
 (speechd-speak--defadvice message after
   (speechd-speak--current-message))
@@ -573,8 +575,7 @@ Level 1 is the slowest, level 9 is the fastest."
   ;; Emacs 21 after change functions in the *Messages* buffer don't work in
   ;; many situations.  This is a property of the Emacs implementation, so the
   ;; mechanism can't be used.
-  (speechd-speak--current-message)
-  (setq speechd-speak--last-spoken-message "")
+  (speechd-speak--current-message t)
   (let ((command-info (speechd-speak--command-start-info)))
     (when command-info
       ;(speechd-speak--text (symbol-name this-command) :priority :notice)
