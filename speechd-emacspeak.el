@@ -30,14 +30,7 @@
 
 ;;; Ensure dtk-* variables are set properly, otherwise Emacspeak will complain
 
-(defadvice speechd-open (after speechd-open-advice activate protect)
-  (when speechd-connection
-    (process-kill-without-query speechd-connection))
-  (setq dtk-speaker-process speechd-connection
-	dtk-speak-server-initialized t)
-  (add-hook 'kill-emacs-hook 'speechd-close))
-(defadvice speechd-close (after speechd-close-advice activate protect)
-  (setq dtk-speaker-process speechd-connection))
+(setq dtk-speak-server-initialized t)
 
 ;;; Emacspeak may not start before `dtk-initialize' gets redefined
 
@@ -60,7 +53,7 @@
 ;;; Redefine some Emacspeak functions
 
 (defun dtk-initialize ()
-  (speechd-open))
+  nil)
 
 ;; Avoid transformation of characters (unfortunately, `dtk-char-to-speech' is
 ;; an inline function).
