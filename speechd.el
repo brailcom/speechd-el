@@ -220,7 +220,7 @@ locally through `let'.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.54 2003-09-15 11:33:39 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.55 2003-09-22 09:39:33 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -833,7 +833,8 @@ VALUE must be %s."
 	  (t
 	   `(list
 	     (completing-read ,prompt*
-			      (mapcar #'list (speechd--list ,argdesc*)))))))
+			      (mapcar #'list
+                                      (speechd--list (quote ,argdesc*))))))))
        (speechd--set-parameter (quote ,parameter) value))))
 
 (speechd--generate-set-command punctuation-table "Punctuation table"
