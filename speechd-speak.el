@@ -31,7 +31,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.21 2003-07-21 09:13:22 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.22 2003-07-21 17:26:54 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -728,146 +728,160 @@ FUNCTION is invoked interactively."
   (let* ((info (speechd-speak--command-start-info))
          (old-content (speechd-speak--command-info-struct-minibuffer-contents
                        info))
-         (new-content (minibuffer-contents)))
+         (new-content (if (string= (buffer-string) "M-x ")
+                          ;; After change function may be invoked before M-x
+                          ;; becomes a prompt.
+                          ""
+                        (minibuffer-contents))))
     (when (not (string= old-content new-content))
+      (push (list old-content new-content) pokus)
+      (setf (speechd-speak--command-info-struct-minibuffer-contents info)
+            new-content)
       (speechd-speak--minibuffer-update-report
        info old-content new-content))))
 
 (defun speechd-speak--after-change-hook (beg end len)
-  (let ((info (speechd-speak--command-start-info)))
-    (when (and info
-               (eq (current-buffer)
-                   (speechd-speak--command-info-struct-buffer info))
-               (not (= beg end)))
-      (if (speechd-speak--in-minibuffer-p)
-          (speechd-speak--minibuffer-update beg end len)
-        (speechd-speak--add-command-text info (buffer-substring beg end))))))
+  (unless speechd-speak-quiet
+    (let ((info (speechd-speak--command-start-info)))
+      (when (and info
+                 (eq (current-buffer)
+                     (speechd-speak--command-info-struct-buffer info))
+                 (not (= beg end)))
+        (if (speechd-speak--in-minibuffer-p)
+            (speechd-speak--minibuffer-update beg end len)
+          (speechd-speak--add-command-text info
+                                           (buffer-substring beg end)))))))
 
 (defun speechd-speak--pre-command-hook ()
   (speechd-speak--set-command-start-info)
-  ;; Some parameters of interactive commands don't set up the minibuffer, so we
-  ;; have to speak the prompt in a special way.
-  (let ((interactive (cadr (interactive-form this-command))))
-    (save-match-data
-      (when (and (stringp interactive)
-		 (string-match "^[@*]*\\([eipPmnr]\n\\)*[ckK]\\(.+\\)"
-			       interactive))
-	(speechd-speak--prompt (match-string 2 interactive)))))
-  (add-hook 'pre-command-hook 'speechd-speak--pre-command-hook)
-  (add-hook 'after-change-functions 'speechd-speak--after-change-hook))
+  (unless speechd-speak-quiet
+    ;; Some parameters of interactive commands don't set up the minibuffer, so
+    ;; we have to speak the prompt in a special way.
+    (let ((interactive (cadr (interactive-form this-command))))
+      (save-match-data
+        (when (and (stringp interactive)
+                   (string-match "^[@*]*\\([eipPmnr]\n\\)*[ckK]\\(.+\\)"
+                                 interactive))
+          (speechd-speak--prompt (match-string 2 interactive))))))
+  (add-hook 'pre-command-hook 'speechd-speak--pre-command-hook))
 
 (defun speechd-speak--post-command-hook ()
-  ;; Messages should be handled by an after change function.  Unfortunately, in
-  ;; Emacs 21 after change functions in the *Messages* buffer don't work in
-  ;; many situations.  This is a property of the Emacs implementation, so the
-  ;; mechanism can't be used.
-  (speechd-speak--current-message t)
-  (let ((command-info (speechd-speak--command-start-info)))
-    (when command-info
-      (macrolet ((info (slot)
-		  `(,(intern (concat "speechd-speak--command-info-struct-"
-				     (symbol-name slot)))
-		    command-info)))
-	(let* ((buffer-changed (not (eq (info buffer) (current-buffer))))
-	       (buffer-modified (and (not buffer-changed)
-				     (/= (info modified)
-					 (buffer-modified-tick))))
-	       (point-moved (and (not buffer-changed)
-				 (not (= (info point) (point)))))
-	       (in-minibuffer (speechd-speak--in-minibuffer-p))
-               (other-spoken nil))
-          (flet ((other-window-change (buffers)
-                   (let* ((other-window (next-window))
-                          (other-buffer (and other-window
-                                             (window-buffer other-window))))
-                     (and other-window
-                          (not in-minibuffer)
-                          (member (buffer-name other-buffer) buffers)
-                          (not (eq other-buffer (current-buffer)))
-                          (or (not (eq other-window (info other-window)))
-                              (not (= (buffer-modified-tick other-buffer)
-                                      (info other-buffer-modified))))))))
-            (cond
-             ;; Speak commands that can't speak in a regular way
-             ((memq this-command '(forward-char backward-char))
+  (unless speechd-speak-quiet
+    ;; Messages should be handled by an after change function.  Unfortunately,
+    ;; in Emacs 21 after change functions in the *Messages* buffer don't work
+    ;; in many situations.  This is a property of the Emacs implementation, so
+    ;; the mechanism can't be used.
+    (speechd-speak--current-message t)
+    (let ((command-info (speechd-speak--command-start-info)))
+      (when command-info
+        (macrolet ((info (slot)
+                         `(,(intern (concat
+                                     "speechd-speak--command-info-struct-"
+                                     (symbol-name slot)))
+                           command-info)))
+          (let* ((buffer-changed (not (eq (info buffer) (current-buffer))))
+                 (buffer-modified (and (not buffer-changed)
+                                       (/= (info modified)
+                                           (buffer-modified-tick))))
+                 (point-moved (and (not buffer-changed)
+                                   (not (= (info point) (point)))))
+                 (in-minibuffer (speechd-speak--in-minibuffer-p))
+                 (other-spoken nil))
+            (flet ((other-window-change (buffers)
+                     (let* ((other-window (next-window))
+                            (other-buffer (and other-window
+                                               (window-buffer other-window))))
+                       (and other-window
+                            (not in-minibuffer)
+                            (member (buffer-name other-buffer) buffers)
+                            (not (eq other-buffer (current-buffer)))
+                            (or (not (eq other-window (info other-window)))
+                                (not (= (buffer-modified-tick other-buffer)
+                                        (info other-buffer-modified))))))))
               (cond
-               ((looking-at "^")
-                (when speechd-speak-signal-beginning-of-line
-                  (speechd-speak-report
-                   speechd-speak--beginning-of-line-message
-                   :priority speechd-default-char-priority)))
-               ((looking-at "$")
-                (when speechd-speak-signal-end-of-line
-                  (speechd-speak-report
-                   speechd-speak--end-of-line-message
-                   :priority speechd-default-char-priority))))
-              (speechd-speak-read-char))
-             ;; Buffer switch
-             (buffer-changed
-              (if speechd-speak-buffer-name
-                  (speechd-speak--text (buffer-name) :priority :message)
-                (speechd-speak-read-line)))
-             ;; Buffer modification
-             (buffer-modified
-              (when speechd-speak-buffer-insertions
-                (speechd-speak--text
-                 (mapconcat
-                  #'identity
-                  (save-match-data
-                    (delete-if
-                     #'(lambda (c)
-                         (and (eq speechd-speak-buffer-insertions 'one-line)
-                              (string-match "\n" c)))
-                     (funcall (if (eq this-command 'self-insert-command)
-                                  #'butlast #'identity)
-                              (reverse (info changes)))))
-                  "\n")))
-              (when (eq this-command 'self-insert-command)
-                (speechd-speak-read-char (preceding-char))))
-             ;; Special face hit
-             ((and (not in-minibuffer)
-                   point-moved
-                   (assq (get-char-property (point) 'face)
-                         speechd-speak-faces))
-              (let ((action (cdr (assq (get-char-property (point) 'face)
-                                       speechd-speak-faces))))
+               ;; Speak commands that can't speak in a regular way
+               ((memq this-command '(forward-char backward-char))
                 (cond
-                 ((stringp action)
-                  (speechd-speak--text action))
-                 ((functionp action)
-                  (ignore-errors
-                    (funcall action))))))
-             ;; General text or overlay property hit
-             ((and (not in-minibuffer)
-                   (or (eq speechd-speak-by-properties-on-movement t)
-                       (memq (get-char-property (point) 'face)
-                             speechd-speak-by-properties-on-movement)
-                       (memq this-command speechd-speak-by-properties-always))
-                   (not (memq this-command speechd-speak-by-properties-never))
-                   point-moved
-                   (get-char-property (point) 'face)
-                   (let ((position (info point)))
-                     (or (> (speechd-speak--previous-property-change
-                             (point) position)
-                            position)
-                         (<= (speechd-speak--next-property-change
-                              (point) (1+ position))
-                             position))))
-              (speechd-speak--uniform-text-around-point))
-             ;; Boring movement
-             (point-moved
-              (speechd-speak-read-line (not speechd-speak-whole-line)
-                                       in-minibuffer))
-             ;; Something interesting in other window
-             ((other-window-change speechd-speak-auto-speak-buffers)
-              (speechd-speak-read-buffer (window-buffer (next-window))))
-             (t
-              (setq other-spoken t)))
-            ;; If other window buffer is very interesting, speak it too
-            (when (and (not other-spoken)
-                       (other-window-change
-                        speechd-speak-force-auto-speak-buffers))
-              (speechd-speak-read-buffer (window-buffer (next-window)))))))))
+                 ((looking-at "^")
+                  (when speechd-speak-signal-beginning-of-line
+                    (speechd-speak-report
+                     speechd-speak--beginning-of-line-message
+                     :priority speechd-default-char-priority)))
+                 ((looking-at "$")
+                  (when speechd-speak-signal-end-of-line
+                    (speechd-speak-report
+                     speechd-speak--end-of-line-message
+                     :priority speechd-default-char-priority))))
+                (speechd-speak-read-char))
+               ;; Buffer switch
+               (buffer-changed
+                (if speechd-speak-buffer-name
+                    (speechd-speak--text (buffer-name) :priority :message)
+                  (speechd-speak-read-line)))
+               ;; Buffer modification
+               (buffer-modified
+                (when speechd-speak-buffer-insertions
+                  (speechd-speak--text
+                   (mapconcat
+                    #'identity
+                    (save-match-data
+                      (delete-if
+                       #'(lambda (c)
+                           (and (eq speechd-speak-buffer-insertions 'one-line)
+                                (string-match "\n" c)))
+                       (funcall (if (eq this-command 'self-insert-command)
+                                    #'butlast #'identity)
+                                (reverse (info changes)))))
+                    "\n")))
+                (when (eq this-command 'self-insert-command)
+                  (speechd-speak-read-char (preceding-char))))
+               ;; Special face hit
+               ((and (not in-minibuffer)
+                     point-moved
+                     (assq (get-char-property (point) 'face)
+                           speechd-speak-faces))
+                (let ((action (cdr (assq (get-char-property (point) 'face)
+                                         speechd-speak-faces))))
+                  (cond
+                   ((stringp action)
+                    (speechd-speak--text action))
+                   ((functionp action)
+                    (ignore-errors
+                      (funcall action))))))
+               ;; General text or overlay property hit
+               ((and (not in-minibuffer)
+                     (or (eq speechd-speak-by-properties-on-movement t)
+                         (memq (get-char-property (point) 'face)
+                               speechd-speak-by-properties-on-movement)
+                         (memq this-command
+                               speechd-speak-by-properties-always))
+                     (not (memq this-command
+                                speechd-speak-by-properties-never))
+                     point-moved
+                     (get-char-property (point) 'face)
+                     (let ((position (info point)))
+                       (or (> (speechd-speak--previous-property-change
+                               (point) position)
+                              position)
+                           (<= (speechd-speak--next-property-change
+                                (point) (1+ position))
+                               position))))
+                (speechd-speak--uniform-text-around-point))
+               ;; Boring movement
+               (point-moved
+                (speechd-speak-read-line (not speechd-speak-whole-line)
+                                         in-minibuffer))
+               ;; Something interesting in other window
+               ((other-window-change speechd-speak-auto-speak-buffers)
+                (speechd-speak-read-buffer (window-buffer (next-window))))
+               (t
+                (setq other-spoken t)))
+              ;; If other window buffer is very interesting, speak it too
+              (when (and (not other-spoken)
+                         (other-window-change
+                          speechd-speak-force-auto-speak-buffers))
+                (speechd-speak-read-buffer
+                 (window-buffer (next-window))))))))))
   (add-hook 'post-command-hook 'speechd-speak--post-command-hook))
 
 
@@ -961,6 +975,7 @@ FUNCTION is invoked interactively."
   (speechd-reopen)
   (add-hook 'pre-command-hook 'speechd-speak--pre-command-hook)
   (add-hook 'post-command-hook 'speechd-speak--post-command-hook)
+  (add-hook 'after-change-functions 'speechd-speak--after-change-hook)
   (add-hook 'kill-emacs-hook 'speechd-speak--shutdown)
   (speechd-speak-toggle-quiet nil 1)
   (run-hooks 'speechd-speak-startup-hook)
