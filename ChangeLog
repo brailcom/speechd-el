@@ -18,6 +18,9 @@
 	(speechd-speak-read-region, speechd-speak--post-command-hook)
 	(speechd-speak--minibuffer-setup-hook)
 	(speechd-speak--current-message): Consider the previous changes.
+	(speechd-speak-read-next-line, speechd-speak-read-previous-line) 
+	(speechd-speak): Likewise.
+	(speechd-speak--event-mapping): New function.
 
 	* speechd-speak.el (speechd-speak--current-message) 
 	(speechd-speak--minibuffer-setup-hook): Don't enclose new sound
