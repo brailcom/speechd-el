@@ -1,3 +1,27 @@
+2003-06-30  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd--close-process): Don't kill or delete if the
+	buffer or process respectively is nil.
+
+	* speechd-speak.el (speechd-speak-by-properties-always)
+	(speechd-speak-by-properties-never): New user options.
+	(speechd-speak-by-properties-on-movement): Meaning extended to a
+	list of symbols.
+	(speechd-speak--post-command-hook): Consider the new user options.
+	(speechd-speak--command-info-struct): New structure.
+	(speechd-speak--set-command-start-info): Use it.  Add new info.
+	(speechd-speak-auto-speak-buffers): New user option.
+	(speechd-speak--post-command-hook): Consider the above changes.
+	(speechd-speak--post-command-hook): Disable some of the
+	functionality in minibuffer.
+	(speechd-speak--in-minibuffer-p): New function.
+	(speechd-speak-read-region): New argument EMPTY-TEXT.
+	(speechd-speak-read-line): New arguement IN-MINIBUFFER.
+	(speechd-speak-faces): New user option.
+	(speechd-speak--post-command-hook): Support it.
+	(speechd-speak--post-command-hook): Speak nothing on buffer
+	modifications.
+
 2003-06-29  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-speak.el (speechd-speak): speechd-speak-toggle-quiet
