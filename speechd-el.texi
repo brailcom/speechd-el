@@ -688,6 +688,12 @@ List of names of buffers, in which insertions are automatically
 spoken, whether the buffer is current or not and regardless the
 @code{speechd-speak-buffer-insertions} variable.
 
+@item speechd-speak-priority-insertions-in-buffers
+List of names of buffers, in which insertions are automatically spoken
+immediately as they appear, not only after a command is evaluated as
+with @code{speechd-speak-insertions-in-buffers}.  This is typically
+useful in comint buffers.
+
 @item speechd-speak-align-buffer-insertions
 If non-@code{nil}, the insertion text to be spoken is extended to the
 beginning of the first word affected by the insertion.  This is
