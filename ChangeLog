@@ -1,5 +1,11 @@
 2003-08-19  Mario Lang  <mlang@delysid.org>
 
+	* speechd.el (speechd--coding-system): Use no-conversion-dos when
+	running under XEmacs.  This change makes speechd.el work with
+	XEmacs 21.
+
+2003-08-19  Mario Lang  <mlang@delysid.org>
+
 	* speechd.el (speechd-priority-tag): Create a proper widget type
 	instead of previous defconst speechd--priority-tags.
 	(speechd-default-text-priority),
