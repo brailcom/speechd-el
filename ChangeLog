@@ -1,3 +1,39 @@
+2003-07-25  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-repeat): Made interactive and marked for
+	autoload.
+
+	* speechd-speak.el (speechd-speak-quiet): Removed.
+	(speechd-speak-mode): New minor mode.
+	(speechd-speak--maybe-speak, speechd-speak--after-change-hook)
+	(speechd-speak--pre-command-hook)
+	(speechd-speak--post-command-hook): Consider the previous changes.
+	(speechd-speak-keymap): Renamed to speechd-speak-mode-map.
+	(speechd-speak-startup-hook): Removed.
+	(speechd-speak-toggle-quiet): Removed.
+	(speechd-speak, speechd-speak--shutdown): Consider the previous
+	changes.
+	(speechd-speak): Don't add hooks -- moved to speechd-speak-mode.
+	(speechd-speak): Marked for autoload.
+	(global-speechd-speak-mode): New global minor mode.
+	(speechd-speak-toggle): New command.
+	(speechd-speak--mode-map): New variable.
+	(speechd-speak-mode): Use it.
+	(speechd-speak--build-mode-map): New function; call it on
+	toplevel.
+	(speechd-speak-prefix): Use it; :initialize added.
+	(speechd-speak--prefix): New variable.
+	(speechd-speak-mode): Forward declaration added.
+	(speechd-speak--interactive): New macro.
+	(speechd-speak-read-char, speechd-speak-read-region)
+	(speechd-speak-read-line, speechd-speak-read-next-line)
+	(speechd-speak-read-previous-line, speechd-speak-read-buffer)
+	(speechd-speak-read-rest-of-buffer)
+	(speechd-speak-read-other-window)
+	(speechd-speak--def-speak-object, speechd-speak-last-message): Use
+	it.
+	(speechd-speak-mode-map): Don't bind kill-emacs.
+
 2003-07-24  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd.el (speechd-connection-parameters): Special meaning of
