@@ -718,24 +718,39 @@ the current buffer was modified.
 @subsection Signalling
 
 Certain situations may be signalled by sound icons.  The following
-flags enable or disable the predefined indications.  To learn how
+variable enables or disables the predefined indications.  To learn how
 to define your own indications, @xref{Advanced Customization}.
 
 @vtable @code
-@item speechd-speak-signal-empty
-@cindex empty text
-If non-@code{nil}, signal an empty text in various situations.
+@item speechd-speak-signal-events
+List of symbols, containing names of events to signal with a sound
+icon.  The following event names are supported:
 
-@item speechd-speak-signal-beginning-of-line
+@table @code
+@item start
+Start or restart of speechd-el.
+
+@item empty
+@cindex empty text
+Empty text in various situations.
+
+@item beginning-of-line
 @cindex line
 @cindex beginning of line
-If non-@code{nil}, signal reaching beginning of line after the
+Reaching beginning of line after the
 @code{forward-char} and @code{backward-char} commands.
 
-@item speechd-speak-signal-end-of-line
+@item end-of-line
 @cindex end of line
-If non-@code{nil}, signal reaching end of line after the
+Reaching end of line after the
 @code{forward-char} and @code{backward-char} commands.
+
+@item minibuffer
+Entering minibuffer.
+
+@item message
+Messages in echo area follow.
+@end table
 @end vtable
 
 @node Text Properties, Connection Parameters, Signalling, Customization

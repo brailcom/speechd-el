@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.44 2003-10-13 14:00:10 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.45 2003-10-13 14:46:05 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -205,19 +205,18 @@ created."
                 :value-type (string :tag "Connection name"))
   :group 'speechd-speak)
 
-(defcustom speechd-speak-signal-empty t
-  "If non-nil, signal empty lines with a standard sound icon."
-  :type 'boolean
-  :group 'speechd-speak)
-
-(defcustom speechd-speak-signal-beginning-of-line t
-  "If non-nil, signal beginning of lines with a standard sound icon."
-  :type 'boolean
-  :group 'speechd-speak)
-
-(defcustom speechd-speak-signal-end-of-line t
-  "If non-nil, signal ends of lines with a standard sound icon."
-  :type 'boolean
+(defcustom speechd-speak-signal-events
+  '(empty beginning-of-line end-of-line start finish minibuffer message)
+  "List of symbolic names of events to signal with a standard sound icon.
+The following actions are supported: `empty', `beginning-of-line',
+`end-of-line', `start', `finish', `minibuffer', `message'."
+  :type '(set (const empty)
+              (const beginning-of-line)
+              (const end-of-line)
+              (const start)
+              (const finish)
+              (const minibuffer)
+              (const message))
   :group 'speechd-speak)
 
 (defcustom speechd-speak-prefix "\C-e"
@@ -233,13 +232,14 @@ created."
 ;;; Internal constants
 
 
-(defvar speechd-speak--empty-message "*empty-text")
-(defvar speechd-speak--beginning-of-line-message "*beginning-of-line")
-(defvar speechd-speak--end-of-line-message "*end-of-line")
-(defvar speechd-speak--start-message "*start")
-(defvar speechd-speak--finish-message "*finish")
-(defvar speechd-speak--minibuffer-message "*prompt")
-(defvar speechd-speak--message-message "*message")
+(defvar speechd-speak--event-mapping
+  '((empty . "*empty-text")
+    (beginning-of-line . "*beginning-of-line")
+    (end-of-line . "*end-of-line")
+    (start . "*start")
+    (finish . "*finish")
+    (minibuffer . "*prompt")
+    (message . "*message")))
 
 
 ;;; Control functions
@@ -379,6 +379,12 @@ message argument."
        (apply #'speechd-say-text message args))
      (setq speechd-speak--last-report message))))
 
+(defun speechd-speak--signal (event &rest args)
+  (when (memq event speechd-speak-signal-events)
+    (apply #'speechd-speak-report
+           (cdr (assq event speechd-speak--event-mapping))
+           args)))
+
 (defun speechd-speak-read-char (&optional char)
   "Read character CHAR.
 If CHAR is nil, speak the character just after current point."
@@ -396,11 +402,12 @@ played."
   (speechd-speak--interactive
    (let ((text (buffer-substring (or beg (mark)) (or end (point)))))
      (if (string= text "")
-         (speechd-speak-report (or empty-text
-                                   (if speechd-speak-signal-empty
-                                       speechd-speak--empty-message
-                                     ""))
-                               :priority speechd-default-text-priority)
+         (speechd-speak-report
+          (or empty-text
+              (if (memq 'empty speechd-speak-signal-events)
+                  speechd-speak--empty-message
+                ""))
+          :priority speechd-default-text-priority)
        (speechd-speak--text text)))))
 
 (defun speechd-speak-read-line (&optional rest-only)
@@ -769,8 +776,7 @@ connections, otherwise create completely new connection."
       (setq speechd-speak--last-message message
 	    speechd-speak--last-spoken-message message)
       (let ((speechd-speak--special-area t))
-        (speechd-speak-report speechd-speak--message-message
-                              :priority 'progress)
+        (speechd-speak--signal 'message :priority 'progress)
         (speechd-speak--minibuffer-prompt message :priority 'progress))))
   (when reset-last-spoken
     (setq speechd-speak--last-spoken-message "")))
@@ -794,7 +800,7 @@ connections, otherwise create completely new connection."
   (speechd-speak--with-command-start-info
    (setf (speechd-speak--command-info-struct-minibuffer-contents info)
          (minibuffer-contents)))
-  (speechd-speak-report speechd-speak--minibuffer-message :priority 'message)
+  (speechd-speak--signal 'minibuffer :priority 'message)
   (speechd-speak--speak-minibuffer-prompt))
 
 (defun speechd-speak--minibuffer-exit-hook ()
@@ -960,12 +966,10 @@ connections, otherwise create completely new connection."
               (speechd-block ('message-priority speechd-default-char-priority)
                (cond
                 ((looking-at "^")
-                 (when speechd-speak-signal-beginning-of-line
-                   (speechd-speak-report
-                    speechd-speak--beginning-of-line-message))
+                 (speechd-speak--signal 'beginning-of-line)
                  (speechd-speak-read-char))
                 ((and (looking-at "$")
-                      speechd-speak-signal-end-of-line)
+                      (memq 'end-of-line speechd-speak-signal-events))
                  (speechd-speak-report
                   speechd-speak--end-of-line-message))
                 (t
