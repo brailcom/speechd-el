@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.50 2003-10-16 16:32:01 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.51 2003-10-17 17:41:37 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -1142,38 +1142,47 @@ connections, otherwise create completely new connection."
   (speechd-speak--enforce-speak-mode)
   ;; Now, try to speak something useful
   (when speechd-speak-mode
-    ;; Messages should be handled by an after change function.  Unfortunately,
-    ;; in Emacs 21 after change functions in the *Messages* buffer don't work
-    ;; in many situations.  This is a property of the Emacs implementation, so
-    ;; the mechanism can't be used.
-    (speechd-speak--current-message t)
-    (speechd-speak--with-command-start-info
-      (let* ((state '())
-             (buffer-changed (not (eq (speechd-speak--cinfo buffer)
-                                      (current-buffer))))
-             (buffer-modified (and (not buffer-changed)
-                                   (/= (speechd-speak--cinfo modified)
-                                       (buffer-modified-tick))))
-             (point-moved (and (not buffer-changed)
-                               (not (= (speechd-speak--cinfo point) (point)))))
-             (in-minibuffer (speechd-speak--in-minibuffer-p))
-             (other-window (next-window))
-             (other-buffer (let* ((buffer (and other-window
-                                               (window-buffer other-window))))
-                             (unless (eq buffer (current-buffer))
-                               buffer))))
-        (dolist (f speechd-speak--post-command-speaking)
-          (let ((new-state state))
-            (condition-case err
-                (setq new-state (funcall f state buffer-changed buffer-modified
-                                         point-moved in-minibuffer
-                                         other-buffer))
-              (error
-               (speechd-speak--debug (list 'post-command-hook-error f err))
-               (setq speechd-speak--post-command-speaking
-                     (remove f speechd-speak--post-command-speaking))))
-            (setq state new-state)))
-        (setq speechd-speak--last-minibuffer-depth (minibuffer-depth))))
+    (condition-case err
+        (progn
+          ;; Messages should be handled by an after change function.
+          ;; Unfortunately, in Emacs 21 after change functions in the
+          ;; *Messages* buffer don't work in many situations.  This is a
+          ;; property of the Emacs implementation, so the mechanism can't be
+          ;; used.
+          (speechd-speak--current-message t)
+          (speechd-speak--with-command-start-info
+           (let* ((state nil)
+                  (buffer-changed (not (eq (speechd-speak--cinfo buffer)
+                                           (current-buffer))))
+                  (buffer-modified (and (not buffer-changed)
+                                        (/= (speechd-speak--cinfo modified)
+                                            (buffer-modified-tick))))
+                  (point-moved (and (not buffer-changed)
+                                    (not (= (speechd-speak--cinfo point)
+                                            (point)))))
+                  (in-minibuffer (speechd-speak--in-minibuffer-p))
+                  (other-window (next-window))
+                  (other-buffer (let* ((buffer (and other-window
+                                                    (window-buffer
+                                                     other-window))))
+                                  (unless (eq buffer (current-buffer))
+                                    buffer))))
+             (dolist (f speechd-speak--post-command-speaking)
+               (let ((new-state state))
+                 (condition-case err
+                     (setq new-state (funcall f state buffer-changed
+                                              buffer-modified point-moved
+                                              in-minibuffer other-buffer))
+                   (error
+                    (speechd-speak--debug
+                     (list 'post-command-hook-error f err))
+                    (setq speechd-speak--post-command-speaking
+                          (remove f speechd-speak--post-command-speaking))))
+                 (setq state new-state)))
+             (setq speechd-speak--last-minibuffer-depth (minibuffer-depth)))))
+        (error
+         (speechd-speak--debug (list 'post-command-hook-top-error err))
+         (apply #'error (cdr err))))
     (add-hook 'post-command-hook 'speechd-speak--post-command-hook)))
 
 
@@ -1325,7 +1334,7 @@ Null prefix argument turns off the mode."
 
 (defun speechd-speak--shutdown ()
   (when (speechd-speak--signal 'finish :priority 'important)
-    (sit-for 2))                        ; not to CANCEL prematurely
+    (sit-for 3))                        ; not to CANCEL prematurely
   (global-speechd-speak-mode -1))
 
 ;;;###autoload
@@ -1429,44 +1438,6 @@ With a prefix argument, close all open connections first."
     (global-speechd-speak-map-mode 1)
     (speechd-speak--debug 'start)
     (speechd-speak-report (speechd-speak--event-mapping 'start))))
-
-
-;;; Bug reporting
-
-
-(defun speechd-speak-bug ()
-  "Send a bug report on speechd-el or Speech Dispatcher."
-  (interactive)
-  (require 'reporter)
-  (let ((package (completing-read "Package: " '(("speechd-el" "speechd"))))
-        (reporter-prompt-for-summary-p t))
-    (reporter-submit-bug-report
-     (format "%s@bugs.freebsoft.org" package)
-     package
-     '(speechd-speak-version
-       speechd--el-version
-       speechd-speak--debug
-       speechd-connection-parameters
-       speechd-face-voices
-       speechd-speak-deleted-char
-       speechd-speak-buffer-name
-       speechd-speak-on-minibuffer-exit
-       speechd-speak-auto-speak-buffers
-       speechd-speak-force-auto-speak-buffers
-       speechd-speak-buffer-insertions
-       speechd-speak-insertions-in-buffers
-       speechd-speak-priority-insertions-in-buffers
-       speechd-speak-align-buffer-insertions
-       speechd-speak-movement-on-insertions
-       speechd-speak-read-command-keys
-       speechd-speak-read-command-name
-       speechd-speak-by-properties-on-movement
-       speechd-speak-by-properties-always
-       speechd-speak-by-properties-never
-       speechd-speak-faces
-       speechd-speak-whole-line
-       speechd-speak-connections
-       speechd-speak-signal-events))))
 
 
 ;;; Announce
