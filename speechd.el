@@ -89,7 +89,7 @@
   :type speechd-priority-tags
   :group 'speechd)
 
-(defcustom speechd-connection-parameters '()
+(defcustom speechd-connection-parameters '()4
   "Alist of connection names and their parameters.
 
 Each element of the list is of the form (CONNECTION-NAME . PARAMETERS), where
@@ -102,7 +102,7 @@ parameter values.  Valid parameter names are the following:
 speechd-set-* functions for valid parameter values.
 
 You must reopen the connections to apply the changes to this variable."
-  :type '(cons string (repeat sexp))
+  :type '(repeat (cons string (repeat sexp)))
   :group 'speechd)
 
 (defcustom speechd-default-voice "male1"
@@ -135,7 +135,7 @@ current voice."
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.26 2003-07-04 15:23:39 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.27 2003-07-07 07:43:49 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
