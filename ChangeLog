@@ -1,5 +1,12 @@
 2004-02-11  Milan Zamazal  <pdm@brailcom.org>
 
+	* speechd-log-extractor: Use /usr/bin/env instead of a hard-wired
+	perl path.
+
+	* speechd-bug.el (speechd-bug--log-extractor): Fixed.
+
+2004-02-11  Milan Zamazal  <pdm@brailcom.org>
+
 	* speechd-log-extractor: Main loop fixed; copyright added.
 
 	* speechd-bug.el (speechd-bug--log-extractor): `perl' added.

@@ -27,10 +27,10 @@
 (require 'speechd-speak)
 
 
-(defconst speechd-bug--version "2004-02-11 14:36 pdm"
+(defconst speechd-bug--version "2004-02-11 15:09 pdm"
   "Version of the speechd-bug.el file.")
 
-(defvar speechd-bug--log-extractor "perl speechd-bug-log-extractor")
+(defvar speechd-bug--log-extractor "speechd-log-extractor")
 
 (defvar speechd-bug--finish-repro-key "\C-f")
 
