@@ -1,3 +1,13 @@
+2003-11-06  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-el.texi (Parameter Setting Commands): Keys of
+	speechd-speak-new-connection fixed.
+
+	* speechd-el.cs.texi (direntry): Changed not to conflict with the
+	English documentation.
+
+	* Makefile (info-cs): New target.
+
 2003-11-05  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-bug.el (speechd-bug): Use key-description for formatting
