@@ -31,7 +31,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.25 2003-07-24 14:43:05 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.26 2003-07-24 19:06:39 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -354,6 +354,14 @@ Level 1 is the slowest, level 9 is the fastest."
    (apply #'speechd-say-sound args)))
 
 (defun speechd-speak-report (message &rest args)
+  "Speak text or sound icon MESSAGE.
+MESSAGE is a string; if it starts with the `*' character, the asterisk is
+stripped of the MESSAGE and the rest of MESSAGE names a sound icon to play.
+Otherwise MESSAGE is simply a text to speak.
+
+ARGS are appended to the arguments of the corresponding speaking
+function (`speechd-say-text' or `speechd-say-sound') without change after the
+message argument."
   (speechd-speak--maybe-speak
    (unless (string= message "")
      (if (string-match "^\\*" message)
@@ -361,10 +369,17 @@ Level 1 is the slowest, level 9 is the fastest."
        (apply #'speechd-say-text message args)))))
 
 (defun speechd-speak-read-char (&optional char)
+  "Read character CHAR.
+If CHAR is nil, speak the character just after current point."
   (interactive)
   (speechd-speak--char (or char (following-char))))
 
 (defun speechd-speak-read-region (&optional beg end empty-text)
+  "Read region of the current buffer between BEG and END.
+If BEG is nil, current mark is used instead.
+If END is nil, current point is used instead.
+EMPTY-TEXT is a text to say if the region is empty; if nil, empty text icon is
+played."
   (interactive "r")
   (let ((text (buffer-substring (or beg (mark)) (or end (point)))))
     (if (string= text "")
@@ -375,25 +390,36 @@ Level 1 is the slowest, level 9 is the fastest."
                               :priority :message)
       (speechd-speak--text text))))
 
-(defun speechd-speak-read-line (&optional rest-only in-minibuffer)
+(defun speechd-speak-read-line (&optional rest-only)
+  "Speak current line.
+If REST-ONLY is non-nil, read only the part of the line from the current point
+to the end of the line."
   (interactive)
   (speechd-speak-read-region (if rest-only (point) (line-beginning-position))
 			     (line-end-position)
-			     (when in-minibuffer "")))
+			     (when (speechd-speak--in-minibuffer-p) "")))
 
 (defun speechd-speak-read-next-line ()
+  "Speak the next line after the current line.
+If there is no such line, play the empty text icon."
   (interactive)
   (save-excursion
-    (forward-line 1)
-    (speechd-speak-read-line)))
+    (if (= (forward-line 1) 0)
+        (speechd-speak-read-line)
+      (speechd-speak-report speechd-speak--empty-message))))
 
 (defun speechd-speak-read-previous-line ()
+  "Speak the previous line before the current line.
+If there is no such line, play the empty text icon."
   (interactive)
   (save-excursion
-    (forward-line -1)
-    (speechd-speak-read-line)))
+    (if (= (forward-line -1) 0)
+        (speechd-speak-read-line)
+      (speechd-speak-report speechd-speak--empty-message))))
 
 (defun speechd-speak-read-buffer (&optional buffer)
+  "Read BUFFER.
+If BUFFER is nil, read current buffer."
   (interactive)
   (save-excursion
     (when buffer
@@ -401,10 +427,12 @@ Level 1 is the slowest, level 9 is the fastest."
     (speechd-speak-read-region (point-min) (point-max))))
 
 (defun speechd-speak-read-rest-of-buffer ()
+  "Read current buffer from the current point to the end of the buffer."
   (interactive)
   (speechd-speak-read-region (point) (point-max)))
 
 (defun speechd-speak-read-other-window ()
+  "Read buffer of the last recently used window."
   (interactive)
   (speechd-speak-read-buffer (window-buffer (get-lru-window))))
 
@@ -895,8 +923,7 @@ FUNCTION is invoked interactively."
               (speechd-speak--uniform-text-around-point))
              ;; Boring movement
              (point-moved
-              (speechd-speak-read-line (not speechd-speak-whole-line)
-                                       in-minibuffer))
+              (speechd-speak-read-line (not speechd-speak-whole-line)))
              ;; Something interesting in other window
              ((other-window-change speechd-speak-auto-speak-buffers)
               (speechd-speak-read-buffer (window-buffer (next-window))))

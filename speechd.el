@@ -1,4 +1,4 @@
-;;; speechd.el --- Library for accessing Speech Daemon
+;;; speechd.el --- Library for accessing Speech Dispatcher
 
 ;; Copyright (C) 2003 Brailcom, o.p.s.
 
@@ -21,7 +21,7 @@
 
 ;;; Commentary:
 
-;; This library allows you to communicate with Speech Daemon.
+;; This library allows you to communicate with Speech Dispatcher.
 ;; Usually, the communication goes like this:
 ;; 
 ;;   (speechd-open)
@@ -29,6 +29,9 @@
 ;;   (speechd-say-text "Hello, world!")
 ;;   ...
 ;;   (speechd-close)
+;;
+;; Functions and variables starting with the prefix `speechd--' are considered
+;; internal and you shouldn't use them outside this file.
 ;;
 ;; *Note*: If you call any of the speechd-el functions asynchronously
 ;; (typically within a process filter function), you must wrap the whole
@@ -45,7 +48,7 @@
 
 
 (defgroup speechd ()
-  "Speech Daemon interface.")
+  "Speech Dispatcher interface.")
 
 (defcustom speechd-host "localhost"
   "Name of the default host running speechd to connect to."
@@ -70,22 +73,22 @@
 	  (const :tag "Progress"     :value :progress)))
 
 (defcustom speechd-default-text-priority :text
-  "Default Speech Daemon priority of sent texts."
+  "Default Speech Dispatcher priority of sent texts."
   :type speechd-priority-tags
   :group 'speechd)
 
 (defcustom speechd-default-sound-priority :message
-  "Default Speech Daemon priority of sent sound icons."
+  "Default Speech Dispatcher priority of sent sound icons."
   :type speechd-priority-tags
   :group 'speechd)
 
 (defcustom speechd-default-char-priority :notification
-  "Default Speech Daemon priority of sent single letters."
+  "Default Speech Dispatcher priority of sent single letters."
   :type speechd-priority-tags
   :group 'speechd)
 
 (defcustom speechd-default-key-priority :notification
-  "Default Speech Daemon priority of sent symbols of keys."
+  "Default Speech Dispatcher priority of sent symbols of keys."
   :type speechd-priority-tags
   :group 'speechd)
 
@@ -199,23 +202,20 @@ current voice."
   :type '(repeat (cons face string))
   :group 'speechd)
 
-(defcustom speechd-debug nil
-  "If non-nil, be verbose about communication with speechd."
-  :type 'boolean
-  :group 'speechd)
-
 
 ;;; External variables
 
 
 (defvar speechd-client-name "default"
-  "String defining current client name.")
+  "String defining current client name.
+Changing this variable generally does not change the name of the connection,
+but may create a new connection.")
 
 
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.35 2003-07-24 14:42:48 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.36 2003-07-24 19:06:39 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -305,16 +305,15 @@ Useful only for diagnosing problems.")
 (defvar speechd--protect nil
   "If non-nil, don't call `access-process-output'.")
 
-(defvar speechd--debug-info '())
-
 
 ;;; Utilities
 
 
 (defmacro* speechd-protect (&body body)
   "Ensure proper operation of an asynchronous code BODY.
-All asynchronously called code invoking any of the speechd-el functions must be
-wrapped by this macro."
+All asynchronously called code (i.e. code called invoked in process filters or
+timers, etc.) invoking any of the speechd-el functions must be wrapped by this
+macro."
   `(let ((already-protected speechd--protect)
 	 (speechd--protect t))
      (prog1 (progn ,@body)
@@ -368,7 +367,9 @@ wrapped by this macro."
   (>= (queue-length queue) speechd--maximum-queue-length))
 
 (defun speechd-language (string language)
-  "Put language property LANGUAGE on whole STRING."
+  "Put language property LANGUAGE on whole STRING.
+Language should be a string recognizable by Speech Dispatcher as a language
+code."
   (put-text-property 0 (length string) 'language language string)
   string)
 
@@ -387,17 +388,6 @@ wrapped by this macro."
   (process-name (speechd--connection-process (speechd--connection))))
 
 (defun speechd--connection-filter (process string)
-  (when speechd-debug
-    (with-current-buffer (process-buffer process)
-      (let* ((marker (process-mark process))
-	     (marker-position (or (marker-position marker) 1))
-	     (moving (= (point) marker-position)))
-	(save-excursion
-	  (goto-char marker-position)
-	  (insert string)
-	  (set-marker marker (point)))
-	(when moving
-	  (goto-char marker-position)))))
   (speechd--with-current-connection
     (let ((c (if (eq process (speechd--connection-process connection))
                  connection
@@ -420,7 +410,7 @@ wrapped by this macro."
 
 ;;;###autoload
 (defun* speechd-open (&optional host port &key quiet force-reopen)
-  "Open connection to speechd running on the given host and port.
+  "Open connection to Speech Dispatcher running on the given host and port.
 If the connection corresponding to the current `speechd-client-name' value
 already exists, close it and reopen again, with the same connection parameters.
 
@@ -469,7 +459,7 @@ Return the opened connection on success, nil otherwise."
 	      (set-process-filter process 'speechd--connection-filter)
 	      (process-kill-without-query process))
 	  (unless quiet
-	    (message "Connection to Speech Daemon failed")))
+	    (message "Connection to Speech Dispatcher failed")))
 	(setq connection (make-speechd--connection
 			  :name name :host host :port port
 			  :process process :failure-p (not process)))
@@ -766,24 +756,42 @@ Language must be an RFC 1766 language code, as a string."
   (speechd--set-parameter :language language))
 
 (defmacro speechd--generate-set-command (parameter prompt argdesc)
-  (let ((prompt (concat prompt ": ")))
+  (let* ((prompt* (concat prompt ": "))
+         (argdesc* (eval argdesc))
+         (docstring
+          (format "Set %s of the current connection.
+VALUE must be %s."
+                  (downcase prompt)
+                  (cond
+                   ((integerp argdesc*)
+                    "a number between -100 and 100")
+                   ((not argdesc*)
+                    "a string")
+                   ((listp argdesc*)
+                    (concat "one of the symbols "
+                            (mapconcat #'(lambda (x) (symbol-name (cdr x)))
+                                       argdesc* ", ")))
+                   (t
+                    (concat "one of the strings allowed by your "
+                            "Speech Dispatcher\ninstallation"))))))
     `(defun ,(intern (concat "speechd-set-"
 			     (substring (symbol-name parameter) 1)))
             (value)
+       ,docstring
        (interactive
 	,(cond
-	  ((integerp argdesc)
-	   (concat "n" prompt))
-	  ((not argdesc)
-	   (concat "s" prompt))
-          ((listp argdesc)
+	  ((integerp argdesc*)
+	   (concat "n" prompt*))
+	  ((not argdesc*)
+	   (concat "s" prompt*))
+          ((listp argdesc*)
             `(list
               (cdr
-               (assoc (completing-read ,prompt ,argdesc nil t) ,argdesc))))
+               (assoc (completing-read ,prompt* ,argdesc nil t) ,argdesc))))
 	  (t
 	   `(list
-	     (completing-read ,prompt
-			      (mapcar #'list (speechd--list ,argdesc)))))))
+	     (completing-read ,prompt*
+			      (mapcar #'list (speechd--list ,argdesc*)))))))
        (speechd--set-parameter ,parameter value))))
 
 (speechd--generate-set-command :punctuation-table "Punctuation table"
@@ -813,6 +821,12 @@ Language must be an RFC 1766 language code, as a string."
 
 
 (defmacro* speechd-block (parameters &body body)
+  "Set PARAMETERS and enclose BODY by an SSIP block.
+Before invoking BODY, the BLOCK BEGIN command is sent, and the BLOCK END
+command is sent afterwards.
+PARAMETERS is a property list defining parameters to be set before sending the
+BLOCK BEGIN command.  The property-value pairs correspond to the arguments of
+the `speechd--set-parameter' function."
   (let (($parameters (gensym)))
     `(progn
        (let ((,$parameters (list ,@parameters)))
@@ -965,27 +979,6 @@ clients."
   (let ((id (first (first (speechd--send-command '("HISTORY" "GET" "LAST"))))))
     (when id
       (speechd--send-command (list "HISTORY" "SAY" id)))))
-
-
-;;; Other functions
-
-
-(defconst speechd-maintainer-address "pdm@brailcom.org")
-
-;;;###autoload
-(defun speechd-submit-bug-report ()
-  "Submit a bug report about speechd-el."
-  (interactive)
-  (require 'reporter)
-  (if speechd-debug
-      (if speechd--debug-info
-	  (let ((reporter-prompt-for-summary-p t))
-	    (reporter-submit-bug-report speechd-maintainer-address
-					speechd--el-version
-					'(speechd--debug-info)))
-	(y-or-n-p "No debugging info available, really send bug report? "))
-    (error
-     "Please set speechd-debug to T before invoking the bug.")))
 
 
 ;;; Announce
