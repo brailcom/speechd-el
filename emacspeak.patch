@@ -1,5 +1,5 @@
-*** dtk-speak.el~	Thu Apr  3 16:45:42 2003
---- dtk-speak.el	Thu Apr  3 17:01:15 2003
+*** dtk-speak.el~	Thu May 15 11:01:59 2003
+--- dtk-speak.el	Thu Apr  3 22:54:50 2003
 ***************
 *** 168,173 ****
 --- 168,175 ----
@@ -51,3 +51,59 @@
   
   ;;}}}
 + 
+*** dtk-tcl.el~	Thu May 15 10:57:38 2003
+--- dtk-tcl.el	Thu May 15 10:56:42 2003
+***************
+*** 551,556 ****
+--- 551,558 ----
+    "*Scale factor applied to speech rate when skimming.")
+  
+  (defun dtk-speak (text &optional ignore-skim)
++   ;;; Modified on 2003-05-15 by Milan Zamazal <pdm@brailcom.org>, to allow
++   ;;; use with speechd-el -- dtk-speaker-process handling removed.
+    "Speak the TEXT string on the  tts.
+  This is achieved by sending the text to the speech server.
+  No-op if variable `dtk-quiet' is set to nil.
+***************
+*** 565,574 ****
+                      dtk-split-caps 
+                      emacspeak-pronounce-pronunciation-table
+                      selective-display ))
+-                                         ; ensure  the process  is live
+-   (unless (or (eq 'run (process-status dtk-speaker-process ))
+-               (eq 'open (process-status dtk-speaker-process )))
+-     (dtk-initialize))
+                                          ; If you dont want me to talk,
+                                          ;or my server is not
+                                          ;running, I will remain silent.
+--- 567,572 ----
+***************
+*** 672,685 ****
+                                          ;Say these words, ie speak each of them as a word.
+                                          ; Text is sent via the appropriate TCLSH.
+  (defun dtk-say (words)
+    "Say these WORDS."
+    (declare (special dtk-speaker-process dtk-stop-immediately
+                      dtk-speak-server-initialized dtk-quiet))
+    ;; I wont talk if you dont want me to
+    (unless dtk-quiet
+-     (or (eq 'run (process-status dtk-speaker-process ))
+-         (eq 'open (process-status dtk-speaker-process ))
+-         (dtk-initialize))
+      (when dtk-speak-server-initialized
+        (and dtk-stop-immediately (dtk-stop ))
+        (dtk-interp-say words))))
+--- 670,682 ----
+                                          ;Say these words, ie speak each of them as a word.
+                                          ; Text is sent via the appropriate TCLSH.
+  (defun dtk-say (words)
++   ;;; Modified on 2003-05-15 by Milan Zamazal <pdm@brailcom.org>, to allow
++   ;;; use with speechd-el -- dtk-speaker-process handling removed.
+    "Say these WORDS."
+    (declare (special dtk-speaker-process dtk-stop-immediately
+                      dtk-speak-server-initialized dtk-quiet))
+    ;; I wont talk if you dont want me to
+    (unless dtk-quiet
+      (when dtk-speak-server-initialized
+        (and dtk-stop-immediately (dtk-stop ))
+        (dtk-interp-say words))))
