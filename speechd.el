@@ -91,7 +91,7 @@
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd-el-version "speechd-el $Id: speechd.el,v 1.8 2003-04-22 17:09:28 pdm Exp $"
+(defconst speechd-el-version "speechd-el $Id: speechd.el,v 1.9 2003-05-07 14:08:32 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -260,10 +260,13 @@ for closer description of those arguments."
   (while (and speechd-connection-output
 	      (not (string-match speechd-end-regexp
 				 speechd-connection-output)))
-    (unless (accept-process-output speechd-connection speechd-timeout)
-      (push (cons "Timeout:" speechd-connection-output) speechd-debug-info)
-      (speechd-close)
-      (error "Timeout during communication with speechd.")))
+    ;; TODO: This is just a quick & incorrect hack allowing running M-x shell.
+    (let ((output speechd-connection-output))
+      (accept-process-output speechd-connection speechd-timeout)
+      (when (string= speechd-connection-output output)
+	(push (cons "Timeout:" speechd-connection-output) speechd-debug-info)
+	(speechd-close)
+	(error "Timeout during communication with speechd."))))
   ;; Process answer
   (let ((answer speechd-connection-output)
 	(data '())
