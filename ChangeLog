@@ -1,3 +1,9 @@
+2004-05-18  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak-allow-prompt-commands): New
+	user option.
+	(read-char-exclusive): Honor it.
+
 2004-05-14  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd.el (speechd-open): If FORCE-REOPEN is non-nil, prefer

@@ -339,6 +339,8 @@ Read last spoken buffer insertions
 auto-speaking buffers, see @xref{Auto-Speaking Buffers}.
 @end table
 
+@cindex character reading prompts
+@cindex read-char
 A few Emacs commands get you stuck in a character reading prompt, a
 typical example is @code{ispell-word}.  If you miss what was spoken
 before you are prompted for action, you can use the following
@@ -355,6 +357,15 @@ The same as the @kbd{C-e m} command above
 The same as the @kbd{C-e i} command above
 (@code{speechd-speak-last-insertions}).
 @end table
+
+If you don't like such character reading prompt behavior, you can
+disable it using the following variable:
+
+@vtable @code
+@item speechd-speak-allow-prompt-commands
+If non-@code{nil}, allow the speechd-speak commands mentioned above in
+read-char prompts.
+@end vtable
 
 @node Control Commands, Parameter Setting Commands, Reading Commands, Commands
 @subsection Control Commands

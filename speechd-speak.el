@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "2004-05-14 08:10 pdm"
+(defconst speechd-speak-version "2004-05-18 10:03 pdm"
   "Version of the speechd-speak file.")
 
 
@@ -139,6 +139,11 @@ and the keys are read after the command is performed."
                       (const movement)
                       (const modification)
                       (const modification-movement)))
+  :group 'speechd-speak)
+
+(defcustom speechd-speak-allow-prompt-commands t
+  "If non-nil, allow speechd-speak commands in read-char prompts."
+  :type 'boolean
   :group 'speechd-speak)
 
 (defcustom speechd-speak-ignore-command-keys
@@ -992,15 +997,17 @@ Only single characters are allowed in the keymap.")
   "\C-e" 'speechd-speak-last-message)
 
 (speechd-speak--defadvice read-char-exclusive around
-  (let ((char nil))
-    (while (not char)
-      (setq char ad-do-it)
-      (let ((command (lookup-key speechd-speak-read-char-keymap
-                                 (vector char))))
-        (when command
-          (setq char nil)
-          (call-interactively command))))
-    char))
+  (if speechd-speak-allow-prompt-commands
+      (let ((char nil))
+        (while (not char)
+          (setq char ad-do-it)
+          (let ((command (lookup-key speechd-speak-read-char-keymap
+                                     (vector char))))
+            (when command
+              (setq char nil)
+              (call-interactively command))))
+        char)
+    ad-do-it))
 
 
 ;;; Commands
