@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.62 2003-10-29 12:50:25 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.63 2003-11-04 10:30:37 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -1519,7 +1519,7 @@ With a prefix argument, close all open connections first."
     (global-speechd-speak-mode 1)
     (global-speechd-speak-map-mode 1)
     (speechd-speak--debug 'start)
-    (speechd-speak-report (speechd-speak--event-mapping 'start))))
+    (speechd-speak--signal 'start)))
 
 
 ;;; Announce
