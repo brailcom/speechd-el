@@ -55,17 +55,17 @@
   )
 
 (defun dtk-interp-queue (text)
-  (speechd-say text :finish nil))
+  (speechd-say-text text :finish nil))
 
 (defun dtk-interp-queue-set-rate (rate)
   ;; unsupported in speechd
   )
 
 (defun dtk-interp-speak ()
-  (speechd-send-data-end))
+  (speechd-say-text ""))
 
 (defun dtk-interp-say (string)
-  (speechd-say string))
+  (speechd-say-text string))
 (defalias 'dtk-interp-dispatch 'dtk-interp-say)
 
 (defun dtk-interp-stop ()
@@ -96,17 +96,18 @@
   )
 
 (defun dtk-interp-toggle-capitalization (dtk-capitalize)
-  (speechd-set-capitalization (if dtk-capitalize :on :off)))
+  ;; unsupported in speechd
+  )
 
 (defun dtk-interp-toggle-allcaps-beep (dtk-allcaps-beep)
   ;; unsupported in speechd
   )
 
 (defun dtk-interp-set-punctuations (mode)
-  (speechd-set-punctuation (cond
-			    ((string= mode "none") :none)
-			    ((string= mode "some") :some)
-			    ((string= mode "all")  :all))))
+  (speechd-set-punctuation-mode (cond
+				 ((string= mode "none") :none)
+				 ((string= mode "some") :some)
+				 ((string= mode "all")  :all))))
 
 (defun dtk-interp-reset-state ()
   (ignore-errors

@@ -84,7 +84,7 @@ Pronounces character phonetically unless called with a PREFIX arg."
 (defmacro speechd-protect-against-dtk-process-errors (name)
   `(defadvice ,name (around ,(intern (format "%s-speechd-advice" name))
 			    preactivate activate)
-     (when speechd-connection
+     (when (speechd-running-p)
        ad-do-it)))
 (speechd-protect-against-dtk-process-errors dtk-speak)
 (speechd-protect-against-dtk-process-errors dtk-say)

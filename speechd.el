@@ -36,10 +36,7 @@
 (eval-when-compile (require 'cl))
 
 
-(defvar speechd-connection nil
-  "Connection object to speechd.
-Nil if no connection is currently open.")
-(defvar speechd-connection-failure nil)
+;;; User variables
 
 
 (defgroup speechd ()
@@ -91,7 +88,10 @@ Nil if no connection is currently open.")
   :group 'speechd)
 
 
-(defconst speechd-el-version "speechd-el $Id: speechd.el,v 1.7 2003-04-17 15:24:59 pdm Exp $"
+;;; Internal constants and configuration variables
+
+
+(defconst speechd-el-version "speechd-el $Id: speechd.el,v 1.8 2003-04-22 17:09:28 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -101,52 +101,76 @@ Useful only for diagnosing problems.")
 (defvar speechd-client-name "Emacs"
   "Name of the client as set to speechd.")
 
-(defvar speechd-priorities
-  '((:high .   "1")
-    (:medium . "2")
-    (:low .    "3"))
-  "Alist mapping symbolic priorities to speechd parameters.
-Each element is a pair is of the form (PRIORITY . SPEECHD-PARAMETER).")
+(defconst speechd-coding-system 'utf-8-dos)
 
-(defvar speechd-punctuations
-  '((:none . "none")
-    (:some . "some")
-    (:all . "all"))
-  "Alist mapping symbolic punctuation modes to speechd parameters.
-Each element is a pair is of the form (PUNCTUATION . SPEECHD-PARAMETER).")
+(defconst speechd-parameter-names
+  '((:client-name . "CLIENT_NAME")
+    (:language . "LANGUAGE")
+    (:message-priority . "PRIORITY")
+    (:punctuation-mode . "PUNCTUATION")
+    (:important-punctuation . "IMPORTANT_PUNCTUATION")
+    (:punctuation-table . "PUNCTUATION_TABLE")
+    (:spelling-table . "SPELLING_TABLE")
+    (:text-table . "TEXT_TABLE")
+    (:character-table . "CHARACTER_TABLE")
+    (:key-table . "KEY_TABLE")
+    (:sound-table . "SOUND_TABLE")
+    (:voice . "VOICE")
+    (:rate . "RATE")
+    (:pitch . "PITCH")))
 
-(defvar speechd-capitalizations
-  '((:on .  "1")
-    (:off . "0"))
-  "Alist mapping symbolic capitalization modes to speechd parameters.
-Each element is a pair is of the form (CAPITALIZATION . SPEECHD-PARAMETER).")
+(defconst speechd-list-parameter-names
+  '((:spelling-tables . "SPELLING_TABLES")
+    (:punctuation-tables . "PUNCTUATION_TABLES")
+    (:text-tables . "TEXT_TABLES")
+    (:sound-tables . "SOUND_TABLES")
+    (:character-tables . "CHARACTER_TABLES")
+    (:key-tables . "KEY_TABLES")
+    (:voices . "VOICES")))
+
+(defconst speechd-parameter-value-mappings
+  '((:message-priority
+     (:high .   "1")
+     (:medium . "2")
+     (:low .    "3"))
+    (:punctuation-mode
+     (:none . "none")
+     (:some . "some")
+     (:all .  "all"))))
+
+
+;;; Internal variables
+
+
+(defvar speechd-connection nil
+  "Connection object to speechd.
+Nil if no connection is currently open.")
+(defvar speechd-connection-failure nil
+  "Non-nil indicates speechd connection failed and couldn't be reopened.")
+(defvar speechd-last-host speechd-host)
+(defvar speechd-last-port speechd-port)
 
 (defvar speechd-debug-info '())
-
-(defconst speechd-coding-system 'utf-8-dos)
 
 (defvar speechd-connection-output nil)
 (defvar speechd-sending-data-p nil)
 (defvar speechd-paused-p nil)
-(defvar speechd-current-priority nil)
+(defvar speechd-current-parameters '())
 
-(defun speechd-reset-connection-parameters ()
+
+;;; Process handling functions
+
+
+(defun speechd--reset-connection-parameters ()
   (setq speechd-connection-output nil
 	speechd-sending-data-p nil
 	speechd-paused-p nil
-	speechd-current-priority nil))
+	speechd-current-parameters '()))
 
-(defun speechd-process-name ()
+(defun speechd--process-name ()
   (process-name speechd-connection))
 
-(defun speechd-convert-numeric (number)
-  (number-to-string (cond
-		     ((< number -100) -100)
-		     ((> number 100) 100)
-		     (t number))))
-
-
-(defun speechd-connection-filter (process string)
+(defun speechd--connection-filter (process string)
   (when speechd-debug
     (with-current-buffer (process-buffer process)
       (let* ((marker (process-mark process))
@@ -169,7 +193,7 @@ for closer description of those arguments."
   (interactive)
   (when speechd-connection
     (speechd-close))
-  (speechd-reset-connection-parameters)
+  (speechd--reset-connection-parameters)
   (setq speechd-connection
 	(condition-case nil
 	    (open-network-stream "speechd-proc" speechd-buffer host port)
@@ -178,18 +202,15 @@ for closer description of those arguments."
       (progn
 	(set-process-coding-system speechd-connection
 				   speechd-coding-system speechd-coding-system)
-	(set-process-filter speechd-connection 'speechd-connection-filter)
-	(when speechd-debug
-	  (message "OK")))
+	(set-process-filter speechd-connection 'speechd--connection-filter)
+	(setq speechd-last-host host
+	      speechd-last-port port))
     (message "Connection to Speech Daemon failed"))
   (setq speechd-connection-failure (not speechd-connection))
-  (when speechd-debug
-    (push (cons "open" speechd-connection) speechd-debug-info))
   ;; Speech Daemon does not like running without client+connection name
-  (speechd-set-connection-name "default")
+  (speechd--set-connection-name "default")
   speechd-connection)
 
-;;;public
 (defun speechd-close ()
   "Close the connection to speechd."
   (interactive)
@@ -197,31 +218,34 @@ for closer description of those arguments."
     (delete-process speechd-connection))
   (ignore-errors
     (kill-buffer speechd-buffer))
-  (when speechd-debug
-    (push "close" speechd-debug-info))
   (setq speechd-connection nil))
 
-;;;public
 (defun speechd-reopen ()
   "Close and open again the connection to speechd."
   (interactive)
   (speechd-close)
   (speechd-open))
 
-;;;public
 (defun speechd-running-p ()
   (and speechd-connection (eq (process-status speechd-connection) 'open)))
 
 
-(defconst speechd-eol "\n")
+;;; Process communication functions
 
-(defun speechd-send-string (string)
+
+(defconst speechd-eol "\n")
+(defconst speechd-end-regexp (format "^[0-9][0-9][0-9] .*%s" speechd-eol))
+(defconst speechd-result-regexp
+  (format "\\`[0-9][0-9][0-9]-\\(.*\\)%s" speechd-eol))
+(defconst speechd-success-regexp (format "^[1-2][0-9][0-9] .*%s" speechd-eol))
+
+(defun speechd--send-string (string)
   (unwind-protect
-      (process-send-string (speechd-process-name) string)
+      (process-send-string (speechd--process-name) string)
     (unless (speechd-running-p)
       (speechd-close))))
 
-(defun speechd-command-answer ()
+(defun speechd--command-answer ()
   ;; Why this function exists and the answer is not handled within
   ;; `speech-send-command' immediately:
   ;;
@@ -234,44 +258,59 @@ for closer description of those arguments."
   ;; reading the process output until `speechd-command-answer' is called,
   ;; either explicitly or automatically before sending next command.
   (while (and speechd-connection-output
-	      (let ((len (length speechd-connection-output)))
-		(or (= len 0)
-		    (not (= (aref speechd-connection-output (1- len)) ?\n)))))
+	      (not (string-match speechd-end-regexp
+				 speechd-connection-output)))
     (unless (accept-process-output speechd-connection speechd-timeout)
       (push (cons "Timeout:" speechd-connection-output) speechd-debug-info)
       (speechd-close)
       (error "Timeout during communication with speechd.")))
-  (let ((answer speechd-connection-output))
+  ;; Process answer
+  (let ((answer speechd-connection-output)
+	(data '())
+	success)
+    (while (string-match speechd-result-regexp answer)
+      (push (match-string 1 answer) data)
+      (setq answer (substring answer (match-end 0))))
+    (setq success (string-match speechd-success-regexp answer))
+    (unless success
+      (setq data nil))
     (setq speechd-connection-output nil)
-    (when speechd-debug
-      (push answer speechd-debug-info))
-    answer))
+    (list data
+	  success
+	  (substring answer 0 3)
+	  (substring answer 4))))
 
-(defun speechd-send-command (command &rest args)
+(defun speechd--send-command (command &optional delay-answer)
+  ;; Finish unfinished
   (when speechd-sending-data-p
-    (speechd-send-data-end))
-  (speechd-command-answer)
+    (speechd--send-data-end))
+  (when speechd-connection-output
+    (speechd--command-answer))
+  ;; Send command
+  (unless (listp command)
+    (setq command (list command)))
   (when (or speechd-connection
-	    (and (not speechd-connection-failure) (speechd-open)))
-    (let ((string-to-send (concat
-			   (mapconcat #'identity (list* command args) " ")
-			   speechd-eol)))
+	    (and (not speechd-connection-failure)
+		 (speechd-open speechd-last-host speechd-last-port)))
+    (let ((string-to-send (concat (mapconcat #'identity command " ")
+				  speechd-eol)))
       (when speechd-debug
 	(display-buffer (process-buffer speechd-connection)))
       (funcall (if speechd-debug #'message #'ignore)
-	       (speechd-send-string string-to-send))
-      (setq speechd-connection-output ""))))
+	       (speechd--send-string string-to-send))
+      (setq speechd-connection-output ""))
+    (unless delay-answer
+      (speechd--command-answer))))
 
-(defun speechd-send-data (text)
+(defun speechd--send-data (text)
   (unless speechd-sending-data-p
     (speechd-resume t)
-    (speechd-send-command "SPEAK")
-    (speechd-command-answer)
+    (speechd--send-command "SPEAK")
     (setq speechd-sending-data-p t))
   (flet ((send (string)
 	   (when speechd-debug
 	     (push "Sending data" speechd-debug-info))
-	   (speechd-send-string string)
+	   (speechd--send-string string)
 	   (when speechd-debug
 	     (push "Data sent" speechd-debug-info))))
     (while (and (> (length text) 0)
@@ -284,89 +323,158 @@ for closer description of those arguments."
     (send text)
     (unless (or (string= text "")
 		(eql (aref text (1- (length text))) ?\n))
-      (speechd-send-string speechd-eol))))
+      (speechd--send-string speechd-eol))))
 
-(defun speechd-send-data-end ()
+(defun speechd--send-data-end ()
   (when speechd-sending-data-p
     (let ((speechd-sending-data-p nil))
-      (speechd-send-command "."))
+      (speechd--send-command "." t))
     (setq speechd-sending-data-p nil)))
 
 
-;;;public
-(defun speechd-set-connection-name (name)
-  (speechd-send-command
-   "SET" "CLIENT_NAME"
-   (format "%s:%s:%s" (user-login-name) speechd-client-name name))
-  (speechd-reset-connection-parameters))
+;;; Value retrieval functions
 
-;;;public
+
+(defun speechd--list (parameter)
+  (first (speechd--send-command
+	  (list "LIST"
+		(cdr (assoc parameter speechd-list-parameter-names))))))
+
+
+;;; Parameter setting functions
+
+
+(defun speechd--convert-numeric (number)
+  (cond ((< number -100) -100)
+	((> number 100) 100)
+	(t number)))
+
+(defun speechd--transform-parameter-value (parameter value)
+  (cond
+   ((stringp value)
+    value)
+   ((integerp value)
+    (number-to-string (speechd--convert-numeric value)))
+   ((symbolp value)
+    (cdr (assoc value
+		(cdr (assoc parameter speechd-parameter-value-mappings)))))))
+
+(defun speechd--set-parameter (parameter value)
+  (unless (eq (plist-get speechd-current-parameters parameter) value)
+    (plist-put speechd-current-parameters parameter value)
+    (speechd--send-command
+     (list "SET" "self"
+	   (cdr (assoc parameter speechd-parameter-names))
+	   (speechd--transform-parameter-value parameter value)))))
+
+(defun speechd--set-connection-name (name)
+  (speechd--set-parameter
+   :client-name
+   (format "%s:%s:%s" (user-login-name) speechd-client-name name)))
+
 (defun speechd-set-language (language)
-  (speechd-send-command "SET" "LANGUAGE" language))
+  (interactive (list (read-string "Language: ")))
+  (speechd--set-parameter :language language))
 
-;;;public
-(defun speechd-set-priority (priority)
-  (unless (eq priority speechd-current-priority)
-    (let ((priority-string (cdr (assoc priority speechd-priorities))))
-      (speechd-send-command "SET" "PRIORITY" priority-string))
-    (setq speechd-current-priority priority)))
+(defconst speechd--set-punctuation-mode-table '(("none" . :none)
+						("some" . :some)
+						("all" .  :all)))
+(defun speechd-set-punctuation-mode (mode)
+  (interactive (list
+		(cdr
+		 (rassoc (completing-read "Punctuation mode: "
+					  speechd--set-punctuation-mode-table
+					  nil t)
+			 speechd--set-punctuation-mode-table))))
+  (speechd--set-parameter :punctuation-mode mode))
 
-;;;public
-(defun speechd-set-rate (rate)
-  (speechd-send-command "SET" "RATE" (speechd-convert-numeric rate)))
+(defmacro speechd--generate-set-command (parameter prompt argdesc)
+  (let ((prompt (concat prompt ": ")))
+    `(defun ,(intern (concat "speechd-set-"
+			     (substring (symbol-name parameter) 1)))
+            (value)
+       (interactive
+	,(cond
+	  ((integerp argdesc)
+	   (concat "n" prompt))
+	  (t
+	   `(completing-read ,prompt
+			     (mapcar #'list (speechd--list ,argdesc))))))
+       (speechd--set-parameter ,parameter value))))
+(speechd--generate-set-command :punctuation-table "Punctuation table"
+			       :punctuation-tables)
+(speechd--generate-set-command :spelling-table "Spelling table"
+			       :spelling-tables)
+(speechd--generate-set-command :text-table "Text table" :text-tables)
+(speechd--generate-set-command :sound-table "Sound table" :sound-tables)
+(speechd--generate-set-command :character-table "Character table"
+			       :character-tables)
+(speechd--generate-set-command :key-table "Key table" :key-tables)
+(speechd--generate-set-command :pitch "Pitch" 0)
+(speechd--generate-set-command :rate "Rate" 0)
+(speechd--generate-set-command :voice "Voice" :voices)
 
-;;;public
-(defun speechd-set-punctuation (punctuation)
-  (let ((punctuation-string (cdr (assoc punctuation speechd-punctuations))))
-    (speechd-send-command "SET" "PUNCTUATION" punctuation-string)))
 
-;;;public
-(defun speechd-set-capitalization (capitalization)
-  (let ((capitalization-string (cdr (assoc capitalization
-					   speechd-capitalizations))))
-    (speechd-send-command "SET" "CAPITALIZATION" capitalization-string)))
+;;; Speaking functions
 
 
 ;;;###autoload
-(defun* speechd-say (text &key (priority speechd-default-text-priority)
-			       (finish t))
+(defun* speechd-say-text (text &key (priority speechd-default-text-priority)
+			            (finish t))
   (interactive "sText: ")
-  (speechd-set-priority priority)
-  (speechd-send-data text)
+  (speechd--set-parameter :message-priority priority)
+  (speechd--send-data text)
   (when finish
-    (speechd-send-data-end)))
+    (speechd--send-data-end)))
 
 (defun* speechd-say-sound (name &key (priority speechd-default-sound-priority))
-  (speechd-set-priority priority)
-  (speechd-send-command "SOUND_ICON" name))
+  (speechd--set-parameter :message-priority priority)
+  (speechd--send-command (list "SOUND_ICON" name)))
 
 (defun* speechd-say-char (char &key (priority speechd-default-char-priority))
-  (speechd-set-priority priority)
-  (speechd-send-command "CHAR" (char-to-string char)))
+  (speechd--set-parameter :message-priority priority)
+  (speechd--send-command (list "CHAR" (char-to-string char))))
 
-  
+(defun* speechd-say-key (key &key (priority speechd-default-key-priority))
+  (speechd--set-parameter :message-priority priority)
+  ;; TODO: Implement real key handling
+  (speechd--send-command (list "KEY" (format "%s" key))))
+
+
+;;; Control functions
+
+
 ;;;###autoload
 (defun speechd-cancel ()
   (interactive)
-  (speechd-send-command "CANCEL" "self"))
+  (speechd--send-command '("CANCEL" "self")))
 
 ;;;###autoload
 (defun speechd-stop ()
   (interactive)
-  (speechd-send-command "STOP" "self"))
+  (speechd--send-command '("STOP" "self")))
 
 ;;;###autoload
 (defun speechd-pause ()
   (interactive)
   (setq speechd-paused-p t)
-  (speechd-send-command "PAUSE" "self"))
+  (speechd--send-command '("PAUSE" "self")))
 
 ;;;###autoload
 (defun speechd-resume (&optional softp)
   (interactive)
   (when (or speechd-paused-p (not softp))
-    (speechd-send-command "RESUME" "self")
+    (speechd--send-command '("RESUME" "self"))
     (setq speechd-paused-p nil)))
+
+(defun speechd-repeat ()
+  "Repeat the last message sent to speechd."
+  (let ((id (first (first (speechd--send-command '("HISTORY" "GET" "LAST"))))))
+    (when id
+      (speechd--send-command (list "HISTORY" "SAY" id)))))
+
+
+;;; Other functions
 
 
 (defconst speechd-maintainer-address "pdm@brailcom.org")
