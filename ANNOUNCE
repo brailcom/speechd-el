@@ -1,7 +1,7 @@
-speechd-el 0.4 released
+speechd-el 0.5 released
 =======================
 
-The Free(b)soft project is pleased to announce speechd-el 0.4.
+The Free(b)soft project is pleased to announce speechd-el 0.5.
 
 * What is speechd-el?
 
@@ -40,24 +40,29 @@ The Free(b)soft project is pleased to announce speechd-el 0.4.
   speechd-el and Emacspeak serve a similar purpose, they differ in
   their approach to the problem they address.
 
-* What is new in the 0.4 version?
+* What is new in the 0.5 version?
 
-  - Whitespace signalization.
+  - Reading of information about Emacs state (such as current buffer
+    name and modes), including automatic notification of change states.
 
-  - Repetition of last speech output possible in character reading prompts.
+  - Mode and header lines contents can be read in CVS versions of Emacs.
 
-  - Language selection based on currently selected input method.
+  - It's possible to read messages displayed from built-in functions.
 
-  - Asynchronous action handling reworked.
-  
-  - Responsiveness improved.
+  - New user option speechd-speak-message-time-interval.
+
+  - The SPEECHD_HOST environment variable is honored now.
+
+  - New ways of communication with Speech Dispatcher.
+
+  - The obsolete user option speechd-connection-parameters was removed.
 
   See the NEWS file for more details.
 
 * Where to get it?
   
   You can get the distribution tarball of the released version from
-  http://www.freebsoft.org/pub/projects/speechd-el/speechd-el-0.4.tar.gz .
+  http://www.freebsoft.org/pub/projects/speechd-el/speechd-el-0.5.tar.gz .
 
   The home page of the project is http://www.freebsoft.org/speechd-el .
 
