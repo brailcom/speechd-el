@@ -1,4 +1,9 @@
 2003-08-04  Milan Zamazal  <pdm@brailcom.org>
+	
+	* speechd-speak.el (speechd-speak): Belong to group `speechd', not
+	speechd-el.
+	(speechd-speak): Call speechd-speak--build-mode-map here, not on
+	the top level.
 
 	* speechd-speak.el (speechd-speak-report): Don't use string-match.
 	* speechd.el (speechd--process-request, speechd--send-data):
