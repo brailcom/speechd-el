@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.51 2003-10-17 17:41:37 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.52 2003-10-20 15:31:51 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -121,7 +121,8 @@ new cursor position in modified buffers."
   :type 'boolean
   :group 'speechd-speak)
 
-(defcustom speechd-speak-read-command-keys '(modification-movement)
+(defcustom speechd-speak-read-command-keys '(modification
+                                             modification-movement)
   "Defines whether command keys should be read after their command.
 If t, alway read command keys.
 If nil, never read them.
@@ -339,6 +340,7 @@ Level 1 is the slowest, level 9 is the fastest."
 (defvar speechd-speak--last-connections nil)
 (defvar speechd-speak--default-connection-name "default")
 (defvar speechd-speak--special-area nil)
+(defvar speechd-speak--emulate-minibuffer nil)
 (defvar speechd-speak--client-name-set nil)
 (make-variable-buffer-local 'speechd-speak--client-name-set)
 (defun speechd-speak--connection-name ()
@@ -357,7 +359,11 @@ Level 1 is the slowest, level 9 is the fastest."
             speechd-speak--last-connections speechd-speak-connections
             speechd-speak--last-connection-name
             (if buffer-mode
-                (or (cdr (or ;; functional test
+                (or (cdr (or
+                          ;; minibuffer-like prompts
+                          (and speechd-speak--emulate-minibuffer
+                               (assoc :minibuffer speechd-speak-connections))
+                          ;; functional test
                           (let ((specs speechd-speak-connections)
                                 (result nil))
                             (while (and (not result) specs)
@@ -370,8 +376,7 @@ Level 1 is the slowest, level 9 is the fastest."
                           (assoc (buffer-name) speechd-speak-connections)
                           ;; minibuffer
                           (and (speechd-speak--in-minibuffer-p)
-                               (assoc :minibuffer
-                                      speechd-speak-connections))
+                               (assoc :minibuffer speechd-speak-connections))
                           ;; major mode
                           (assq major-mode speechd-speak-connections)
                           ;; default
@@ -388,7 +393,10 @@ Level 1 is the slowest, level 9 is the fastest."
        ,@body)))
 
 (defmacro speechd-speak--interactive (&rest body)
-  `(let ((speechd-speak-mode (or (interactive-p) speechd-speak-mode)))
+  `(let ((speechd-speak-mode (or (interactive-p) speechd-speak-mode))
+         (speechd-default-text-priority (if (interactive-p)
+                                            'message
+                                          speechd-default-text-priority)))
      ,@body))
 
 (defun speechd-speak--text (text &rest args)
@@ -505,6 +513,13 @@ If BUFFER is nil, read current buffer."
   (interactive)
   (speechd-speak--interactive
    (speechd-speak-read-region (point) (point-max))))
+
+(defun speechd-speak-read-rectangle (beg end)
+  "Read text in the region-rectangle."
+  (interactive "r")
+  (speechd-speak--interactive
+   (speechd-speak--text
+    (mapconcat #'identity (extract-rectangle beg end) "\n"))))
 
 (defun speechd-speak-read-other-window ()
   "Read buffer of the last recently used window."
@@ -729,9 +744,6 @@ connections, otherwise create completely new connection."
 (speechd-speak--command-feedback (forward-word backward-word) after
   (speechd-speak-read-word))
 
-(speechd-speak--command-feedback (beginning-of-buffer end-of-buffer) after
-  (speechd-speak-read-line))
-
 (speechd-speak--command-feedback (forward-sentence backward-sentence) after
   (speechd-speak-read-sentence))
 
@@ -880,10 +892,12 @@ connections, otherwise create completely new connection."
 
 ;; The following functions don't invoke `minibuffer-setup-hook'
 (speechd-speak--defadvice y-or-n-p before
-  (speechd-speak--minibuffer-prompt
-   (concat (ad-get-arg 0) "(y or n)") :priority 'message))
+  (let ((speechd-speak--emulate-minibuffer t))
+    (speechd-speak--minibuffer-prompt
+     (concat (ad-get-arg 0) "(y or n)") :priority 'message)))
 (speechd-speak--defadvice read-key-sequence before
-  (let ((prompt (ad-get-arg 0)))
+  (let ((prompt (ad-get-arg 0))
+        (speechd-speak--emulate-minibuffer t))
     (when prompt
       (speechd-speak--minibuffer-prompt prompt :priority 'message))))
 
@@ -892,9 +906,31 @@ connections, otherwise create completely new connection."
 
 
 (defun speechd-speak--command-keys (&rest args)
-  (let ((keys (this-command-keys-vector)))
-    (dotimes (i (length keys))
-      (apply #'speechd-say-key (aref keys i) args))))
+  (let* ((keys (this-command-keys-vector))
+         (i 0)
+         (len (length keys)))
+    (while (< i len)
+      (let ((key (aref keys i)))
+        (apply #'speechd-say-key key args)
+        (let ((m-x-chars (and (eql (event-basic-type key) ?x)
+                              (equal (event-modifiers key) '(meta))
+                              (let ((j (1+ i))
+                                    (chars '("")))
+                                (while (and chars (< j len))
+                                  (let* ((k (aref keys j))
+                                         (km (event-modifiers k))
+                                         (kb (event-basic-type k)))
+                                    (unless (or (not (numberp kb))
+                                                (< kb 32) (>= kb 128)
+                                                km)
+                                      (push (char-to-string kb) chars)))
+                                  (incf j))
+                                (nreverse chars)))))
+          (if m-x-chars
+              (progn
+                (apply #'speechd-speak--text (apply #'concat m-x-chars) args)
+                (setq i len))
+            (incf i)))))))a
 
 (defun speechd-speak--add-command-text (info beg end)
   (let ((last (first (speechd-speak--cinfo changes)))
@@ -1277,6 +1313,7 @@ connections, otherwise create completely new connection."
 (define-key speechd-speak-mode-map "s" 'speechd-stop)
 (define-key speechd-speak-mode-map "w" 'speechd-speak-read-word)
 (define-key speechd-speak-mode-map "x" 'speechd-cancel)
+(define-key speechd-speak-mode-map "z" 'speechd-repeat)
 (define-key speechd-speak-mode-map "{" 'speechd-speak-read-paragraph)
 (define-key speechd-speak-mode-map " " 'speechd-resume)
 (define-key speechd-speak-mode-map "'" 'speechd-speak-read-sexp)
@@ -1286,7 +1323,7 @@ connections, otherwise create completely new connection."
 (define-key speechd-speak-mode-map "\C-c" 'speechd-speak-new-connection)
 (define-key speechd-speak-mode-map "\C-n" 'speechd-speak-read-next-line)
 (define-key speechd-speak-mode-map "\C-p" 'speechd-speak-read-previous-line)
-(define-key speechd-speak-mode-map "\C-r" 'speechd-repeat)
+(define-key speechd-speak-mode-map "\C-r" 'speechd-speak-read-rectangle)
 (define-key speechd-speak-mode-map "\C-s" 'speechd-speak)
 (define-key speechd-speak-mode-map "\C-x" 'speechd-unspeak)
 (dotimes (i 9)

@@ -267,6 +267,11 @@ Read buffer of the other window, if any is present
 @findex speechd-speak-read-region
 Read current region (@code{speechd-speak-read-region}).
 
+@item C-e C-r
+@kindex C-e C-r
+@findex speechd-speak-read-rectangle
+Read text in the rectangle-region (@code{speechd-speak-read-rectangle}).
+
 @item C-e w
 @kindex C-e w
 @findex speechd-speak-read-word
@@ -537,8 +542,8 @@ The following commands are rarely used, mostly for diagnosing
 purposes:
 
 @table @kbd
-@item C-e C-r
-@kindex C-e C-r
+@item C-e z
+@kindex C-e z
 @findex speechd-repeat
 Repeat the last text sent to Speech Dispatcher
 (@code{speechd-repeat}).
