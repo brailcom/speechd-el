@@ -1,0 +1,1166 @@
+\chyph
+\def\fontprefix{cs}
+\input texinfo
+@comment %**start of header
+@setfilename speechd-el.cs.info
+@documentlanguage cs
+@documentencoding ISO-8859-2
+@set VERSION 0.1
+@settitle speechd-el @value{VERSION}
+@syncodeindex fn cp
+@syncodeindex ky cp
+@syncodeindex vr cp
+@comment %**end of header
+@copying
+Èeský pøeklad manuálu programu speechd-el, @value{VERSION}.
+
+Copyright @copyright{} 2003 Brailcom, o.p.s.
+
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with no Front-Cover Texts and no Back-Cover Texts.
+A copy of the license is included in the section entitled ``GNU Free
+Documentation License.''
+@end quotation
+@end copying
+
+@dircategory Sound
+@dircategory Emacs
+@direntry
+* speechd-el: (speechd-el).	Emacsové rozhraní ke Speech Dispatcher.
+@end direntry
+
+@titlepage
+@title speechd-el
+@subtitle pro verzi @value{VERSION}
+@author Milan Zamazal
+@author Brailcom, o.p.s.
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@contents
+
+@ifnottex
+@node Top, Úvodem, (dir), (dir)
+@top speechd-el
+
+@insertcopying
+@end ifnottex
+
+@menu
+* Úvodem::                      K@tie{}èemu je speechd-el a tento manuál?
+* U¾ivatelská pøíruèka::        Pou¾ívání øeèového výstupu Emacsu.
+* Elispová knihovna::           Pou¾ívání speechd-el v elispových programech.
+* Kontaktní informace::         Jak se s námi o nìèem pobavit.
+
+* Kopírování tohoto manuálu::   GNU Free Documentation License.
+* Index::                       V¹eobjímající index.
+@end menu
+
+@c ****************************************************************************
+
+@node Úvodem, U¾ivatelská pøíruèka, Top, Top
+@chapter Úvodem
+@cindex Speech Dispatcher
+
+speechd-el je emacsový klient ke Speech Dispatcher.  Poskytuje
+následující funkce:
+
+@itemize @bullet
+@item
+@cindex SSIP
+Elispovou knihovnu pro pøístup ke Speech Dispatcher s@tie{}vyu¾itím
+soketové komunikace zalo¾ené na jeho komunikaèním protokolu (SSIP).
+
+@item
+Podporu pro øeèový výstup Emacsu, zamìøený zejména na prostøedky
+potøebné pro vyu¾ívání Emacsu slepými a tì¾ce zrakovì posti¾enými
+u¾ivateli.
+@end itemize
+
+Klíèové rysy speechd-el jsou:
+@cindex rysy
+
+@itemize @bullet
+@item
+Podporu pro automatické mluvení, bez nutnosti úprav ka¾dé emacsové
+funkce, kterou je potøeba rozmluvit.  Vìt¹ina emacsových programù
+z@tie{}distribuce Emacsu i@tie{}mimo ni získává øeèový výstup okam¾itì, bez
+jakékoliv speciální podpory.
+
+@item
+Nejsou provádìny témìø ¾ádné zmìny standardního chování Emacsu a
+nedochází ke konfliktùm s@tie{}u¾ivatelskými nastaveními.
+
+@item
+Plná spolupráce se Speech Dispatcher.
+
+@item
+Malý rozsah kódu.
+@end itemize
+
+Manuál popisuje øeèové u¾ivatelské rozhraní, jak si toto rozhraní
+pøizpùsobit a roz¹íøit a elispovou knihovnu.  Doporuèujeme, aby
+u¾ivatel byl èásteènì obeznámen se Speech Dispatcher na u¾ivatelské
+úrovni, ale není to nezbytné.
+
+@c ****************************************************************************
+
+@node U¾ivatelská pøíruèka, Elispová knihovna, Úvodem, Top
+@chapter U¾ivatelská pøíruèka speechd-el
+
+speechd-el umo¾òuje pou¾ívat Emacs bez zobrazení na monitoru, pouze
+jen s@tie{}øeèovým výstupem.  Hlavní oblast vyu¾ití je mezi slepci a
+zrakovì posti¾enými lidmi, nicménì øeèový výstup mù¾e být u¾iteèný
+i@tie{}pro celou øadu dal¹ích vìcí, podle toho co kdo potøebuje.
+
+Nejnovìj¹í verzi speechd-el si mù¾ete stáhnout na
+@url{http://www.freebsoft.org/pub/projects/speechd-el/}.
+
+speechd-el pou¾ívá pro øeèový výstup Speech Dispatcher, tak¾e abyste
+vùbec nìjaký øeèový výstup sly¹eli, potøebujete mít funkèní instalaci
+Speech Dispatcher.  V¹echny informace o@tie{}Speech Dispatcher naleznete na
+@url{http://www.freebsoft.org/speechd}.
+
+@menu
+* Instalace::                   Jak speechd-el nainstalovat.
+* Spu¹tìní øeèového výstupu::   Jak jej rozmluvit.
+* Pøíkazy::                     Jak jej pou¾ívat.
+* Konfigurace::                 Základní konfigurace.
+* Pokroèilá konfigurace::       Psaní vlastních reakcí na pøíkazy.
+* Potí¾e::                      Kdy¾ se speechd-el chová podivnì.
+@end menu
+
+@node Instalace, Spu¹tìní øeèového výstupu, U¾ivatelská pøíruèka, U¾ivatelská pøíruèka
+@section Instalace
+
+Pro instalaci Speech Dispatcher potøebujete knihovnu Elib.  Mù¾ete si
+ji stáhnout na @url{ftp://ftp.debian.org/debian/pool/main/e/elib/}.
+
+Máte-li knihovnu Elib nainstalovánu, mù¾ete si nainstalovat speechd-el
+v@tie{}následujících krocích:
+
+@enumerate
+@item
+Zkopírujte v¹echny @file{*.el} soubory z@tie{}distribuèního balíku nìkam do
+emacsových adresáøù obsa¾ených v@tie{}cestì va¹eho Emacsu.
+
+@item
+Chcete-li, mù¾ete si @file{*.el} soubory zkompilovat.  To
+doporuèujeme, proto¾e speechd-el bì¾í se zkompilovanými soubory
+podstatnì rychleji.  Kompilaci mù¾ete provést pøíkazem
+
+@example
+make compile
+@end example
+
+Poté pøiinstalujte zkompilované soubory do emacsové cesty ke zdrojovým
+souborùm speechd-el.
+
+@item
+Do svého @file{~/.emacs} si pøidejte následující øádek:
+
+@lisp
+(autoload 'speechd-speak "speechd-speak" nil t)
+@end lisp
+@end enumerate
+
+@node Spu¹tìní øeèového výstupu, Pøíkazy, Instalace, U¾ivatelská pøíruèka
+@section Spu¹tìní øeèového výstupu
+
+Po instalaci @file{*.el} souborù a restartu Emacsu mù¾ete
+inicializovat øeèový výstup prostøednictvím pøíkazu @kbd{M-x
+speechd-speak}.  Chcete-li, aby se tak dìlo automaticky pøi ka¾dém
+startu Emacsu, pøidejte si do svého @file{~/.emacs} následující
+øádek, za døíve vlo¾ený øádek s@tie{}@code{autoload}:
+
+@lisp
+(speechd-speak)
+@end lisp
+
+@table @kbd
+@item M-x speechd-speak
+@findex speechd-speak
+@kindex C-e C-s
+Inicializuj Emacs pro øeèový výstup a zaèni mluvit.
+
+Prosím nezapomeòte, ¾e abyste nìco sly¹eli, musíte mít korektnì
+nainstalováno Speech Dispatcher!
+
+Po poèáteèním nastavení mù¾e být tento pøíkaz pou¾it znovu, v@tie{}pøípadì
+potøeby restartu øeèové podpory.  Zejména jej musíte spustit poka¾dé,
+kdy¾ je restartováno Speech Dispatcher.
+
+Je-li pøíkaz zavolán s@tie{}prefixovým argumentem, jsou pøed jeho
+provedením nejprve uzavøena v¹echna spojení na Speech Dispatcher.  To
+je u¾iteèné v@tie{}pøípadì, kdy potøebujete zresetovat parametry v¹ech
+spojení, viz @ref{Parametry spojení}.
+
+Po svém prvním zavolání se pøíkaz stane dostupným pod klávesou
+@kbd{C-e C-s}.
+@end table
+
+@cindex vedlej¹í módy
+Poté, co jsou provedena úvodní nastavení, je zapínání a vypínání
+øeèového výstupu øízeno vedlej¹ími módy speechd-speak a
+global-speechd-speak.  Pøíkazy pro pøepínání módù obvykle nejsou
+pou¾ívány pøímo, mù¾ete místo nich pou¾ívat pøíkaz
+@code{speechd-speak-toggle-speaking} (@pxref{Øídící pøíkazy}), ale
+pokud je potøebujete, jsou k@tie{}dispozici.
+
+@table @kbd
+@item M-x speechd-speak-mode
+@findex speechd-speak-mode
+Zapni nebo vypni mluvení v@tie{}aktuálním bufferu.  Je-li pøíkaz zavolán
+bez prefixového argumentu, pøepne mluvící mód.  Nenulový prefixový
+argument zapne mluvení, nulový prefixový argument jej vypne.
+
+@item M-x global-speechd-speak-mode
+@findex global-speechd-speak-mode
+Zapni nebo vypni mluvení globálnì.  Je-li pøíkaz zavolán
+bez prefixového argumentu, pøepne mluvící mód.  S@tie{}prefixovým
+argumentem zapne mluvení právì v@tie{}pøípadì, kdy je tento argument kladný.
+@end table
+
+@node Pøíkazy, Konfigurace, Spu¹tìní øeèového výstupu, U¾ivatelská pøíruèka
+@section Pøíkazy
+
+V¹echny základní pøíkazy speechd-el jsou dostupné pod spoleènou
+prefixovou klávesou, kterou je implicitnì @kbd{C-e} (tuto prefixovou
+klávesu lze zmìnit, @pxref{Konfigurace}).  Jestli¾e je prefixová
+klávesa v@tie{}konfliktu s@tie{}nìkterým globálním pøíkazem Emacsu, pùvodní
+pøíkaz je dostupný dvojím stiskem prefixové klávesy.  Napøíklad
+v@tie{}pøípadì implicitního prefixu lze pøíkaz @code{end-of-line}, normálnì
+dostupný pod klávesou @kbd{C-e}, vyvolat klávesovou kombinací @kbd{C-e
+C-e}.
+
+@menu
+* Pøíkazy pro ètení::             Ètení èástí textu.
+* Øídící pøíkazy::                Pøeru¹ení, nastavení rychlosti, apod.
+* Pøíkazy nastavující parametry:: Modifikace øeèového výstupu.
+* Ostatní pøíkazy::               Pomocné pøíkazy.
+@end menu
+
+@node Pøíkazy pro ètení, Øídící pøíkazy, Pøíkazy, Pøíkazy
+@subsection Pøíkazy pro ètení
+
+@table @kbd
+@item C-e l
+@kindex C-e l
+@findex speechd-speak-read-line
+Pøeèti aktuální øádek (@code{speechd-speak-read-line}).
+
+@item C-e b
+@kindex C-e b
+@findex speechd-speak-read-buffer
+Pøeèti aktuální buffer (@code{speechd-speak-read-buffer}).
+
+@item C-e >
+@kindex C-e >
+@findex speechd-speak-read-rest-of-buffer
+Pøeèti aktuální buffer od pozice kurzoru do konce bufferu
+(@code{speechd-speak-read-rest-of-buffer}).
+
+@item C-e o
+@kindex C-e o
+@findex speechd-speak-read-other-window
+Pøeèti buffer v@tie{}jiném oknì, je-li nìjaké jiné okno otevøené
+(@code{speechd-speak-read-other-window}).
+
+@item C-e r
+@kindex C-e r
+@findex speechd-speak-read-region
+Pøeèti aktuální oblast (@code{speechd-speak-read-region}).
+
+@item C-e w
+@kindex C-e w
+@findex speechd-speak-read-word
+Pøeèti nejbli¾¹í slovo za kurzorem (@code{speechd-speak-read-word}).
+
+@item C-e @{
+@kindex C-e @{
+@findex speechd-speak-read-paragraph
+Pøeèti nejbli¾¹í odstavec za kurzorem (@code{speechd-speak-read-paragraph}).
+
+@item C-e [
+@kindex C-e [
+@findex speechd-speak-read-page
+Pøeèti nejbli¾¹í stránku za kurzorem (@code{speechd-speak-read-page}).
+
+@item C-e '
+@kindex C-e '
+@findex speechd-speak-read-sexp
+Pøeèti nejbli¾¹í symbolický výraz za kurzorem
+(@code{speechd-speak-read-sexp}).
+
+@item C-e c
+@kindex C-e c
+@findex speechd-speak-read-char
+Pøeèti znak na pozici kurzoru (@code{speechd-speak-read-char}).
+
+@item C-e C-n
+@kindex C-e C-n
+@findex speechd-speak-read-next-line
+Pøeèti následující øádek (@code{speechd-speak-read-next-line}).
+
+@item C-e C-p
+@kindex C-e C-p
+@findex speechd-speak-read-previous-line
+Pøeèti pøedchozí øádek (@code{speechd-speak-read-previous-line}).
+
+@item C-e m
+@kindex C-e m
+@findex speechd-speak-last-message
+Pøeèti poslední zobrazené hlá¹ení Emacsu (@code{speechd-speak-last-message}).
+@end table
+
+@node Øídící pøíkazy, Pøíkazy nastavující parametry, Pøíkazy pro ètení, Pøíkazy
+@subsection Øídící pøíkazy
+
+@table @kbd
+@item C-e q
+@kindex C-e q
+@findex speechd-speak-toggle-speaking
+@cindex zti¹ení
+Globálnì pøepni mluvení (@code{speechd-speak-toggle-speaking}).  Pøi
+vyvolání s@tie{}prefixovým argumentem pøepni mluvení pouze v@tie{}aktuálním
+bufferu.
+
+@item C-e s
+@kindex C-e s
+@findex speechd-stop
+@cindex zastavení
+Zastav mluvení aktuální zprávy (@code{speechd-stop}).  Ostatní zprávy
+ve frontì Speech Dispatcher budou normálnì pøemluveny.
+
+@item C-e x
+@kindex C-e x
+@findex speechd-cancel
+@cindex zastavení
+Zastav mluvení v¹ech zpráv ve frontì Speech Dispatcher.
+
+@item C-e p
+@kindex C-e p
+@findex speechd-pause
+@cindex pøeru¹ení
+Pøeru¹ mluvení --- prozatím ztichni a odlo¾ mluvení aktuální zprávy a¾
+do vyvolání pøíkazu pokraèování v@tie{}mluvení (@code{speechd-pause}).
+
+@item C-e SPC
+@kindex C-e SPC
+@findex speechd-resume
+@cindex pokraèování
+Pokraèuj v@tie{}pozastaveném mluvení (@code{speechd-resume}).
+
+@item C-e 1
+@itemx C-e 2
+@itemx C-e 3
+@itemx C-e 4
+@itemx C-e 5
+@itemx C-e 6
+@itemx C-e 7
+@itemx C-e 8
+@itemx C-e 9
+@kindex C-e 1
+@kindex C-e 2
+@kindex C-e 3
+@kindex C-e 4
+@kindex C-e 5
+@kindex C-e 6
+@kindex C-e 7
+@kindex C-e 8
+@kindex C-e 9
+@findex speechd-speak-key-set-predefined-rate
+@cindex rychlost
+Nastav jednu z@tie{}pøednastavených rychlostí mluvení
+(@code{speechd-speak-key-set-predefined-rate}).  @kbd{C-e 1} nastaví
+nejni¾¹í rychlost, @kbd{C-e 5} nastaví støední rychlost a @kbd{C-e 9}
+nastaví nejvy¹¹í rychlost.
+@end table
+
+@node Pøíkazy nastavující parametry, Ostatní pøíkazy, Øídící pøíkazy, Pøíkazy
+@subsection Pøíkazy pro nastavení parametrù
+@cindex parametry
+
+Tyto pøíkazy nastavují rùzné vlastnosti øeèového výstupu.  V¹echny
+jsou aplikovány pouze na aktuální spojení do Speech Dispatcher (více
+informací o@tie{}spojeních do Speech Dispatcher naleznete
+v@tie{}@pxref{Parametry spojení}).
+
+Chcete-li si pro konkrétní buffer vytvoøit zvlá¹tní spojení, mù¾ete
+tak uèinit následujícím pøíkazem:
+
+@table @kbd
+@item C-e C-s
+@kindex C-e C-s
+@findex speechd-speak-new-connection
+@cindex spojení
+Nastav pro aktuální buffer dané spojení
+(@code{speechd-speak-new-connection}).  Pøíkaz se zeptá na jméno
+spojení, mù¾ete zadat buï nové jméno, nebo jméno ji¾ existujícího
+spojení.  Pøi obyèejném vyvolání pøíkazu je vám nabídnuto novì
+vygenerované jméno spojení, zatímco pøi vyvolání pøíkazu s@tie{}prefixovým
+argumentem si mù¾ete vybrat z@tie{}nabídnutých jmen existujících spojení.
+@end table
+
+Pøíkazy ovlivòující základní parametry pøevodu textu na øeè:
+
+@table @kbd
+@item C-e d l
+@kindex C-e d l
+@findex speechd-speak-set-language
+@cindex jazyk
+Nastav jazyk spojení.  Zadejte jej jako kód jazyka dle ISO 639.
+
+@item C-e d .
+@kindex C-e d .
+@findex speechd-speak-set-punctuation-mode
+@cindex interpunkce
+Urèi, jak zpracovávat interpunkci, zda ji èíst èi ignorovat.
+@code{all} znamená èíst v¹echny interpunkèní znaky, @code{none} je
+v¹echny pøeskakuje a @code{some} ète zadanou podmno¾inu interpunkèních
+znakù zadaných v@tie{}konfiguraci Speech Dispatcher.
+
+@item C-e d c
+@kindex C-e d c
+@findex speechd-speak-set-capital-character-mode
+@cindex velká písmena
+Nastav mód signalizace velkých písmen.  @code{icon} znamená
+signalizaci zvukovou ikonou, @code{spell} znamená jejich hláskování
+prostøednictvím speciální hláskovací tabulky a @code{none} znamená, ¾e
+velká písmena nejsou nijak zvlá¹» signalizována.
+@end table
+
+Pøíkazy ovlivòující vlastnosti øeèového výstupu:
+
+@table @kbd
+@item C-e d v
+@kindex C-e d v
+@findex speechd-speak-set-voice
+@cindex hlas
+Nastav implicitní hlas, který má syntetizér pou¾ívat
+(@code{speechd-speak-set-voice}).  Mù¾ete si vybrat nìkterý z@tie{}mno¾iny
+hlasù nabízených ve va¹í instalaci Speech Dispatcher.
+
+@item C-e d r
+@kindex C-e d r
+@findex speechd-speak-set-rate
+@cindex rychlost
+Nastav rychlost ètení, v@tie{}rozmezí od -100 (nejpomalej¹í) po 100
+(nejrychlej¹í) (@code{speechd-speak-set-rate}).  Èasto asi budete
+radìji pou¾ívat pøíkaz @code{speechd-speak-key-set-predefined-rate},
+dostupný na klávese @kbd{C-e @var{number}}, viz @ref{Øídící pøíkazy}.
+
+@item C-e d p
+@kindex C-e d p
+@findex speechd-speak-set-pitch
+@cindex vý¹ka
+Nastav vý¹ku hlasu, v@tie{}rozmezí od -100 (nejni¾¹í) po 100 (nejvy¹¹í)
+(@code{speechd-speak-set-pitch}).
+@end table
+
+Pøíkazy ovlivòující øeèový syntetizér:
+
+@table @kbd
+@item C-e d o
+@kindex C-e d o
+@findex speechd-speak-set-output-module
+@cindex výstupní modul
+Pøepni Speech Dispatcher na zadaný výstupní modul
+(@code{speechd-speak-set-output-module}).  Pøíkaz se dotazuje na jméno
+¾ádaného výstupního modulu.
+@end table
+
+Následující pøíkazy nastavují rùzné tabulky pro transformaci textu.
+Ka¾dý z@tie{}nich se ptá na jméno tabulky, které musí být dostupné ve va¹í
+instalaci Speech Dispatcher.  Více informací o@tie{}konkrétních druzích
+tabulek naleznete v@tie{}dokumentaci Speech Dispatcher.
+
+@table @kbd
+@item C-e d t s
+@kindex C-e d t s
+@findex speechd-speak-set-spelling-table
+@cindex hláskovací tabulka
+Nastav hláskovací tabulku (@code{speechd-speak-set-spelling-table}).
+
+@item C-e d t =
+@kindex C-e d t =
+@findex speechd-speak-set-character-table
+@cindex znaková tabulka
+Nastav znakovou tabulku (@code{speechd-speak-set-character-table}).
+
+@item C-e d t c
+@kindex C-e d t c
+@findex speechd-speak-set-capital-character-table
+@cindex tabulka velkých písmen
+Nastav tabulku velkých písmen
+(@code{speechd-speak-set-capital-character-table}).
+
+@item C-e d t k
+@kindex C-e d t k
+@findex speechd-speak-set-key-table
+@cindex klávesová tabulka
+Nastav klávesovou tabulku (@code{speechd-speak-set-key-table}).
+
+@item C-e d t .
+@kindex C-e d t .
+@findex speechd-speak-set-punctuation-table
+@cindex interpunkèní tabulka
+Nastav interpunkèní tabulku (@code{speechd-speak-set-punctuation-table}).
+
+@item C-e d t t
+@kindex C-e d t t
+@findex speechd-speak-set-text-table
+@cindex tabulka textù
+Nastav tabulku textù (@code{speechd-speak-set-text-table}).
+
+@item C-e d t i
+@kindex C-e d t i
+@findex speechd-speak-set-sound-table
+@cindex tabulka zvukù
+Nastav tabulku zvukù (@code{speechd-speak-set-sound-table}).
+@end table
+
+@node Ostatní pøíkazy,  , Pøíkazy nastavující parametry, Pøíkazy
+@subsection Ostatní pøíkazy
+
+@kindex C-x C-c
+V@tie{}pøípadì, ¾e se Emacs úplnì zblázní a odmítá kvùli chybì speechd-el
+nebo u¾ivatelské definici související s@tie{}øeèovým výstupem provádìt
+jakékoliv pøíkazy vèetnì @kbd{C-x C-c}, mù¾ete jako poslední pokus
+o@tie{}pomoc vyzkou¹et následující pøíkaz:
+
+@table @kbd
+@item C-e C-x
+@kindex C-e C-x
+@findex speechd-unspeak
+@cindex vzpamatování se
+Pokus se deaktivovat v¹echny módy, háèky a obálky instalované pøíkazem
+@code{speechd-speak} (@code{speechd-unspeak}).
+@end table
+
+Následující pøíkazy jsou pou¾ívány jen velmi zøídka, povìt¹inou pro
+ladící úèely:
+
+@table @kbd
+@item C-e C-r
+@kindex C-e C-r
+@findex speechd-repeat
+Zopakuj poslední text odeslaný do Speech Dispatcher
+(@code{speechd-repeat}).
+
+@item M-x speechd-say-text
+@findex speechd-say-text
+Zeptej se na text a pøemluv jej.
+@end table
+
+@node Konfigurace, Pokroèilá konfigurace, Pøíkazy, U¾ivatelská pøíruèka
+@section Konfigurace
+
+@menu
+* Konfigurace serveru::         Kam se pøipojit.
+* Implicitní priority::         Priority rùzných druhù zpráv.
+* Základní mluvení::            Jednoduché volby.
+* Automatické mluvení bufferù:: Jak nìkteré buffery rozmluvit ihned.
+* Signalizace::                 Signalizace prázdných zpráv, apod.
+* Vlastnosti textu::            Podpora faces a zvlá¹tních èástí textu.
+* Parametry spojení::           Nastavování parametrù Speech Dispatcher.
+* Více spojení::                Odli¹né parametry pro nìkteré módy a buffery.
+* Klávesy::                     Pøizpùsobení pøíkazových kláves.
+* Módy::                        Háèky vedlej¹ích módù.
+@end menu
+
+@node Konfigurace serveru, Implicitní priority, Konfigurace, Konfigurace
+@subsection Konfigurace spojení na Speech Dispatcher server
+
+Nastavení tìchto promìnných umo¾òuje se pøipojit na Speech Dispatcher
+bì¾ící na vzdáleném stroji nebo nestandardním portu.
+
+@vtable @code
+@item speechd-host
+@cindex server
+Jméno serveru, na kterém bì¾í Speech Dispatcher, ke kterému se chcete
+pøipojit, zadané jako øetìzec.  Implicitní je localhost.
+
+@item speechd-port
+@cindex port
+Èíslo portu, na který se chcete pøipojit.  Implicitní je obvyklé
+èíslo portu Speech Dispatcher.
+
+@item speechd-timeout
+@cindex timeout
+Maximální poèet sekund, po které se má èekat na odpovìï od Speech
+Dispatcher.  Je-li tento èas pøekroèen, speechd-el uzavøe pøíslu¹né
+spojení.  Za normálních okolností by Speech Dispatcher mìlo odpovídat
+na pøíkazu protokolu okam¾itì, av¹ak pokud se pøipojujete na Speech
+Dispatcher nìjakým zvlá¹tním zpùsobem po pomalé síti, mù¾ete
+potøebovat tento limit zvý¹it.
+@end vtable
+
+@node Implicitní priority, Základní mluvení, Konfigurace serveru, Konfigurace
+@subsection Implicitní priority
+@cindex priority
+
+Po¹le-li nìjaká funkce speechd-el na Speech Dispatcher zprávu bez
+explicitnì specifikované priority dané zprávy, pøiøadí se zprávì
+priorita dle obsahu ní¾e uvedených promìnných.  Zmìnou jejich hodnot
+mù¾ete dosáhnout zajímavých efektù.  Napøíklad zmìnou hodnoty promìnné
+@code{speechd-default-key-priority} z@tie{}@code{notification} na
+@code{message} zaøídíte, ¾e v¹echny napsané znaky budou øeèeny a budou
+pøeru¹ovat obvyklé ètení textù.
+
+V¹echny tyto promìnné mohou nabývat nìkteré z@tie{}následujících hodnot:
+@code{important}, @code{message}, @code{text}, @code{notification},
+@code{progress}.  Tyto hodnoty odpovídají prioritám Speech Dispatcher,
+více podrobností naleznete v@tie{}manuálu Speech Dispatcher.
+
+@vtable @code
+@item speechd-default-text-priority
+Implicitní priorita vìt¹iny textových zpráv.
+
+@item speechd-default-sound-priority
+Implicitní priorita zvukových ikon.
+
+@item speechd-default-char-priority
+Implicitní priorita hláskovaných znakù.
+
+@item speechd-default-key-priority
+Implicitní priorita znakù napsaných na klávesnici.
+@end vtable
+
+@node Základní mluvení, Automatické mluvení bufferù, Implicitní priority, Konfigurace
+@subsection Základní konfigurace mluvení
+
+@vtable @code
+@item speechd-speak-deleted-char
+@cindex mazání
+Urèuje, který znak má být pøeèten pøi mazání znaku.  Je-li hodnotou
+nìco jiného ne¾ @code{nil}, pøeèti smazaný znak, jinak pøeèti sousední
+znak.
+
+@item speechd-speak-buffer-name
+@cindex buffery
+Pøepínáte-li se do jiného bufferu a hodnotou této promìnné je nìco
+jiného ne¾ @code{nil}, je pøeèteno jméno bufferu.  Jinak je obvyklým
+zpùsobem pøeèten text v@tie{}novém bufferu na pozici kurzoru.
+@end vtable
+
+@node Automatické mluvení bufferù, Signalizace, Základní mluvení, Konfigurace
+@subsection Automatické mluvení bufferù
+@cindex buffery
+@cindex vkládaný text
+
+Nìkdy je u¾iteèné zaèít pøemlouvat obsah bufferu i@tie{}bez explicitního
+po¾adavku u¾ivatele.  Napøíklad je-li vyvolán pøíkaz nápovìdy,
+u¾ivatel si obvykle chce ihned poté pøeèíst její text.  Následující
+promìnné definují seznam jmen bufferù, které mají být automaticky
+pøemluveny, jestli¾e jsou viditelné v@tie{}nìkterém z@tie{}oken aktuálního rámce
+a jejich obsah byl bìhem posledního u¾ivatelského pøíkazu zmìnìn.
+
+@vtable @code
+@item speechd-speak-auto-speak-buffers
+Obsah tìchto bufferù je pøemluven za vý¹e uvedených podmínek po
+provedení pøíkazu, jestli¾e není k@tie{}pøemluvení nic jiného (napøíklad
+pod kurzorem pøi pøesunu kurzoru na jinou pozici).
+
+@item speechd-speak-force-auto-speak-buffers
+Stejné jako @code{speechd-speak-auto-speak-buffers} a¾ na to, ¾e obsah
+bufferu je pøemluven vynucenì, i@tie{}kdy¾ by mohlo být pøemluveno nìco
+jiného.
+@end vtable
+
+Následující promìnné urèují, jak nakládat s@tie{}texty vlo¾enými bìhem
+provádìní u¾ivatelských pøíkazù.  Týkají se pouze novì vlo¾ených
+textù, neovlivòují zpracování smazaných textù.  Navíc tyto volby
+neovlivòují texty vlo¾ené bìhem provádìní pøíkazù, které speechd-el
+anebo u¾ivatelské definice zpracovávají speciálním zpùsobem, jako je
+napøíklad pøípad pøíkazu @code{self-insert-command}.
+
+@vtable @code
+@item speechd-speak-buffer-insertions
+Urèuje, zda má být automaticky èten text vkládaný v@tie{}aktuálním bufferu.
+Hodnotou promìnné mù¾e být nìkterý z@tie{}následujících symbolù:
+
+@table @code
+@item nil
+Neèti ¾ádné vlo¾ené texty.
+
+@item t
+Èti v¹echny vlo¾ené texty.
+
+@item one-line
+Èti pouze ty vlo¾ené texty, které nepøesahují hranice øádku.
+@end table
+
+@item speechd-speak-insertions-in-buffers
+Seznam jmen bufferù, ve kterých jsou vkládané texty èteny automaticky,
+bez ohledu na to, zda jde o@tie{}aktuální buffer a bez ohledu na hodnotu
+promìnné @code{speechd-speak-buffer-insertions}.
+
+@item speechd-speak-priority-insertions-in-buffers
+Seznam jmen bufferù, ve kterých jsou vkládané texty èteny automaticky
+okam¾itì po svém vlo¾ení, ne a¾ po dokonèení provádìného pøíkazu, jako
+je tomu v@tie{}pøípadì promìnné @code{speechd-speak-insertions-in-buffers}.
+Tato vlastnost je typicky u¾iteèná v@tie{}comint bufferech.
+
+@item speechd-speak-align-buffer-insertions
+Je-li hodnotou promìnné nìco jiného ne¾ @code{nil}, je vkládaný text
+pøed svým pøeètením roz¹íøen k@tie{}zaèátku prvního slova, které je alespoò
+zèásti obsa¾eno ve vlo¾eném textu.  To je u¾iteèné zejména v@tie{}pøípadì
+doplòovacích funkcí.
+@end vtable
+
+@node Signalizace, Vlastnosti textu, Automatické mluvení bufferù, Konfigurace
+@subsection Signalizace
+
+Nìkteré situace mohou být signalizovány zvukovými ikonami.
+Následující pøíznaky zapínají nebo vypínají pøeddefinované
+signalizace.  O@tie{}tom, jak si definovat vlastní signalizace, se mù¾ete
+doèíst v@tie{}@ref{Pokroèilá konfigurace}.
+
+@vtable @code
+@item speechd-speak-signal-empty
+@cindex prázdný text
+Je-li hodnotou promìnné nìco jiného ne¾ @code{nil}, upozoròuj
+v@tie{}rùzných situacích na prázdný text.
+
+@item speechd-speak-signal-beginning-of-line
+@cindex øádek
+@cindex zaèátek øádku
+Je-li hodnotou promìnné nìco jiného ne¾ @code{nil}, signalizuj
+dosa¾ení zaèátku øádku pøi pohybu pomocí pøíkazù
+@code{forward-char} a @code{backward-char}.
+
+@item speechd-speak-signal-end-of-line
+@cindex konec øádku
+Je-li hodnotou promìnné nìco jiného ne¾ @code{nil}, signalizuj
+dosa¾ení konce øádku pøi pohybu pomocí pøíkazù
+@code{forward-char} a @code{backward-char}.
+@end vtable
+
+@node Vlastnosti textu, Parametry spojení, Signalizace, Konfigurace
+@subsection Vlastnosti textu
+@cindex vlastnosti textu
+@cindex faces
+@cindex kurzor
+@cindex pohyb
+
+Implicitní chování speechd-el je takové, ¾e po pøíkazu, který zpùsobí
+pøesun kurzoru na jinou pozici, pøeète aktuální øádek.  Pokud je v¹ak
+pozice kurzoru obklopena textem, který má nìjaké vlastnosti (text
+properties), typicky face, ale mù¾e jít o@tie{}jakékoliv jiné vlastnosti,
+speechd-el dovede pøeèíst pouze tu èást textu pod kurzorem, která má
+shodné vlastnosti.
+
+Pokud je navíc zapnut font lock mód, faces mohou být mapovány na rùzné
+hlasy.
+
+@vtable @code
+@item speechd-speak-by-properties-on-movement
+Metoda výbìru èásti textu, která má být pøeètena po pøesunu kurzoru.
+Promìnná mù¾e nabývat nìkteré z@tie{}následujících hodnot:
+
+@table @asis
+@item @code{nil}
+Vlastnosti textu (text properties) nejsou nijak zohledòovány.
+
+@item @code{t}
+Jsou zohledòovány v¹echny vlastnosti textu.
+
+@item seznam faces
+Z@tie{}vlastností textu jsou zohledòována pouze daná faces.
+@end table
+
+@item speechd-speak-by-properties-always
+Seznam pøíkazù, které v¾dy zohledòují vlastnosti textu, a@tie{}to
+i@tie{}v@tie{}pøípadì ¾e hodnota promìnné
+@code{speechd-speak-by-properties-on-movement} je @code{nil}.
+
+@item speechd-speak-by-properties-never
+Seznam pøíkazù, které nikdy nezohledòují vlastnosti textu, a@tie{}to ani
+v@tie{}pøípadì ¾e hodnota promìnné
+@code{speechd-speak-by-properties-on-movement} není @code{nil}.
+
+@item speechd-speak-faces
+Tato promìnná umo¾òuje zajistit vyvolání akcí v@tie{}pøípadì, kdy kurzor po
+provedení u¾ivatelského pøíkazu skonèí na urèitém face.  Hodnotou
+promìnné je asociativní seznam s@tie{}prvky tvaru @code{(@var{face}
+. @var{akce})}.
+
+Jestli¾e pøíkaz pøesouvající kurzor zanechá kurzor na @var{face} a na
+pøíkaz není explicitnì navì¹eno ¾ádné mluvení, je vyvolána
+@var{akce}.  Je-li @code{akce} øetìzcem, je tento øetìzec pøemluven.
+Je-li @code{akce} funkcí, je tato funkce zavolána, bez argumentù.
+
+@item speechd-face-voices
+Mapování faces na hlasy.  Hodnotou promìnné je asociativní seznam
+s@tie{}prvky tvaru @code{(@var{face} . @var{hlas})}, kde @var{face} je face
+a @var{hlas} je jméno hlasu, jako øetìzec.  Ka¾dé face je pøemluveno
+odpovídajícím hlasem.  Pokud pro nìjaké face není hlas v@tie{}této promìnné
+definovat, je toto face pøemluveno aktuálním hlasem.
+
+Pozor, toto mapování se uplatní jen tehdy, je-li zapnut font lock mód.
+@end vtable
+
+@node Parametry spojení, Více spojení, Vlastnosti textu, Konfigurace
+@subsection Parametry spojení
+@cindex parametry
+
+S@tie{}pomocí následující promìnné si mù¾ete nechat automaticky nastavit
+rùzné parametry spojení, jako rychlost øeèi, jazyk, atd.  speechd-el
+mù¾e mít na Speech Dispatcher otevøeno více spojení, definovaných dle
+rùzných kritérií (@pxref{Více spojení}).  Rùzným spojením pak mù¾ete
+nastavit rùzné parametry, v@tie{}závislosti na jménu spojení, a@tie{}mù¾ete také
+nastavit implicitní parametry spoleèné pro v¹echna spojení.
+
+@vtable @code
+@item speechd-connection-parameters
+Asociativní seznam jmen spojení a odpovídajících parametrù.  Ka¾dý
+prvek seznamu je tvaru @code{(@var{jméno-spojení} . @var{parametry})},
+kde @var{jméno-spojení} je jméno spojení zadané jako øetìzec a
+@var{parameters} je property list s@tie{}dvojicemi slo¾enými
+z@tie{}identifikátoru parametru a hodnoty parametru.
+
+Jestli¾e namístì @code{jméno-spojení} uvedete místo øetìzce symbol
+@code{t}, odpovídající prvek definuje parametry spoleèné pro v¹echna
+spojení.  Ka¾dý z@tie{}parametrù v@tie{}tomto prvku platí pro v¹echna spojení,
+která pro tento parametr nedefinují svoji vlastní hodnotu.  V@tie{}celém
+asociativním seznamu smí být symbol @code{t} místo jména spojení
+pou¾it nejvý¹e jednou.
+
+Identifikátoru parametrù mohou být následující symboly:
+@code{language}, @code{message-priority}, @code{punctuation-mode},
+@code{important-punctuation}, @code{punctuation-table},
+@code{spelling-table}, @code{text-table}, @code{character-table},
+@code{key-table}, @code{sound-table}, @code{capital-character-table},
+@code{capital-character-mode}, @code{voice}, @code{rate},
+@code{pitch}, @code{output-module}.  Popis povolených hodnot parametrù
+naleznete v@tie{}dokumentaèních øetìzcích odpovídajících
+@code{speechd-set-*} funkcí.
+
+Speciální význam má parametr @code{message-priority}: pøenastavuje
+prioritu v¹ech zpráv zaslaných prostøednictvím daného spojení.  Pokud
+jej pro nìjaké spojení uvedete, v¹echny zprávy zaslané tímto spojením
+budou mít zadanou prioritu, a@tie{}to i@tie{}v@tie{}pøípadì, kdy funkce zasílající
+zprávu zprávì explicitnì nastaví prioritu jinou.
+@end vtable
+
+Aby se nastavení hodnoty této promìnné plnì projevilo, musí být
+otevøená spojení znovuotevøena.  Nepou¾íváte-li konfiguraèní rozhraní
+Emacsu (customize), musíte pro zaji¹tìní znovuotevøení spojení zavolat
+pøíkaz @kbd{C-u M-x speechd-speak}.
+
+Pro malou pomoc s@tie{}nastavováním této promìnné je definován tento
+pøíkaz:
+
+@table @kbd
+@item C-e C-a
+@kindex C-e C-a
+@findex speechd-add-connection-parameters
+Pøidej jméno a parametry aktuálního spojení do promìnné
+@code{speechd-connection-parameters}
+(@code{speechd-add-connection-parameters}).  Nezapomeòte prosím, ¾e
+chcete-li uchovat hodnotu této promìnné i@tie{}pro pøí¹tí spu¹tìní Emacsu,
+musíte si ji sami ulo¾it.
+@end table
+
+@node Více spojení, Klávesy, Parametry spojení, Konfigurace
+@subsection Více spojení
+@cindex spojení
+
+speechd-el mù¾ete øíct, aby pro urèité buffery nebo hlavní módy
+pou¾ívalo oddìlená spojení na Speech Dispatcher.  To v@tie{}zásadì umo¾òuje
+nezávislé nastavení rùzných parametrù øeèového výstupu pro tyto
+buffery a hlavní módy, jak ruèní, tak prostøednictvím konfigurace
+(@pxref{Parametry spojení}).
+
+Ka¾dé spojení na Speech Dispatcher má své vlastní jedineèné jméno.
+speechd-el implicitnì pou¾ívá spojení nazvané @code{"default"}.  Pro
+vytvoøení oddìleného spojení staèí pouze nechat v@tie{}urèitých situacích
+speechd-el vybrat jiné jméno spojení.  Zpùsob výbìru spojení je
+definován promìnnou @code{speechd-speak-connections}.
+
+@vtable @code
+@item speechd-speak-connections
+Asociativní seznam mapující hlavní módy a buffery na spojení.  Ka¾dý
+prvek seznamu je tvaru @code{(@var{mód-nebo-buffer}
+. @var{jméno-spojení})}.
+
+Kdy¾ chce speechd-el poslat zprávu, porovnává momentální prostøedí
+s@tie{}@var{mód-nebo-buffer}.  @var{mód-nebo-buffer} smí být jedním
+z@tie{}následujících objektù, od nejvy¹¹í priority po nejni¾¹í:
+
+@itemize @bullet
+@item
+seznam, reprezentující volání funkce, která musí vrátit jinou hodnotu
+ne¾ @code{nil}, právì kdy¾ má být pou¾it pøíslu¹ný prvek asociativního
+seznamu
+
+@item
+jméno bufferu
+
+@item
+symbol @code{:minibuffer}, reprezentující minibuffer
+
+@item
+symbol hlavního módu
+
+@item
+@code{nil}, reprezentující nebufferové objekty, napø. echo area
+
+@item
+@code{t}, reprezentující implicitní hodnotu, kdy¾ není aplikovatelný
+¾ádný jiný prvek
+@end itemize
+
+Jestli¾e urèité situaci odpovídá více prvkù, je pou¾it prvek
+s@tie{}nejvy¹¹í prioritou.
+
+@var{jméno-spojení} je libovolný neprázdný øetìzec urèující jméno
+po¾adovaného spojení.  Není-li otevøeno ¾ádné spojení daného jména, je
+automaticky vytvoøeno v@tie{}okam¾iku, kdy do nìj má být nìco zasláno.
+@end vtable
+
+@node Klávesy, Módy, Více spojení, Konfigurace
+@subsection Klávesy
+@cindex klávesy
+@cindex prefixová klávesa
+@cindex klávesová mapa
+
+Pøíkazové klávesy speechd-el jsou definovány promìnnou
+@code{speechd-speak-prefix} a klávesovou mapou
+@code{speechd-speak-mode-map}.
+
+@vtable @code
+@item speechd-speak-prefix
+Tato promìnná definuje prefixovou klávesu pøíkazù speechd-el, kterou
+je implicitnì @kbd{C-e}.  Jestli¾e tuto promìnnou zmìníte a¾ po
+nastartování mluvení prostøednictvím pøíkazu @code{speechd-speak} a
+nenastavujete ji prostøednictvím konfiguraèního rozhraní Emacsu
+(customize), musíte, aby se zmìna projevila, pøíkaz
+@code{speechd-speak} spustit znovu.
+
+@item speechd-speak-mode-map
+Tato klávesová mapa urèuje mapování kláves speechd-el následujících za
+prefixovou klávesou.  Mù¾ete v@tie{}ní klávesy nastavovat obvyklým
+zpùsobem, napø.
+
+@lisp
+(define-key speechd-speak-mode-map "t" 'speechd-say-text)
+@end lisp
+
+pøiøadí pøíkaz @code{'speechd-say-text} klávese @code{C-e t} (je-li
+prefixovou klávesou @code{C-e}).
+@end vtable
+
+@node Módy,  , Klávesy, Konfigurace
+@subsection Háèky ve vedlej¹ích módech
+@cindex vedlej¹í módy
+@cindex háèky
+
+speechd-el poskytuje vedlej¹í mód, který zapíná a vypíná mluvení,
+@xref{Spu¹tìní øeèového výstupu}.  Prostøednictvím následujícího háèku
+si mù¾ete nechat provést vlastní akce pøi vstupu do tohoto módu:
+
+@vtable @code
+@item speechd-speak-mode-hook
+Háèek spu¹tìný pøi zapnutí vedlej¹ího módu speechd-speak.
+@end vtable
+
+@node Pokroèilá konfigurace, Potí¾e, Konfigurace, U¾ivatelská pøíruèka
+@section Definice vlastních reakcí na pøíkazy
+@cindex roz¹íøení
+
+Psaní vlastních reakcí na pøíkazy obecnì vy¾aduje znalost programování
+v@tie{}Elispu.  Nemusíte se v¹ak dìsit, základní vìci si mù¾ete nastavit
+i@tie{}bez toho, staèí se øídit zde uvedenými instrukcemi.
+
+speechd-el umo¾òuje øíct text, pøehrát zvukovou ikonu nebo zavolat
+libovolný elispový výraz pøed nebo po provedení pøíkazu nebo funkce.
+Pro tyto úèely jsou k@tie{}dispozici dvì makra, která zajistí, ¾e se kromì
+vlastní akce provede v¹e, co je nutno:
+
+@ftable @code
+@item speechd-speak-command-feedback @var{pøíkaz} @var{pozice} @var{reakce}
+Definuj reakci na @var{pøíkaz}.  @var{pøíkaz} je jméno interaktivní
+funkce (pou¾ijte @kbd{C-h C-c} pro zji¹tìní jména pøíkazu navázaného
+na urèitou klávesu).
+
+@var{pozice} mù¾e být jeden ze symbolù @code{before} nebo @code{after}
+pro vyvolání reakce pøed (@code{before}) nebo poté (@code{after}), co
+je pøíkaz proveden.
+
+@code{reakce} mù¾e být øetìzec nebo jakýkoliv elispový výraz.
+Jedná-li se o@tie{}øetìzec (text uzavøený v@tie{}uvozovkách), definuje text
+k@tie{}pøeøíkání nebo zvukovou ikonu k@tie{}pøehrání.  Jestli¾e øetìzec zaèíná
+hvìzdièkou (@code{*}), urèuje jméno zvukové ikony (hvìzdièka není
+souèástí jména), jinak se jedná o@tie{}normální text.
+
+Pøíklad:
+@cindex @code{suspend-emacs}
+
+@lisp
+(speechd-speak-command-feedback suspend-emacs before "Suspenduji Emacs!")
+@end lisp
+
+Tento øádek elispového kódu mù¾ete vlo¾it do svého @file{~/.emacs},
+èím¾ si zajistíte upozornìní o@tie{}vyvolání pøíkazu @code{suspend-emacs}
+(obvykle navázaného @kbd{C-z}).
+
+@item speechd-speak-function-feedback @var{funkce} @var{pozice} @var{reakce}
+Toto je stejné jako @code{speechd-speak-command-feedback} a¾ na to, ¾e
+@var{reakce} je vyvolána kdykoliv je vyvolána @code{funkce}, a» u¾
+interaktivnì èi nikoliv.  Navíc @code{funkce} mù¾e být jakákoliv
+funkce, nejen interaktivní pøíkaz.
+@end ftable
+
+@emph{Prosím pozor:}
+
+@itemize @bullet
+@item
+Kvùli urèitému nedostatku Emacsu nemusí popsaný mechanismus reakcí
+správnì fungovat pro vestavìné funkce.
+
+@item
+Pokud si definujete vlastní reakce na funkce bez pou¾ití uvedených
+maker, buïte opatrní.  Uvedená makra definují kód zaji¹»ující, ¾e se
+nic neøíká v@tie{}pøípadì vypnutého @code{speechd-speak-mode}, a@tie{}podobná
+opatøení.  Pokud tato makra nepou¾íváte, musíte si tato opatøení
+zajistit sami.
+@end itemize
+
+@node Potí¾e,  , Pokroèilá konfigurace, U¾ivatelská pøíruèka
+@section Potí¾e, se kterými se mù¾ete setkat
+@cindex potí¾e
+
+@itemize @bullet
+@item
+@cindex prodlevy
+@cindex garbage collection
+@cindex @code{gc-cons-threshold}
+@emph{Pøedtím, ne¾ se po pøíkazu nìco øekne, se obèas objevuje malá
+prodleva (pøibli¾nì jednosekundová).}
+
+Mo¾ná, ¾e Emacs bìhem prodlevy provádí garbage collection.  Zkuste
+zvý¹it hodnotu promìnné @code{gc-cons-threshold}, tøeba na 4000000.
+Mù¾e to celkový výkon zvý¹it nebo sní¾it, v@tie{}závislosti na va¹em
+prostøedí a konkrétních po¾adavcích.
+
+Jste-li zku¹eným elispovým hackerem a doká¾ete zjistit, proè
+speechd-el produkuje významné mno¾ství dat zpùsobujících zvý¹ení
+frekvence provádìní garbage collection a jak nìco v@tie{}tomto smìru
+vylep¹it, va¹e pomoc je vítána!
+
+@item
+@emph{Pøi pøidr¾ení klávesy @kbd{C-n} obrazovka na chvíli zamrzne a
+kurzor se nepohybuje.}
+
+Je-li Emacs zamìstnaný nìjakou èinností, není obecnì provádìna
+aktualizace obrazovku.  speechd-el je v@tie{}kombinaci s@tie{}vy¹¹í rychlostí
+automatického opakování kláves schopno dosáhnout takového stavu
+pomìrnì snadno.  Pøedstavuje-li to pro vás skuteèný problém, mù¾ete si
+sní¾it rychlost autorepeatu nebo poøídit rychlej¹í poèítaè.
+
+Samozøejmì jsou vítány jakékoliv tipy, jak zvý¹it rychlost speechd-el.
+@end itemize
+
+@c ****************************************************************************
+
+@node Elispová knihovna, Kontaktní informace, U¾ivatelská pøíruèka, Top
+@chapter Elispová knihovna speechd-el
+
+Momentálnì není ke knihovnì k@tie{}dispozici ¾ádný skuteèný programátorský
+manuál.  Podívejte se tedy prosím na dokumentaèní øetìzce dostupných
+promìnných, funkcí a maker.
+
+Nicménì se mù¾ete (a@tie{}mìli byste) øídit následujícími radami:
+
+@itemize @bullet
+@item
+Nepou¾ívejte ¾ádné funkce, promìnné nebo jiné lispové objekty, jejich¾
+jména zaèínají prefixem @code{speechd--} nebo @code{speechd-speak--}.
+Tyto objekty jsou pova¾ovány za privátní a mohou se kdykoliv bez
+upozornìní zmìnit nebo být zru¹eny.
+
+@item
+@vindex speechd-client-name
+Jestli¾e chcete vybrat nebo vytvoøit konkrétní spojení, udìlejte to
+prostøednictvím nastavení hodnoty promìnné @code{speechd-client-name}:
+
+@lisp
+(let ((speechd-client-name "nìco"))
+  ... kód pou¾ívající spojení "nìco" ... )
+@end lisp
+
+Mìjte prosím na pamìti, ¾e obvykle není dobrým nápadem otevøít
+souèasnì dvì spojení na Speech Dispatcher se shodným klientským
+jménem.
+
+@item
+@findex speechd-protect
+Pí¹ete-li kód produkující øeèový výstup a tento kód je urèen k@tie{}pou¾ití
+v@tie{}asynchronním volání, jako napøíklad ve filtrech procesù nebo
+èasovaèích, v¾dy jej obalte makrem @code{speechd-protect}.
+
+@item
+Jinak by na vás nemìly èíhat ¾ádná zvlá¹tní pøekvapení a jakýkoliv
+rozumný kód by mìl být bezproblémový.
+@end itemize
+
+Mo¾ná vás je¹tì mù¾e zajímat @ref{Pokroèilá konfigurace}.
+
+@c ****************************************************************************
+
+@node Kontaktní informace, Kopírování tohoto manuálu, Elispová knihovna, Top
+@chapter Kontaktní informace
+@cindex autoøi
+@cindex kontakty
+
+Máte-li jakékoliv otázky, oznámení chyb, námìty, záplaty nebo cokoliv
+jiného, co nám chcete sdìlit, neváhejte se obrátit na adresu
+@email{speechd-devel@@freebsoft.org}.
+
+@c ****************************************************************************
+
+@node Kopírování tohoto manuálu, Index, Kontaktní informace, Top
+@appendix GNU Free Documentation License
+
+@cindex FDL, GNU Free Documentation License
+@center Version 1.2, November 2002
+
+@include fdl.texi
+
+@c ****************************************************************************
+
+@node Index,  , Kopírování tohoto manuálu, Top
+@unnumbered Index
+
+@printindex cp
+
+@bye
+
+@c  LocalWords:  chyph def ntprefix cs input comment of header documentlanguage
+@c  LocalWords:  documentencoding VERSION el value end copying quotation is and
+@c  LocalWords:  Permission granted distribute or modify this document under gc
+@c  LocalWords:  the terms Documentation License Version any later version with
+@c  LocalWords:  published Foundation Sections Cover Texts Back license section
+@c  LocalWords:  included entitled Sound Emacsové Dispatcher title subtitle tie
+@c  LocalWords:  author page contents node Elispová elispových chapter emacsový
+@c  LocalWords:  itemize bullet Elispovou emacsové emacsových elispovou file
+@c  LocalWords:  enumerate example make compile lisp speak nil code table ref
+@c  LocalWords:  global toggle speaking subsection read other window word char
+@c  LocalWords:  paragraph next previous last message cancel resume key rate
+@c  LocalWords:  predefined connection language punctuation all none some icon
+@c  LocalWords:  capital character spell voice number pitch output spelling say
+@c  LocalWords:  sound repeat faces localhost timeout default notification name
+@c  LocalWords:  important progress deleted buffers force self insert command
+@c  LocalWords:  insertions one comint align signal empty beginning backward
+@c  LocalWords:  properties face lock movement always never voices parameters
+@c  LocalWords:  property customize add connections minibuffer area define hook
+@c  LocalWords:  elispový feedback before after suspend emacs function garbage
+@c  LocalWords:  collection cons threshold elispovým autorepeatu client protect
+@c  LocalWords:  appendix November include unnumbered bye
