@@ -157,7 +157,7 @@ You must reopen the connections to apply the changes to this variable."
             (cons :tag "Punctuation mode" (const punctuation-mode)
                   ,(speechd--generate-customization-options
                     speechd--punctuation-modes))
-            (cons :tag "Important punctutation" (const important-punctuation)
+            (cons :tag "Important punctuation" (const important-punctuation)
                   string)
             (cons :tag "Punctuation table" (const punctuation-table) string)
             (cons :tag "Spelling table" (const spelling-table) string)
@@ -206,7 +206,7 @@ current voice."
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.31 2003-07-15 18:43:13 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.32 2003-07-16 17:51:29 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -515,8 +515,9 @@ Return the opened connection on success, nil otherwise."
 		   (process (and connection
 				 (speechd--connection-process connection))))
 	      (if process
-		  (process-send-string (speechd--connection-process connection)
-				       string)
+                  (let ((connection (speechd--connection-process connection)))
+                    (setf (speechd--connection-failure-p connection) t)
+                    (process-send-string connection string))
 		(speechd--permanent-connection-failure connection)))))))))
 
 (defvar speechd--in-recursion nil)
@@ -544,7 +545,7 @@ Return the opened connection on success, nil otherwise."
 		 ;; We have to be very careful with accept-process-output -- it
 		 ;; can invoke another speechd-el functions in various places.
 		 (speechd--with-connection-setting (reading-answer-p t)
-		    (accept-process-output
+		   (accept-process-output
 		     (speechd--connection-process connection)
 		     speechd-timeout))
 		 (when (string= (speechd--connection-process-output connection)
@@ -792,18 +793,27 @@ initiates sending text data to speechd immediately."
   (interactive "sText: ")
   (speechd--set-parameter :message-priority priority)
   (unless (string= text "")
-    (let ((beg 0))
-      (while beg
-        (let* ((end (next-property-change beg text))
-               (face (get-text-property beg 'face text))
-               (voice (cdr (assq face speechd-face-voices)))
-               (substring (substring text beg end)))
-          (if voice
-              (speechd--with-current-connection
-                (speechd--with-connection-parameter (:voice voice)
-                  (speechd--send-data substring)))
-            (speechd--send-data substring))
-          (setq beg end)))))
+    (flet ((voice (point)
+             (cdr (assq (get-text-property point 'face text)
+                        speechd-face-voices))))
+      (let* ((beg 0)
+             (new-voice (voice beg)))
+        (while beg
+          (let* ((voice new-voice)
+                 (change-point beg)
+                 (end (progn
+                        (while (and (setq change-point (next-property-change
+                                                        change-point text))
+                                    (equal voice (setq new-voice
+                                                       (voice change-point)))))
+                        change-point))
+                 (substring (substring text beg end)))
+            (if voice
+                (speechd--with-current-connection
+                  (speechd--with-connection-parameter (:voice voice)
+                    (speechd--send-data substring)))
+              (speechd--send-data substring))
+            (setq beg end))))))
   (when finish
     (speechd--send-data-end)))
 
