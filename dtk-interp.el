@@ -103,7 +103,10 @@
   )
 
 (defun dtk-interp-set-punctuations (mode)
-  (speechd-set-punctuation (if (eq mode 'none) :off :on)))
+  (speechd-set-punctuation (ecase mode
+			     (none :none)
+			     (some :some)
+			     (all :all))))
 
 (defun dtk-interp-reset-state ()
   (ignore-errors

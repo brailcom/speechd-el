@@ -80,7 +80,7 @@ Nil if no connection is currently open.")
   :group 'speechd)
 
 
-(defconst speechd-el-version "speechd-el $Id: speechd.el,v 1.3 2003-04-11 12:25:53 pdm Exp $"
+(defconst speechd-el-version "speechd-el $Id: speechd.el,v 1.4 2003-04-14 14:46:36 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -98,8 +98,9 @@ Useful only for diagnosing problems.")
 Each element is a pair is of the form (PRIORITY . SPEECHD-PARAMETER).")
 
 (defvar speechd-punctuations
-  '((:on .  "1")
-    (:off . "0"))
+  '((:none . "none")
+    (:some . "some")
+    (:all . "all"))
   "Alist mapping symbolic punctuation modes to speechd parameters.
 Each element is a pair is of the form (PUNCTUATION . SPEECHD-PARAMETER).")
 
@@ -334,6 +335,11 @@ for closer description of those arguments."
 				char)))
 
   
+;;;###autoload
+(defun speechd-cancel ()
+  (interactive)
+  (speechd-send-command "CANCEL"))
+
 ;;;###autoload
 (defun speechd-stop ()
   (interactive)
