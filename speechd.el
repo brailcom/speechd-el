@@ -45,8 +45,12 @@
 ;;; User variables
 
 
+(defgroup speechd-el ()
+  "Speechd-el speech output system.")
+
 (defgroup speechd ()
-  "Speech Dispatcher interface.")
+  "SSIP interface."
+  :group 'speechd-el)
 
 (defcustom speechd-host (or (getenv "SPEECHD_HOST") "localhost")
   "Name of the default host running speechd to connect to."

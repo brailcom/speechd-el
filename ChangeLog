@@ -1,3 +1,11 @@
+2004-12-07  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak): Belong to the speechd-el
+	customization group.
+
+	* speechd.el (speechd-el): New customization group.
+	(speechd): Belong to it.
+
 2004-11-12  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-speak.el (speechd-speak-ignore-command-keys): Type

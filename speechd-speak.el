@@ -35,9 +35,9 @@
 ;;; User options
 
 
-(defgroup speechd-speak nil
+(defgroup speechd-speak ()
   "Speechd-el user client customization."
-  :group 'speechd)
+  :group 'speechd-el)
 
 (defcustom speechd-speak-deleted-char t
   "If non-nil, speak the deleted char, otherwise speak the adjacent char."
