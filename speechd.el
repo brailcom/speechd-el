@@ -1,6 +1,6 @@
 ;;; speechd.el --- Library for accessing Speech Dispatcher
 
-;; Copyright (C) 2003 Brailcom, o.p.s.
+;; Copyright (C) 2003, 2004 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -216,7 +216,7 @@ language.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.81 2003-12-30 12:13:26 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.82 2004-01-19 22:19:49 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -463,7 +463,6 @@ Return the opened connection on success, nil otherwise."
                               (speechd--connection-parameters connection)
                               default-parameters)
                            default-parameters))
-             (forced-priority (plist-get default-parameters 'message-priority))
 	     (process (when (or
                              (not connection)
                              (not (speechd--connection-failure-p connection))
