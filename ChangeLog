@@ -1,3 +1,8 @@
+2003-12-16  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd--send-data): Regular expression fixed, to
+	avoid performance problems.
+
 2003-12-13  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-el 0.2 released.
