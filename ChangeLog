@@ -1,3 +1,22 @@
+2003-05-20  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-emacspeak.el (speechd-emacspeak-auditory-icon-mapping)
+	(speechd-emacspeak-default-auditory-icon): New variables.
+	(speechd-emacspeak-auditory-icon): New function.  Assign it to
+	emacspeak-auditory-icon-function.
+	(emacspeak-use-auditory-icons): Set to t.
+
+	* speechd.el (speechd--process-request): Delay answers if
+	possible.
+	(speechd-set-language, speechd-set-punctuation-mode) 
+	(speechd-say-text, speechd-say-sound, speechd-say-char) 
+	(speechd-say-key, speechd-cancel, speechd-stop, speechd-resume) 
+	(speechd-pause, speechd-submit-bug-report): Docstring added.
+
+2003-05-17  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd--process-request): Return the answer.
+
 2003-05-17  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd.el (speechd--command-answer): Removed.
