@@ -1,3 +1,15 @@
+2003-07-16  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak--window-contents): Enforce
+	redisplay.
+	(speechd-speak--def-speak-object): Don't read the last object if
+	after it.
+
+	* speechd.el (speechd-connection-parameters): Typo in a tag fixed.
+	(speechd-say-text): Optimized not to call speechd--send-data
+	unnecessarily many times.
+	(speechd--send-string): Set connection-failure-p on reopen.
+
 2003-07-15  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd.el (speechd-connection-parameters): Customization
