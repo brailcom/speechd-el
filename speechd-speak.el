@@ -1295,7 +1295,7 @@ Only single characters are allowed in the keymap.")
 
 (speechd-speak--post-defun info-change t nil
   ;; General status information has changed
-  (not (equalp (speechd-speak--cinfo info) (speechd-speak--current-info)))
+  (not (equal (speechd-speak--cinfo info) (speechd-speak--current-info)))
   (let ((old-info (speechd-speak--cinfo info))
         (new-info (speechd-speak--current-info)))
     (dolist (item new-info)
@@ -1303,7 +1303,7 @@ Only single characters are allowed in the keymap.")
              (new (cdr item))
              (old (cdr (assq id old-info))))
         (when (and (memq id speechd-speak-state-changes)
-                   (not (equalp old new)))
+                   (not (equal old new)))
           (funcall (speechd-speak--name 'speechd-speak--update id)
                    old new))))))
 
@@ -1723,14 +1723,18 @@ When the mode is enabled, all spoken text is spelled."
             when (and (boundp mode) (symbol-value mode))
             collect mode))
   :on-change #'(lambda (old new)
-                 (let ((disabled (set-difference old new))
-                       (enabled (set-difference new old)))
-                   (when disabled
-                     (speechd-speak--text
-                      (format "Disabled minor modes: %s" disabled)))
-                   (when enabled
-                     (speechd-speak--text
-                      (format "Enabled minor modes: %s" enabled))))))
+                 (flet ((set-difference (x y)
+                          (loop for i in x
+                                unless (memq i y)
+                                collect i)))
+                   (let ((disabled (set-difference old new))
+                         (enabled (set-difference new old)))
+                     (when disabled
+                       (speechd-speak--text
+                        (format "Disabled minor modes: %s" disabled)))
+                     (when enabled
+                       (speechd-speak--text
+                        (format "Enabled minor modes: %s" enabled)))))))
 
 (defun speechd-speak-mode-info ()
   "Speak information about current major and minor modes."

@@ -1,3 +1,8 @@
+2004-09-26  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (info-change): Use EQUAL, not EQUALP.
+	(minor-modes): Define SET-DIFFERENCE locally.
+
 2004-09-25  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-speak.el (minor-modes): Use LOOP instead of REMOVE-IF,
