@@ -1,3 +1,14 @@
+2004-02-13  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-el.texi (Parameter Setting Commands): Prefix argument
+	documented. 
+
+	* speechd.el (speechd--generate-set-command): Support for prefix
+	arg added.
+	(speechd--set-parameter): New optional argument ALL.
+	(speechd--set-connection-parameter, speechd-call-set-parameter):
+	New functions.
+
 2004-02-11  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-log-extractor: Use /usr/bin/env instead of a hard-wired
