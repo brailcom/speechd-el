@@ -147,8 +147,7 @@ You must reopen the connections to apply the changes to this variable."
                                         (cdr ival)))
                               (cdr item))))
                    value)))
-             (set-default name real-value)
-             (speechd-reopen)))
+             (set-default name real-value)))
   :type `(repeat
           (cons :tag "Connection" (string :tag "Name")
            (set :tag "Parameters"
@@ -207,7 +206,7 @@ current voice."
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.30 2003-07-15 17:35:59 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.31 2003-07-15 18:43:13 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
