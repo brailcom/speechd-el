@@ -1,8 +1,15 @@
 2003-08-08  Milan Zamazal  <pdm@brailcom.org>
 
+	* speechd-speak.el (beginning-of-defun): Advice removed.
+	(speechd-speak-priority-insertions-in-buffers): New variable.
+	(speechd-speak--after-change-hook): Consider it.
+	(comint-output-filter): Advice removed.
+
 	* speechd.el (speechd-block): Blocks enabled again.
 
 	* speechd-el.texi (Problems): New section.
+	(Auto-Speaking Buffers): Document
+	speechd-speak-priority-insertions-in-buffers.
 
 2003-08-07  Milan Zamazal  <pdm@brailcom.org>
 
