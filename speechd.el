@@ -103,7 +103,7 @@
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.19 2003-05-29 09:34:58 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.20 2003-05-29 15:53:55 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -433,28 +433,34 @@ Return the opened connection on success, nil otherwise."
       (let* ((state-spec (speechd--request-transaction-state request))
 	     (required-state (first state-spec))
 	     (new-state (second state-spec)))
-	(flet ((check-state ()
-		 (when (not (eq (speechd--connection-transaction-state
-				 connection)
-				required-state))
-		   (let ((speechd--in-recursion t))
-		     (cond
-		      ((and (eq required-state 'in-data)
-			    (not (eq new-state nil)))
-		       (speechd--send-data-begin t))
-		      ((eq required-state nil)
-		       (speechd--send-data-end t)))))
-		 (eq (speechd--connection-transaction-state connection)
-		     required-state)))
-	  (unless (check-state)
-	    (unless (speechd--connection-failure-p (speechd--connection))
-	      (speechd-open)
-	      (setq connection (speechd--connection))))
+	(labels ((check-state (reopen-if-needed)
+		   (let ((current-state (speechd--connection-transaction-state
+					 connection)))
+		     (when (and (not (eq current-state required-state))
+				(not (eq current-state new-state)))
+		       (let ((speechd--in-recursion t))
+			 (cond
+			  ((and (eq required-state 'in-data)
+				(not (eq new-state nil)))
+			   (speechd--send-data-begin t))
+			  ((eq required-state nil)
+			   (speechd--send-data-end t)))))
+		     (setq current-state (speechd--connection-transaction-state
+					  connection))
+		     (if (and reopen-if-needed
+			      (not (eq current-state required-state))
+			      (not (eq current-state new-state))
+			      (not (speechd--connection-failure-p connection)))
+			 (progn
+			   (speechd-open)
+			   (setq connection (speechd--connection))
+			   (check-state nil))
+		       (eq current-state required-state)))))
 	  ;; Continue only if the state can be set properly after reopen,
 	  ;; otherwise give up and ignore the request completely.
 	  ;; This also works for the "." command when in non-data state.
 	  (prog1
-	      (when (check-state)
+	      (when (check-state t)
 		(speechd--send-string (speechd--request-string request))
 		(let ((answer-type (speechd--request-answer-type request)))
 		  (when (and answer-type
@@ -640,7 +646,8 @@ append the next text to it.  Regardless of the FINISH value, the function
 initiates sending text data to speechd immediately."
   (interactive "sText: ")
   (speechd--set-parameter :message-priority priority)
-  (speechd--send-data text)
+  (unless (string= text "")
+    (speechd--send-data text))
   (when finish
     (speechd--send-data-end)))
 
