@@ -373,6 +373,10 @@ Level 1 is the slowest, level 9 is the fastest."
 ;;; Supporting functions and options
 
 
+(defvar speechd-speak-command-done nil
+  "When non-nil, no post command speaking is performed, except for keys.
+This variable is reset to nil before each command in pre-command-hook.")
+
 (defun speechd-speak--name (&rest args)
   (intern (mapconcat #'symbol-name args "-")))
 
@@ -767,7 +771,9 @@ FUNCTION is invoked interactively."
 				ad-do-it)
 			   `(when (interactive-p)
 			      ,body*))))
-		 commands*))))
+		 commands*)
+       ,(unless (eq position 'before)
+          `(setq speechd-speak-command-done t)))))
 
 (defmacro speechd-speak--command-feedback-region (commands)
   `(speechd-speak--command-feedback ,commands around
@@ -1224,6 +1230,7 @@ Only single characters are allowed in the keymap.")
           (speechd-cancel 1))
         (speechd-speak--set-command-start-info)
         (setq speechd-speak--last-report "")
+        (setq speechd-speak-command-done nil)
         (when speechd-speak-spell-command
           (speechd-speak-spell-mode 1))
         (speechd-speak--maybe-speak
@@ -1264,7 +1271,8 @@ Only single characters are allowed in the keymap.")
 
 (speechd-speak--post-defun special-commands t t
   ;; Speak commands that can't speak in a regular way
-  (memq this-command '(forward-char backward-char))
+  (and (not speechd-speak-command-done)
+       (memq this-command '(forward-char backward-char)))
   (speechd-block `(message-priority ,speechd-default-char-priority)
     (cond
      ((looking-at "^")
@@ -1278,7 +1286,7 @@ Only single characters are allowed in the keymap.")
 
 (speechd-speak--post-defun buffer-switch t t
   ;; Any buffer switch
-  buffer-changed
+  (and buffer-changed (not speechd-speak-command-done))
   (when speechd-speak-buffer-name
     (speechd-speak--text (buffer-name) :priority 'message))
   (when (memq speechd-speak-buffer-name '(text nil))
@@ -1298,6 +1306,10 @@ Only single characters are allowed in the keymap.")
   (if speechd-speak-read-command-name
       (speechd-speak--text (symbol-name this-command) :priority 'message)
     (speechd-speak--command-keys 'message)))
+
+(speechd-speak--post-defun command-done t t
+  ;; No speaking when the command has already been handled in a special way
+  speechd-speak-command-done)
 
 (speechd-speak--post-defun info-change t nil
   ;; General status information has changed
@@ -1459,6 +1471,7 @@ Only single characters are allowed in the keymap.")
   '(speechd-speak--post-read-special-commands
     speechd-speak--post-read-buffer-switch
     speechd-speak--post-read-command-keys
+    speechd-speak--post-read-command-done
     speechd-speak--post-read-info-change
     speechd-speak--post-read-speaking-commands
     speechd-speak--post-read-buffer-modifications

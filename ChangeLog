@@ -1,3 +1,14 @@
+2004-10-04  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak-command-done): New variable.
+	(speechd-speak--pre-command-hook): Set it to nil.
+	(special-commands, buffer-switch): Don't act if
+	speechd-speak-command-done is non-nil.
+	(speechd-speak--command-feedback): Set speechd-speak-command-done
+	to t.
+	(command-done): New post-defun.
+	(speechd-speak--post-command-speaking-defaults): Register it.
+
 2004-10-01  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-speak.el (speechd-unspeak): Close all connections, not
