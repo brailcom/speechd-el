@@ -1,3 +1,8 @@
+2003-10-09  Hynek Hanke  <hanke@volny.cz>
+
+	* speechd.el (speechd--parameter-names): Added PAUSE_CONTEXT.
+	(pause-context): Generate speechd-set-pause-context.
+
 2003-10-07  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-speak.el (speechd-speak--command-info-struct): `buffer'
