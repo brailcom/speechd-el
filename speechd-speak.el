@@ -1,6 +1,6 @@
 ;;; speechd-speak.el --- simple speechd-el based Emacs client
 
-;; Copyright (C) 2003 Brailcom, o.p.s.
+;; Copyright (C) 2003, 2004 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.68 2003-12-11 20:54:36 pdm Exp $"
+(defconst speechd-speak-version "2004-02-11 12:22 pdm"
   "Version of the speechd-speak file.")
 
 
@@ -1422,6 +1422,7 @@ When the mode is enabled, all spoken text is spelled."
 (define-key speechd-speak-mode-map "dp" 'speechd-set-pitch)
 (define-key speechd-speak-mode-map "dr" 'speechd-set-rate)
 (define-key speechd-speak-mode-map "dv" 'speechd-set-voice)
+(define-key speechd-speak-mode-map "dV" 'speechd-set-volume)
 
 (defvar speechd-speak--mode-map (make-sparse-keymap))
 (defvar speechd-speak--prefix nil)
@@ -1561,5 +1562,13 @@ With a prefix argument, close all open connections first."
 
 (provide 'speechd-speak)
 
+
+;; Local variables:
+;; time-stamp-format: "%:y-%02m-%02d %02H:%02M %u"
+;; time-stamp-time-zone: "UTC"
+;; time-stamp-start: "^(defconst speechd.*-version \""
+;; time-stamp-end: "\""
+;; time-stamp-line-limit: 0
+;; End:
 
 ;;; speechd-speak.el ends here

@@ -158,12 +158,20 @@ Then install the compiled files to an Emacs load path location as
 well.
 
 @item
+Install the @file{speechd-log-extractor} somewhere to your shell PATH,
+e.g. @file{/usr/local/bin/}.
+
+@item
 Add the following line to your @file{~/.emacs}:
 
 @lisp
 (autoload 'speechd-speak "speechd-speak" nil t)
 @end lisp
 @end enumerate
+
+To run speechd-el, Speech Dispatcher must be installed and running.
+Speech Dispatcher 0.3 or higher is recommended to get all the
+speechd-el features working.
 
 @node Starting Speech Output, Commands, Installation, speechd-el User Manual
 @section Starting Speech Output
@@ -423,14 +431,14 @@ Commands affecting basic parameters of the text-to-speech process:
 @table @kbd
 @item C-e d l
 @kindex C-e d l
-@findex speechd-speak-set-language
+@findex speechd-set-language
 @cindex language
 Set default language of the connection.  Specify it as an ISO 639
 language code.
 
 @item C-e d .
 @kindex C-e d .
-@findex speechd-speak-set-punctuation-mode
+@findex speechd-set-punctuation-mode
 @cindex punctuation mode
 Specify how to handle punctuation, whether to read it or ignore it.
 @code{all} mode reads all punctuation characters, @code{none} mode
@@ -440,7 +448,7 @@ configuration.
 
 @item C-e d c
 @kindex C-e d c
-@findex speechd-speak-set-capital-character-mode
+@findex speechd-set-capital-character-mode
 @cindex capital character mode
 Set capital letter indication mode.  @code{icon} means signal them
 with a sound icon, @code{spell} means spell them using a special
@@ -452,27 +460,34 @@ Commands affecting speech output properties:
 @table @kbd
 @item C-e d v
 @kindex C-e d v
-@findex speechd-speak-set-voice
+@findex speechd-set-voice
 @cindex voice
 Set default voice to be used by the synthesizer
-(@code{speechd-speak-set-voice}).  You may select one from the voice set
+(@code{speechd-set-voice}).  You may select one from the voice set
 offered by your Speech Dispatcher installation.
 
 @item C-e d r
 @kindex C-e d r
-@findex speechd-speak-set-rate
+@findex speechd-set-rate
 @cindex rate
 Set exact speech rate, ranging from -100 (slowest) to 100 (fastest)
-(@code{speechd-speak-set-rate}).  Most often you will probably want to
+(@code{speechd-set-rate}).  Most often you will probably want to
 use the @code{speechd-speak-key-set-predefined-rate} command bound to
 @kbd{C-e @var{number}} instead, see @ref{Control Commands}.
 
 @item C-e d p
 @kindex C-e d p
-@findex speechd-speak-set-pitch
+@findex speechd-set-pitch
 @cindex pitch
 Set voice pitch, ranging from -100 (lowest) to 100 (highest)
-(@code{speechd-speak-set-pitch}).
+(@code{speechd-set-pitch}).
+
+@item C-e d V
+@kindex C-e d V
+@findex speechd-set-volume
+@cindex volume
+Set voice volume, ranging from -100 (lowest) to 100 (highest)
+(@code{speechd-set-volume}).
 @end table
 
 Commands affecting the speech synthesizer:
@@ -480,10 +495,10 @@ Commands affecting the speech synthesizer:
 @table @kbd
 @item C-e d o
 @kindex C-e d o
-@findex speechd-speak-set-output-module
+@findex speechd-set-output-module
 @cindex output module
 Switch Speech Dispatcher to the given output module
-(@code{speechd-speak-set-output-module}).  Give the module name when
+(@code{speechd-set-output-module}).  Give the module name when
 you are prompted for the argument.
 @end table
 
@@ -921,9 +936,9 @@ may have given the @code{t} symbol instead of connection name.
 Valid parameter identifiers are the following symbols:
 @code{language}, @code{message-priority}, @code{punctuation-mode},
 @code{important-punctuation}, @code{capital-character-mode},
-@code{voice}, @code{rate}, @code{pitch}, @code{output-module}.  See
-the corresponding @code{speechd-set-*} function docstrings for
-description of valid parameter values.
+@code{voice}, @code{rate}, @code{pitch}, @code{volume},
+@code{output-module}.  See the corresponding @code{speechd-set-*}
+function docstrings for description of valid parameter values.
 
 The @code{message-priority} parameter has a special meaning: It
 overrides the priority of all messages sent through the connection.

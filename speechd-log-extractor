@@ -1,0 +1,57 @@
+#!/usr/bin/perl -w
+
+# Copyright (C) 2004 Brailcom, o.p.s.
+#
+# Authors: Tomáš Cerha <cerha@brailcom.org>, Milan Zamazal <pdm@brailcom.org>
+#
+# COPYRIGHT NOTICE
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+
+use strict;
+
+my ($begin, $end, $compress) = @ARGV;
+
+die "Usage: $0 begin end [--compress]\n"
+    unless (defined($begin) and defined($end) 
+	    and (not defined($compress) or $compress eq '--compress'));
+
+my ($zip) = grep(defined, `which bzip2`, `which gzip`) if defined($compress);
+
+if (defined($zip)) {
+    open(OUT, "|$zip") or die "Unable to open pipe to $zip: $!";
+} else {
+    *OUT = *STDOUT;
+}
+
+my $inside = 0;
+
+while (<STDIN>) {
+    if ($inside == 1) {
+        print OUT;
+        if (/$end/o) {
+            last;
+        }
+    }
+    else {
+        if (/$begin/o) {
+            $inside = 1;
+            print OUT;
+        }
+    }
+}
+
+close(OUT) if (defined($compress));

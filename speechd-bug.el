@@ -1,4 +1,4 @@
-;;; speechd-bug.el --- reporting of speechd-el and speechd bugs
+;;; speechd-bug.el --- reporting speechd-el and speechd bugs
 
 ;; Copyright (C) 2003, 2004 Brailcom, o.p.s.
 
@@ -20,10 +20,6 @@
 ;; along with this program; if not, write to the Free Software
 ;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-;;; Commentary:
-
-;;
-
 ;;; Code:
 
 
@@ -31,9 +27,10 @@
 (require 'speechd-speak)
 
 
-(defconst speechd-bug--version "$Id: speechd-bug.el,v 1.10 2004-01-19 22:20:00 pdm Exp $"
+(defconst speechd-bug--version "2004-02-11 14:36 pdm"
   "Version of the speechd-bug.el file.")
 
+(defvar speechd-bug--log-extractor "perl speechd-bug-log-extractor")
 
 (defvar speechd-bug--finish-repro-key "\C-f")
 
@@ -125,8 +122,10 @@
   (speechd-bug--ensure-empty-line)
   (speechd-bug--insert "===" file-name ":logbegin===")
   (shell-command
-   (format "awk 'BEGIN { p = 0 } /_debug_on%s/ { p = 1 } p == 1 { print } /_debug_off%s/ { exit }' %s"
-           speechd-bug--repro-id speechd-bug--repro-id file-name) t)
+   (format "%s %s %s --compress < %s | uuencode %s.compressed"
+           speechd-bug--log-extractor speechd-bug--repro-id
+           speechd-bug--repro-id file-name (file-name-nondirectory file-name))
+   t)
   (speechd-bug--insert "===" file-name ":logend==="))
 
 (defun speechd-bug--insert-logs ()
@@ -300,5 +299,13 @@ generating new bug report."
 
 (provide 'speechd-bug)
 
+
+;; Local variables:
+;; time-stamp-format: "%:y-%02m-%02d %02H:%02M %u"
+;; time-stamp-time-zone: "UTC"
+;; time-stamp-start: "^(defconst speechd.*-version \""
+;; time-stamp-end: "\""
+;; time-stamp-line-limit: 0
+;; End:
 
 ;;; speechd-bug.el ends here

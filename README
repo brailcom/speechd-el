@@ -19,6 +19,8 @@ Installation:
 
 - If you like, byte compile them.
 
+- Install the `speechd-log-extractor' script somewhere to your shell PATH.
+
 - Start speechd.
 
 - Start Emacs and apply the commands

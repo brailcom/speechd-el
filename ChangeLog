@@ -1,3 +1,42 @@
+2004-02-11  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-log-extractor: Main loop fixed; copyright added.
+
+	* speechd-bug.el (speechd-bug--log-extractor): `perl' added.
+	(speechd-bug--insert-log-file): Encode the compressed file with
+	uuencode.
+
+2004-02-11  Milan Zamazal  <pdm@brailcom.org>
+	
+	* speechd-el.texi (Installation): Recommended Speech Dispatcher
+	version added.
+
+2004-02-11  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-el.texi (Parameter Setting Commands): speechd-set-volume
+	documented.
+	(Connection Parameters): Volume added.
+
+	* speechd-speak.el (speechd-speak-mode-map): Volume setting key
+	added.
+
+	* speechd.el (speechd-connection-parameters) 
+	(speechd--parameter-names, speechd--block-commands): Volume
+	support added.
+	(volume): New parameter setting command.
+
+2004-02-09  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-el.texi (Installation): Installation of
+	speechd-log-extractor.
+	* README (Installation): Likewise.
+
+	* speechd-bug.el (speechd-bug--insert-log-file): Use the Perl
+	script instead of awk.
+	(speechd-bug--log-extractor): New variable.
+
+	* speechd-log-extractor: New script.
+
 2004-01-19  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd.el (speechd-open): Unused forced-priority variable

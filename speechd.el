@@ -122,10 +122,10 @@
 Each element of the list is of the form (CONNECTION-NAME . PARAMETERS), where
 CONNECTION-NAME is a connection name as expected to be in `speechd-client-name'
 and PARAMETERS is a property list with the pairs of parameter identifiers and
-parameter values.  Valid parameter names are the following symbols:
-language, message-priority, punctuation-mode, capital-character-mode, voice,
-rate, pitch, output-module.  See the corresponding speechd-set-* functions for
-valid parameter values.
+parameter values.  Valid parameter names are the following symbols: language,
+message-priority, punctuation-mode, capital-character-mode, voice, rate, pitch,
+volume, output-module.  See the corresponding speechd-set-* functions for valid
+parameter values.
 
 If the symbol t is specified as the connection name, the element defines
 default connection parameters if no connection specification applies.  Only one
@@ -180,6 +180,7 @@ You must reopen the connections to apply the changes to this variable."
 	    (cons :tag "Voice" (const :format "" voice) string)
 	    (cons :tag "Rate" (const :format "" rate) integer)
 	    (cons :tag "Pitch" (const :format "" pitch) integer)
+	    (cons :tag "Volume" (const :format "" volume) integer)
 	    (cons :tag "Output module" (const :format "" output-module)
 		  string))))
   :group 'speechd)
@@ -216,7 +217,7 @@ language.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.82 2004-01-19 22:19:49 pdm Exp $"
+(defconst speechd--el-version "2004-02-11 12:22 pdm"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -251,6 +252,7 @@ Useful only for diagnosing problems.")
     (voice . "VOICE")
     (rate . "RATE")
     (pitch . "PITCH")
+    (volume . "VOLUME")
     (spelling-mode . "SPELLING")
     (output-module . "OUTPUT_MODULE")	; TODO: to be removed sometimes
     ))
@@ -693,7 +695,7 @@ Return the opened connection on success, nil otherwise."
     ("key")
     ("quit")
     ("block" ("end"))
-    ("set" ("self" ("rate" "pitch" "voice" "language")))))
+    ("set" ("self" ("rate" "pitch" "volume" "voice" "language")))))
 
 (defun speechd--block-command-p (command &optional allowed)
   (unless allowed
@@ -865,6 +867,7 @@ VALUE must be %s."
 (speechd--generate-set-command capital-character-mode "Capital character mode"
                                speechd--capital-character-modes)
 (speechd--generate-set-command pitch "Pitch" 0)
+(speechd--generate-set-command volume "Volume" 0)
 (speechd--generate-set-command rate "Rate" 0)
 (speechd--generate-set-command voice "Voice" 'voices)
 (speechd--generate-set-command punctuation-mode "Punctuation mode"
@@ -1094,5 +1097,13 @@ clients."
 
 (provide 'speechd)
 
+
+;; Local variables:
+;; time-stamp-format: "%:y-%02m-%02d %02H:%02M %u"
+;; time-stamp-time-zone: "UTC"
+;; time-stamp-start: "^(defconst speechd.*-version \""
+;; time-stamp-end: "\""
+;; time-stamp-line-limit: 0
+;; End:
 
 ;;; speechd.el ends here
