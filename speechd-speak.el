@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.32 2003-07-30 11:02:26 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.33 2003-07-30 19:38:39 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -251,6 +251,8 @@ Level 1 is the slowest, level 9 is the fastest."
 
 
 (defvar speechd-speak-mode nil)   ; forward definition to make everything happy
+
+(defvar speechd-speak--started nil)
 
 (defvar speechd-speak--last-buffer-mode t)
 (defvar speechd-speak--last-connection-name nil)
@@ -516,7 +518,9 @@ If BUFFER is nil, read current buffer."
          (fname (if (listp function*) (first function*) function*))
          (aname (if (listp function*) 'speechd-speak-user 'speechd-speak)))
     `(defadvice ,fname (,class ,aname activate preactivate compile)
-       ,@body)))
+       (if (not speechd-speak--started)
+           ,(when (eq class 'around) 'ad-do-it)
+         ,@body))))
 
 (defmacro speechd-speak-function-feedback (function position feedback)
   "Report FEEDBACK on each invocation of FUNCTION.
@@ -1038,6 +1042,7 @@ FUNCTION is invoked interactively."
 (define-key speechd-speak-mode-map "\C-n" 'speechd-speak-read-other-window)
 (define-key speechd-speak-mode-map "\C-r" 'speechd-repeat)
 (define-key speechd-speak-mode-map "\C-s" 'speechd-reopen)
+(define-key speechd-speak-mode-map "\C-x" 'speechd-unspeak)
 (define-key speechd-speak-mode-map [down] 'speechd-speak-read-next-line)
 (define-key speechd-speak-mode-map [up] 'speechd-speak-read-previous-line)
 (dotimes (i 9)
@@ -1141,17 +1146,31 @@ When prefix ARG is non-nil, toggle it locally, otherwise toggle it globally."
           (speechd-speak-mode t))
       (message "Speaking turned %s %s" state (if arg "locally" "globally")))))
 
-(defvar speechd-speak--started nil)
 ;;;###autoload
 (defun speechd-speak ()
   "Start or restart speaking."
   (interactive)
   (speechd-reopen)
+  (setq speechd-speak--started t)
   (global-speechd-speak-mode 1)
   (global-speechd-speak-map-mode 1)
   (message "Speechd-speak %s"
-	   (if speechd-speak--started "restarted" "started"))
-  (setq speechd-speak--started t))
+	   (if speechd-speak--started "restarted" "started")))
+
+(defun speechd-unspeak ()
+  "Try to avoid invoking any speechd-speak function.
+This command is useful as the last help in case speechd-speak gets crazy and
+starts blocking your Emacs functions."
+  (interactive)
+  (setq speechd-speak--started nil)
+  (ignore-errors (global-speechd-speak-mode -1))
+  (remove-hook 'pre-command-hook 'speechd-speak--pre-command-hook)
+  (remove-hook 'post-command-hook 'speechd-speak--post-command-hook)
+  (remove-hook 'after-change-functions 'speechd-speak--after-change-hook)
+  (remove-hook 'minibuffer-setup-hook 'speechd-speak--minibuffer-setup-hook)
+  (remove-hook 'minibuffer-exit-hook 'speechd-speak--minibuffer-exit-hook)
+  (remove-hook 'kill-emacs-hook 'speechd-speak--shutdown)
+  (global-speechd-speak-map-mode -1))
 
 
 ;;; Announce
