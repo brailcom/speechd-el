@@ -99,7 +99,7 @@
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.14 2003-05-21 13:04:21 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.15 2003-05-25 21:09:48 hanke Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -607,7 +607,7 @@ The key argument `priority' defines the priority of the message and must be one
 of the symbols `:high', `:medium', and `:low'."
   (speechd--set-parameter :message-priority priority)
   (speechd--send-command
-   (list "CHAR" (format "\"%s\"" (char-to-string char)))))
+   (list "CHAR" (format "%s" (char-to-string char)))))
 
 (defun* speechd-say-key (key &key (priority speechd-default-key-priority))
   "Speak the given KEY.
@@ -616,7 +616,7 @@ The key argument `priority' defines the priority of the message and must be one
 of the symbols `:high', `:medium', and `:low'."
   (speechd--set-parameter :message-priority priority)
   ;; TODO: Implement real key handling
-  (speechd--send-command (list "KEY" (format "\"%s\"" key))))
+  (speechd--send-command (list "KEY" (format "%s" key))))
 
 
 ;;; Control functions
