@@ -105,7 +105,7 @@
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.22 2003-06-09 11:24:15 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.23 2003-06-30 15:22:52 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -253,9 +253,12 @@ wrapped by this macro."
 (defun speechd--close-process (connection)
   (let ((process (speechd--connection-process connection)))
     (ignore-errors
-      (kill-buffer (process-buffer process)))
+      (let ((buffer (process-buffer process)))
+	(when buffer
+	  (kill-buffer buffer))))
     (ignore-errors
-      (delete-process process))
+      (when process
+	(delete-process process)))
     (setf (speechd--connection-process connection) nil)))
 
 ;;;###autoload
