@@ -31,7 +31,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.14 2003-07-04 13:25:57 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.15 2003-07-04 15:23:27 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -429,14 +429,36 @@ Level 1 is the slowest, level 9 is the fastest."
   (speechd-speak--set-command-start-info t))
 
 (defmacro* speechd-speak--defadvice (function class &body body)
-  `(defadvice ,function (,class speechd-speak activate preactivate compile)
-     ,@body))
+  (let* ((function* function)
+         (fname (if (listp function*) (first function*) function*))
+         (aname (if (listp function*) 'speechd-speak-user 'speechd-speak)))
+    `(defadvice ,fname (,class ,aname activate preactivate compile)
+       ,@body)))
+
+(defmacro speechd-speak-function-feedback (function position feedback)
+  "Report FEEDBACK on each invocation of FUNCTION.
+FUNCTION is a function name.
+POSITION may be one of the symbols `before' (the feedback is run before the
+function is invoked) or `after' (the feedback is run after the function is
+invoked.
+FEEDBACK is a string to be given as the argument of the `speechd-speak-report'
+function."
+  `(speechd-speak--defadvice ,(list function) ,position
+     (speechd-speak-report ,feedback :priority :message)))
+
+(defmacro speechd-speak-command-feedback (function position feedback)
+  "Report FEEDBACK on each invocation of FUNCTION.
+The arguments are the same as in `speechd-speak-function-feedback'.
+Unlike `speechd-speak-function-feedback', the feedback is reported only when
+FUNCTION is invoked interactively."
+  `(speechd-speak--defadvice ,(list function) ,position
+     (when (interactive-p)
+       (speechd-speak-report ,feedback :priority :message))))
 
 (defmacro* speechd-speak--command-feedback (commands position &body body)
   (let ((commands* (if (listp commands) commands (list commands)))
 	(position* position)
-	(body* `(progn (speechd-speak--reset-command-start-info) ,@body))
-	(c (gensym)))
+	(body* `(progn (speechd-speak--reset-command-start-info) ,@body)))
     `(progn
        ,@(mapcar #'(lambda (command)
 		     `(speechd-speak--defadvice ,command ,position*
