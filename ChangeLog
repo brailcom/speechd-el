@@ -1,3 +1,12 @@
+2004-05-27  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-el 0.4 released.
+
+2004-05-27  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak--pre-command-hook): Call
+	speechd-speak--read-pending-speeches before cancel.
+
 2004-05-25  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-speak.el (speechd-speak--message, speechd-speak--async):

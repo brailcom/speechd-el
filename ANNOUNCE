@@ -31,7 +31,7 @@ The Free(b)soft project is pleased to announce speechd-el 0.4.
 
   - Free Software, distributed under the GPL.
 
-  Part of the speechd-el package is an Elisp library for communication
+  The speechd-el package contains an Elisp library for communication
   with Speech Dispatcher, allowing you to write your own Emacs speech
   output extensions and your own Emacs interfaces to Speech Dispatcher.
 
@@ -40,7 +40,13 @@ The Free(b)soft project is pleased to announce speechd-el 0.4.
   - Responsiveness improved.
 
   - Whitespace signalization.
+
+  - Language selection based on currently selected input method.
+
+  - Asynchronous action handling reworked.
   
+  - Responsiveness improved.
+
   See the NEWS file for more details.
 
 * Where to get it?

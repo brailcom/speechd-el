@@ -28,4 +28,6 @@ Now, your Emacs should start speaking.
 See the Texinfo manual for complete documentation.
 
 You can send your bug reports, patches, suggestions, etc. to the mailing list
-speechd-devel@freebsoft.org.
+speechd@freebsoft.org.
+
+-- Milan Zamazal <pdm@freebsoft.org>

@@ -16,7 +16,12 @@ For instance, it is possible to repeat Ispell choices in ispell-word now.
 
 See the new variable speechd-speak-input-method-languages.
 
-** Performance improvement.
+** Asynchronous action handling reworked.
+
+The former mechanism of speaking in asynchronous actions, such as process
+outputs or timers, was broken.  It should be fixed now.
+
+** Responsiveness improved.
 
 speechd-el is now much more responsive when speaking many small pieces of text.
 

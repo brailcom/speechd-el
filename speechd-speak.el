@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "2004-05-25 18:34 pdm"
+(defconst speechd-speak-version "2004-05-27 08:26 pdm"
   "Version of the speechd-speak file.")
 
 
@@ -1182,9 +1182,9 @@ Only single characters are allowed in the keymap.")
 (defun speechd-speak--pre-command-hook ()
   (condition-case err
       (progn
+        (speechd-speak--read-pending-speeches)
         (unless (memq this-command speechd-speak--dont-cancel-on-commands)
           (speechd-cancel 1))
-        (speechd-speak--read-pending-speeches)
         (speechd-speak--set-command-start-info)
         (setq speechd-speak--last-report "")
         (when speechd-speak-spell-command
