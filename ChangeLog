@@ -1,6 +1,6 @@
 2004-10-01  Milan Zamazal  <pdm@brailcom.org>
 
-	* speechd-speak.el (text-property-movement): Consider all text
+	* speechd-speak.el (text-property-movement): Consider more text
 	properties.
 
 2004-10-01  Milan Zamazal  <pdm@brailcom.org>
