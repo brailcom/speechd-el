@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.36 2003-08-04 07:28:38 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.37 2003-08-04 18:00:00 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -41,7 +41,7 @@
 
 (defgroup speechd-speak nil
   "Speechd-el user client customization."
-  :group 'speechd-el)
+  :group 'speechd)
 
 (defcustom speechd-speak-deleted-char t
   "If non-nil, speak the deleted char, otherwise speak the adjacent char."
@@ -66,6 +66,32 @@ changed, the contents of the window buffer is spoken."
 Like `speechd-speak-auto-speak-buffers' except that the window content is
 spoken even when there are other messages to speak."
   :type '(repeat string)
+  :group 'speechd-speak)
+
+(defcustom speechd-speak-buffer-insertions 'one-line
+  "Defines whether insertions in a current buffer should be read automatically.
+The value is a symbol and can be from the following set:
+- nil means don't speak them
+- t means speak them all
+- `one-line' means speak only changes not exceeding line boundary
+Only newly inserted text is read, the option doesn't affect processing of
+deleted text.  Also, the option doesn't affect insertions within commands
+processed in a different way by speechd-speak or user definitions."
+  :type '(choice (const :tag "Never" nil)
+                 (const :tag "One-line changes only" 'one-line)
+                 (const :tag "Always" t))
+  :group 'speechd-speak)
+
+(defcustom speechd-speak-insertions-in-buffers
+  '(" widget-choose" "*Choices*")
+  "List of names of buffers, in which insertions are automatically spoken.
+See also `speechd-speak-buffer-insertions'."
+  :type '(repeat string)
+  :group 'speechd-speak)
+
+(defcustom speechd-speak-align-buffer-insertions t
+  "If non-nil, read insertions aligned to the beginning of the first word."
+  :type 'boolean
   :group 'speechd-speak)
 
 (defcustom speechd-speak-by-properties-on-movement t
@@ -152,32 +178,6 @@ created."
                          (restricted-sexp :tag "Function call"
                                           :match-alternatives (listp)))
                        (string :tag "Connection name")))
-  :group 'speechd-speak)
-
-(defcustom speechd-speak-buffer-insertions 'one-line
-  "Defines whether insertions in a current buffer should be read automatically.
-The value is a symbol and can be from the following set:
-- nil means don't speak them
-- t means speak them all
-- `one-line' means speak only changes not exceeding line boundary
-Only newly inserted text is read, the option doesn't affect processing of
-deleted text.  Also, the option doesn't affect insertions within commands
-processed in a different way by speechd-speak or user definitions."
-  :type '(choice (const :tag "Never" nil)
-                 (const :tag "One-line changes only" 'one-line)
-                 (const :tag "Always" t))
-  :group 'speechd-speak)
-
-(defcustom speechd-speak-insertions-in-buffers
-  '(" widget-choose" "*Choices*")
-  "List of names of buffers, in which insertions are automatically spoken.
-See also `speechd-speak-buffer-insertions'."
-  :type '(repeat string)
-  :group 'speechd-speak)
-
-(defcustom speechd-speak-align-buffer-insertions t
-  "If non-nil, read insertions aligned to the beginning of the first word."
-  :type 'boolean
   :group 'speechd-speak)
 
 (defcustom speechd-speak-signal-empty t
@@ -1077,7 +1077,6 @@ FUNCTION is invoked interactively."
     (unless (lookup-key speechd-speak-mode-map speechd-speak-prefix)
       (define-key map (concat speechd-speak-prefix speechd-speak-prefix)
         (lookup-key global-map speechd-speak-prefix)))))
-(speechd-speak--build-mode-map)
 
 (define-minor-mode speechd-speak-map-mode
   "Toggle use of speechd-speak keymap.
@@ -1187,6 +1186,7 @@ With a prefix argument, close all open connections first."
       (speechd-unspeak)
     (speechd-reopen))
   (setq speechd-speak--started t)
+  (speechd-speak--build-mode-map)
   (global-speechd-speak-mode 1)
   (global-speechd-speak-map-mode 1)
   (message "Speechd-speak %s"
