@@ -1,6 +1,7 @@
 2003-10-01  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd.el (speechd-port): Default port number changed to 6560.
+	(speechd-port): Use expanded form instead of ignore-errors.
 
 2003-09-29  Milan Zamazal  <pdm@brailcom.org>
 
