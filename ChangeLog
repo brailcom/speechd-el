@@ -1,3 +1,41 @@
+2003-05-14  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-emacspeak.el (dtk-initialize): Do nothing.
+	(speechd-open, speechd-close): Removed.
+	(dtk-speak-server-initialized): Set it to t.
+
+	* speechd.el: Prefix of all private variables and constants
+	changed from `speechd-' to `speechd--'.
+	(speechd--buffer, speechd--client-name): Be constant.
+	(speechd--maximum-queue-length): New constant.
+	(speechd-client-name): New variable.
+	(speechd--connection, speechd--connection-output): Removed.
+	(speechd--connections): New variable.
+	(speechd--connection-output, speechd--sending-data-p)
+	(speechd--paused-p, speechd--current-parameters): Removed.
+	(speechd--connection): New structure.
+	(speechd--connection): New function.
+	(speechd--process-name): Updated.
+	(speechd--connection-filter): Updated.
+	(speechd--last-host, speechd--last-port): Removed.
+	(speechd--connection-failure): Removed.
+	(speechd-close): Updated.  New argument `name'.
+	(speechd--reset-connection-parameters): Removed.
+	(speechd-open): Updated.  Call process-kill-without-query.
+	(speechd-running-p): Updated.
+	(speechd--send-string): Updated.
+	(speechd--with-current-connection): New macro.
+	(speechd--make-queue, speechd--queue-empty-p, speechd--enqueue)
+	(speechd--dequeue, speechd--queue-too-long-p): New functions.
+	(speechd--command-answer): Rewritten.
+	(speechd--send-data-end): Updated.  Less protective to
+	sending-data-p.
+	(speechd--send-data): Updated.
+	(speechd--send-command): Updated.
+	(speechd--set-parameter): Updated.
+	(speechd--client-name): Renamed to speechd--application-name.
+	(speechd-pause): 
+
 2003-05-07  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-emacspeak.el: Disable voice lock mode completely.
