@@ -4,7 +4,7 @@
 EMACS = emacs
 
 NAME = speechd-el
-VERSION = 0.1
+VERSION = 0.2
 DISTDIR = $(NAME)-$(VERSION)
 TARFILE = $(NAME)-$(VERSION).tar
 
@@ -35,7 +35,7 @@ clean: mostlyclean
 	rm -f *.dvi *.elc speechd-el.pdf *.ps
 
 distclean: clean
-	rm -rf $(DISTDIR) $(TARFILE)*
+	rm -rf $(DISTDIR) $(TARFILE)* *.orig *.rej
 
 maintainer-clean: distclean
 	rm -f *.info*
@@ -61,7 +61,8 @@ ps: speechd-el.ps
 
 dist: maintainer-clean info
 	mkdir $(DISTDIR)
-	install -m 644 `find . -maxdepth 1 -type f` $(DISTDIR)
+	install -m 644 `find . -maxdepth 1 -type f -name '[a-zA-Z]*'` \
+		$(DISTDIR)
 	(cd $(DISTDIR); $(MAKE) distclean)
 	tar cvf $(TARFILE) $(DISTDIR)
 	gzip -9 $(TARFILE)
