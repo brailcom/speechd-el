@@ -74,22 +74,13 @@ Nil if no connection is currently open.")
 		(const :tag "Low"    :value :low))
   :group 'speechd)
 
-(defcustom speechd-coding-system 'utf-8-dos
-  "*Coding system to use when communication with speechd."
-  :type 'coding-system
-  :set #'(lambda (symbol value)
-	   (set-default symbol value)
-	   (when speechd-connection
-	     (set-process-coding-system speechd-connection value value)))
-  :group 'speechd)
-
 (defcustom speechd-debug nil
   "*If non-nil, be verbose about communication with speechd."
   :type 'boolean
   :group 'speechd)
 
 
-(defconst speechd-el-version "speechd-el $Id: speechd.el,v 1.2 2003-04-10 19:06:19 pdm Exp $"
+(defconst speechd-el-version "speechd-el $Id: speechd.el,v 1.3 2003-04-11 12:25:53 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -120,15 +111,20 @@ Each element is a pair is of the form (CAPITALIZATION . SPEECHD-PARAMETER).")
 
 (defvar speechd-debug-info '())
 
+(defconst speechd-coding-system 'utf-8-dos)
+
+(defvar speechd-connection-output nil)
 (defvar speechd-sending-data-p nil)
 (defvar speechd-paused-p nil)
 (defvar speechd-current-priority nil)
-(defsubst speechd-reset-connection-parameters ()
-  (setq speechd-sending-data-p nil
+
+(defun speechd-reset-connection-parameters ()
+  (setq speechd-connection-output nil
+	speechd-sending-data-p nil
 	speechd-paused-p nil
 	speechd-current-priority nil))
 
-(defsubst speechd-process-name ()
+(defun speechd-process-name ()
   (process-name speechd-connection))
 
 (defun speechd-convert-numeric (number)
@@ -138,7 +134,6 @@ Each element is a pair is of the form (CAPITALIZATION . SPEECHD-PARAMETER).")
 		     (t number))))
 
 
-(defvar speechd-connection-output "")
 (defun speechd-connection-filter (process string)
   (when speechd-debug
     (with-current-buffer (process-buffer process)
@@ -153,6 +148,7 @@ Each element is a pair is of the form (CAPITALIZATION . SPEECHD-PARAMETER).")
 	  (goto-char marker-position)))))
   (setq speechd-connection-output (concat speechd-connection-output string)))
 
+;;;###autoload
 (defun* speechd-open (&optional (host speechd-host) (port speechd-port))
   "Open connection to speechd running on the given host and port.
 The optional arguments HOST and PORT identify the speechd location differing
@@ -181,6 +177,7 @@ for closer description of those arguments."
   (speechd-set-connection-name "default")
   speechd-connection)
 
+;;;public
 (defun speechd-close ()
   "Close the connection to speechd."
   (interactive)
@@ -192,27 +189,56 @@ for closer description of those arguments."
     (push "close" speechd-debug-info))
   (setq speechd-connection nil))
 
-(defun speechd-restart ()
+;;;public
+(defun speechd-reopen ()
   "Close and open again the connection to speechd."
   (interactive)
   (speechd-close)
   (speechd-open))
 
+;;;public
 (defun speechd-running-p ()
   (and speechd-connection (eq (process-status speechd-connection) 'open)))
 
 
 (defconst speechd-eol "\n")
 
-(defsubst speechd-send-string (string)
+(defun speechd-send-string (string)
   (unwind-protect
       (process-send-string (speechd-process-name) string)
     (unless (speechd-running-p)
       (speechd-close))))
 
-(defsubst speechd-send-command (command &rest args)
+(defun speechd-command-answer ()
+  ;; Why this function exists and the answer is not handled within
+  ;; `speech-send-command' immediately:
+  ;;
+  ;; When a user walks through a buffer with autorepeated C-p or so, he wants
+  ;; to listen to the very short sounds indicating beginnings of lines.  Thus
+  ;; the reaction time must be very short, preferably less than 10 ms.
+  ;; However, it seems that if `accept-process-output' is called and process
+  ;; output is not available *immediately*, Emacs is unable to read the awaited
+  ;; input anytime sooner than after several tens of miliseconds.  So we delay
+  ;; reading the process output until `speechd-command-answer' is called,
+  ;; either explicitly or automatically before sending next command.
+  (while (and speechd-connection-output
+	      (let ((len (length speechd-connection-output)))
+		(or (= len 0)
+		    (not (= (aref speechd-connection-output (1- len)) ?\n)))))
+    (unless (accept-process-output speechd-connection speechd-timeout)
+      (push (cons "Timeout:" speechd-connection-output) speechd-debug-info)
+      (speechd-close)
+      (error "Timeout during communication with speechd.")))
+  (let ((answer speechd-connection-output))
+    (setq speechd-connection-output nil)
+    (when speechd-debug
+      (push answer speechd-debug-info))
+    answer))
+
+(defun speechd-send-command (command &rest args)
   (when speechd-sending-data-p
     (speechd-send-data-end))
+  (speechd-command-answer)
   (when (or speechd-connection
 	    (and (not speechd-connection-failure) (speechd-open)))
     (let ((string-to-send (concat
@@ -222,24 +248,13 @@ for closer description of those arguments."
 	(display-buffer (process-buffer speechd-connection)))
       (funcall (if speechd-debug #'message #'ignore)
 	       (speechd-send-string string-to-send))
-      (while (let ((len (length speechd-connection-output)))
-	       (or (= len 0)
-		   (not (eql (aref speechd-connection-output (1- len)) ?\n))))
-	(unless (accept-process-output speechd-connection speechd-timeout)
-	  (push (cons "Timeout:" speechd-connection-output) speechd-debug-info)
-	  (speechd-close)
-	  (error "Timeout during communication with speechd.")))
-      (let ((answer speechd-connection-output))
-	(setq speechd-connection-output "")
-	(when speechd-debug
-	  (push (cons string-to-send answer) speechd-debug-info))
-	(unless (string-match "^2" answer) ; there should be no 1xx response
-	  answer)))))
+      (setq speechd-connection-output ""))))
 
 (defun speechd-send-data (text)
   (unless speechd-sending-data-p
     (speechd-resume t)
     (speechd-send-command "SPEAK")
+    (speechd-command-answer)
     (setq speechd-sending-data-p t))
   (flet ((send (string)
 	   (when speechd-debug
@@ -266,33 +281,40 @@ for closer description of those arguments."
     (setq speechd-sending-data-p nil)))
 
 
+;;;public
 (defun speechd-set-connection-name (name)
   (speechd-send-command "SET" "CLIENT_NAME"
 			(format "%s:%s" speechd-client-name name))
   (speechd-reset-connection-parameters))
 
+;;;public
 (defun speechd-set-language (language)
   (speechd-send-command "SET" "LANGUAGE" language))
 
+;;;public
 (defun speechd-set-priority (priority)
   (unless (eq priority speechd-current-priority)
     (let ((priority-string (cdr (assoc priority speechd-priorities))))
       (speechd-send-command "SET" "PRIORITY" priority-string))
     (setq speechd-current-priority priority)))
 
+;;;public
 (defun speechd-set-rate (rate)
   (speechd-send-command "SET" "RATE" (speechd-convert-numeric rate)))
 
+;;;public
 (defun speechd-set-punctuation (punctuation)
   (let ((punctuation-string (cdr (assoc punctuation speechd-punctuations))))
     (speechd-send-command "SET" "PUNCTUATION" punctuation-string)))
 
+;;;public
 (defun speechd-set-capitalization (capitalization)
   (let ((capitalization-string (cdr (assoc capitalization
 					   speechd-capitalizations))))
     (speechd-send-command "SET" "CAPITALIZATION" capitalization-string)))
 
 
+;;;###autoload
 (defun* speechd-say (text &key (priority speechd-default-text-priority)
 			       (finish t))
   (interactive "sText: ")
@@ -312,15 +334,18 @@ for closer description of those arguments."
 				char)))
 
   
+;;;###autoload
 (defun speechd-stop ()
   (interactive)
   (speechd-send-command "STOP"))
 
+;;;###autoload
 (defun speechd-pause ()
   (interactive)
   (setq speechd-paused-p t)
   (speechd-send-command "PAUSE"))
 
+;;;###autoload
 (defun speechd-resume (&optional softp)
   (interactive)
   (when (or speechd-paused-p (not softp))
@@ -330,6 +355,7 @@ for closer description of those arguments."
 
 (defconst speechd-maintainer-address "pdm@brailcom.org")
 
+;;;###autoload
 (defun speechd-submit-bug-report ()
   (interactive)
   (require 'reporter)
