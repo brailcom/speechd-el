@@ -1,3 +1,16 @@
+2003-04-11  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el: All `defsubst's changed to `defun'.  Autoload
+	declarations added.
+	(speechd-coding-system): Changed to `defconst'.
+	(speechd-command-answer): New function.
+	(speechd-send-command): Use it.  Don't read speechd answer.
+	(speechd-send-data): Call `speechd-command-answer'.
+	(speechd-connection-output): Initialize to nil.
+	(speechd-reset-connection-parameters): Reset
+	`speechd-connection-output'.
+	(speechd-restart): Renamed to `speechd-reopen'.
+
 2003-04-10  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd.el (speechd-resume): New argument `soft'.
