@@ -3,6 +3,12 @@ User-visible changes to speechd-el:
 
 * Changes in speechd-el 0.5
 
+** Messages from built-in functions can be read now.
+
+** Mode line can be read in new versions of Emacs.
+
+See the command speechd-speak-read-mode-line bound to the `C-e RET' key.
+
 ** speechd-connection-parameters removed.
 
 This obsolete variable is no longer available, use speechd-connection-voices

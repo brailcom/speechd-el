@@ -244,7 +244,7 @@ language.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "2004-06-02 09:59 pdm"
+(defconst speechd--el-version "2004-06-02 17:08 pdm"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -265,10 +265,10 @@ Useful only for diagnosing problems.")
                                       "en"))
 
 (defvar speechd--default-connection-parameters
-  '(punctuation-mode "some"
-    spelling-mode "off"
-    capital-character-mode "none"
-    voice "male1"
+  '(punctuation-mode some
+    spelling-mode nil
+    capital-character-mode none
+    voice male1
     rate 0
     pitch 0
     volume 100))
@@ -383,12 +383,10 @@ Useful only for diagnosing problems.")
     `(let* ((,$parameters ,parameters)
             (,$orig-parameters ()))
        (unwind-protect
-           (progn
+           (let ((,$cparameters (speechd--connection-parameters connection)))
              (while ,$parameters
                (let* ((,$p (first ,$parameters))
                       (,$v (second ,$parameters))
-                      (,$cparameters
-                       (speechd--connection-parameters connection))
                       (,$orig-v (plist-get ,$cparameters ,$p)))
                  (when (and (not (equal ,$v ,$orig-v))
                             (or ,$v

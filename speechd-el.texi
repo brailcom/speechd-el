@@ -327,6 +327,13 @@ Read the previous line (@code{speechd-speak-read-previous-line}).
 @findex speechd-speak-last-message
 Read last seen Emacs message (@code{speechd-speak-last-message}).
 
+@item C-e RET
+@cindex mode line
+@kindex C-e RET
+@findex speechd-speak-read-mode-line
+Read the mode line (@code{speechd-speak-read-mode-line}).  Note: This
+function works only in Emacs 21.4 or higher.
+
 @item C-e i
 @kindex C-e i
 @findex speechd-speak-last-insertions

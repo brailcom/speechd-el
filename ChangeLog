@@ -1,3 +1,20 @@
+2004-06-24  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak--unhide-message): New macro.
+	(write-region): Unhide message.
+
+2004-06-24  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak-read-mode-line): New command.
+	(speechd-speak-mode-map): Add a key binding for it.	
+
+2004-06-02  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd--default-connection-parameters): Define
+	symbolic parameter values, not SSIP strings.
+	(speechd--with-connection-parameters): Retrieve current
+	connection parameters only once, not in the loop.
+
 2004-06-02  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd.el (speechd-add-connection-settings): Don't set

@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "2004-05-27 08:26 pdm"
+(defconst speechd-speak-version "2004-06-24 09:02 pdm"
   "Version of the speechd-speak file.")
 
 
@@ -589,6 +589,14 @@ If BUFFER is nil, read current buffer."
   (speechd-speak--interactive
    (speechd-speak-read-buffer (window-buffer (get-lru-window)))))
 
+(defun speechd-speak-read-mode-line ()
+  "Read mode line.
+This function works only in Emacs 21.4 or higher."
+  (interactive)
+  (when (fboundp 'format-mode-line)
+    (speechd-speak--interactive
+     (speechd-speak--text (format-mode-line)))))
+
 (defun speechd-speak--window-contents ()
   (sit-for 0)                           ; to update window start and end
   (speechd-speak-read-region (window-start) (window-end)))
@@ -871,6 +879,15 @@ connections, otherwise create completely new connection."
 
 (speechd-speak--command-feedback (undo) after
   (speechd-speak-read-line))
+
+(defmacro speechd-speak--unhide-message (function)
+  ;; If `message' is invoked within a built-in function, there's no way to get
+  ;; notified automatically about it.  So we have to wrap the built-in
+  ;; functions displaying messages to check for the otherwise hidden messages.
+  `(speechd-speak--defadvice ,function after
+     (speechd-speak--current-message)))
+
+(speechd-speak--unhide-message write-region)
 
 
 ;;; Killing and yanking
@@ -1581,6 +1598,7 @@ When the mode is enabled, all spoken text is spelled."
 (define-key speechd-speak-mode-map "\C-a" 'speechd-add-connection-settings)
 (define-key speechd-speak-mode-map "\C-c" 'speechd-speak-new-connection)
 (define-key speechd-speak-mode-map "\C-l" 'speechd-speak-spell)
+(define-key speechd-speak-mode-map "\C-m" 'speechd-speak-read-mode-line)
 (define-key speechd-speak-mode-map "\C-n" 'speechd-speak-read-next-line)
 (define-key speechd-speak-mode-map "\C-p" 'speechd-speak-read-previous-line)
 (define-key speechd-speak-mode-map "\C-r" 'speechd-speak-read-rectangle)
