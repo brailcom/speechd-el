@@ -750,8 +750,9 @@ variable:
 
 @vtable @code
 @item speechd-speak-movement-on-insertions
-If non-@code{nil}, speak the text around new cursor position even when
-the current buffer was modified.
+If @code{t}, speak the text around new cursor position even when
+the current buffer was modified.  If @code{read-only}, speak it only
+in read-only buffers.  If @code{nil}, don't speak it.
 @end vtable
 
 @node Signalling, Text Properties, Auto-Speaking Buffers, Customization
