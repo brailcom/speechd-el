@@ -49,6 +49,8 @@ info: speechd-el.info
 %.info: %.texi
 	makeinfo $<
 
+info-cs: speechd-el.cs.info
+
 pdf: speechd-el.pdf
 %.pdf: %.texi
 	texi2pdf $<

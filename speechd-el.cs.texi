@@ -29,7 +29,7 @@ Documentation License.''
 @dircategory Sound
 @dircategory Emacs
 @direntry
-* speechd-el: (speechd-el).	Emacsové rozhraní ke Speech Dispatcher.
+* speechd-el cs: (speechd-el.cs).  Emacsové rozhraní ke Speech Dispatcher.
 @end direntry
 
 @titlepage
