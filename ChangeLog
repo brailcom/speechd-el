@@ -1,12 +1,19 @@
 2003-07-30  Milan Zamazal  <pdm@brailcom.org>
 
+	* README: Refer to the manual.
+	* speechd-el.texi: Initial revision.
+	* fdl.texi: Initial revision.
+
+	* Makefile: Initial revision.
+
 	* speechd.el (speechd-priority-tags): Renamed to
 	speechd--priority-tags.
 	(speechd-client-name): Docstring rewritten.
 	(speechd--with-connection-setting): Don't enclose the VAR and
 	VALUE arguments in parentheses.
 	(speechd--process-request): Consider the previous change.
-	
+	(speechd-default-language): Language label improved.
+
 	* speechd.el All keywords converted to non-keywords.
 	(speechd--keyword->nonkeyword): Removed.
 	(speechd--generate-customization-options) 
