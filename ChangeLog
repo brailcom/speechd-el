@@ -1,3 +1,8 @@
+2004-08-24  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd--send-text): Remove text properties before
+	sending the text.
+
 2004-08-10  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd.el (speechd--call-spdsend): Ensure

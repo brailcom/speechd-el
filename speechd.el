@@ -244,7 +244,7 @@ language.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd-el-version "2004-08-10 15:56 pdm"
+(defconst speechd-el-version "2004-08-24 11:52 pdm"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -667,6 +667,9 @@ Return the opened connection on success, nil otherwise."
                      text i))
           (setq text (replace-match ".." nil nil text 3))
           (setq i (1+ (match-end 0))))))
+    ;; We must remove text properties from the string, otherwise Emacs does
+    ;; strange things when recoding non-ASCII characters to UTF-8.
+    (set-text-properties 0 (length text) nil text)
     (unless (first (or (speechd--send-request
                         (make-speechd--request
                          :string (concat text speechd--eol "." speechd--eol)))
