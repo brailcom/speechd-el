@@ -1,3 +1,15 @@
+2003-07-09  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el: Generate capital character table commands.
+	(speechd--parameter-names): :capital-character-table added.
+	(speechd--list-parameter-names): :capital-character-tables added.
+	(speechd--parameter-names)
+	(speechd--parameter-value-mappings): capital-character-mode added.
+	(speechd--generate-set-command): Support for direct completion
+	definition added.
+	(speechd-set-punctuation-mode): Removed.
+	New setting commands: punctuation mode, chapital character mode.
+
 2003-07-07  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd.el (speechd-connection-parameters): Customization type
