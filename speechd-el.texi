@@ -49,9 +49,9 @@ Documentation License.''
 
 @menu
 * Introduction::                What is speechd-el and this manual about?
-* speechd-el user manual::      Using Emacs speech output.
+* speechd-el User Manual::      Using Emacs speech output.
 * speechd-el Elisp Library::    Using speechd-el in Elisp programs.
-* Contact information::         How to speak to us.
+* Contact Information::         How to speak to us.
 
 * Copying This Manual::         GNU Free Documentation License.
 * Index::                       Concept index.
@@ -59,7 +59,7 @@ Documentation License.''
 
 @c ****************************************************************************
 
-@node Introduction, speechd-el user manual, Top, Top
+@node Introduction, speechd-el User Manual, Top, Top
 @chapter Introduction
 @cindex Speech Dispatcher
 
@@ -105,8 +105,8 @@ recommended, though not absolutely necessary.
 
 @c ****************************************************************************
 
-@node speechd-el user manual, speechd-el Elisp Library, Introduction, Top
-@chapter speechd-el user manual
+@node speechd-el User Manual, speechd-el Elisp Library, Introduction, Top
+@chapter speechd-el User Manual
 
 speechd-el allows you to use Emacs without looking at screen, with
 speech output only.  The main usage area is by blind and visually
@@ -123,13 +123,13 @@ more information about Speech Dispatcher.
 
 @menu
 * Installation::                Installing speechd-el.
-* Starting speech output::      Making it speak.
+* Starting Speech Output::      Making it speak.
 * Commands::                    Usage.
 * Customization::               Basic customization.
-* Definitions::                 Advanced customization.
+* Advanced Customization::      Writing your own command feedbacks.
 @end menu
 
-@node Installation, Starting speech output, speechd-el user manual, speechd-el user manual
+@node Installation, Starting Speech Output, speechd-el User Manual, speechd-el User Manual
 @section Installation
 
 In order to install speechd-el, you need the Elib library.  You can
@@ -163,8 +163,8 @@ Add the following line to your @file{~/.emacs}:
 @end lisp
 @end enumerate
 
-@node Starting speech output, Commands, Installation, speechd-el user manual
-@section Starting speech output
+@node Starting Speech Output, Commands, Installation, speechd-el User Manual
+@section Starting Speech Output
 
 After installation of the @file{*.el} files and restarting Emacs, you
 can set up speechd-speak using the @kbd{M-x speechd-speak} command.
@@ -190,16 +190,17 @@ Speech Dispatcher gets restarted.
 
 With a prefix argument, all open connections are closed first.  This
 is useful when you need to reset parameters of all connections, see
-@ref{Connections}.
+@ref{Connection Parameters}.
 
 After the first invocation, the command is available under the
 @kbd{C-e C-s} key.
 @end table
 
+@cindex minor modes
 Once the setup is done, enabling and disabling the speech output is
 controlled by speechd-speak and global-speechd-speak minor modes.
 Usually the mode commands are not used directly, you use the
-@code{speechd-speak-toggle-speaking} command (@pxref{Control commands}),
+@code{speechd-speak-toggle-speaking} command (@pxref{Control Commands}),
 but if you need them, they are available.
 
 @table @kbd
@@ -216,7 +217,7 @@ toggles the mode.  With prefix argument, turn speaking on if and only
 if the argument is positive.
 @end table
 
-@node Commands, Customization, Starting speech output, speechd-el user manual
+@node Commands, Customization, Starting Speech Output, speechd-el User Manual
 @section Commands
 
 The basic speechd-el commands are all accessible through a common
@@ -228,14 +229,14 @@ prefix key.  For instance, with the default prefix, the
 key, can be invoked as @kbd{C-e C-e}.
 
 @menu
-* Reading commands::            Reading piecies of text.
-* Control commands::            Stopping, setting speech rate, etc.
-* Parameter setting commands::  Modifying speech output.
-* Other commands::              Auxiliary commands.
+* Reading Commands::            Reading pieces of text.
+* Control Commands::            Stopping, setting speech rate, etc.
+* Parameter Setting Commands::  Modifying speech output.
+* Other Commands::              Auxiliary commands.
 @end menu
 
-@node Reading commands, Control commands, Commands, Commands
-@subsection Reading commands
+@node Reading Commands, Control Commands, Commands, Commands
+@subsection Reading Commands
 
 @table @kbd
 @item C-e l
@@ -307,8 +308,8 @@ Read the previous line (@code{speechd-speak-read-previous-line}).
 Read last seen Emacs message (@code{speechd-speak-last-message}).
 @end table
 
-@node Control commands, Parameter setting commands, Reading commands, Commands
-@subsection Control commands
+@node Control Commands, Parameter Setting Commands, Reading Commands, Commands
+@subsection Control Commands
 
 @table @kbd
 @item C-e q
@@ -370,13 +371,14 @@ slowest rate, @kbd{C-e 5} sets the medium rate, and @kbd{C-e 9} sets
 the fastest rate.
 @end table
 
-@node Parameter setting commands, Other commands, Control commands, Commands
-@subsection Parameter setting commands
+@node Parameter Setting Commands, Other Commands, Control Commands, Commands
+@subsection Parameter Setting Commands
 @cindex parameters
 
 These commands set various properties of the speech output.  They all
 apply on the current Speech Dispatcher connection (for more
-information about Speech Dispatcher connections, @pxref{Connections}).
+information about Speech Dispatcher connections, @pxref{Connection
+Parameters}).
 
 Commands affecting basic parameters of the text-to-speech process:
 
@@ -425,7 +427,7 @@ offered by your Speech Dispatcher installation.
 Set exact speech rate, ranging from -100 (slowest) to 100 (fastest)
 (@code{speechd-speak-set-rate}).  Most often you will probably want to
 use the @code{speechd-speak-key-set-predefined-rate} command bound to
-@kbd{C-e @var{number}} instead, see @ref{Control commands}.
+@kbd{C-e @var{number}} instead, see @ref{Control Commands}.
 
 @item C-e d p
 @kindex C-e d p
@@ -496,18 +498,20 @@ Set text table (@code{speechd-speak-set-text-table}).
 Set sound table (@code{speechd-speak-set-sound-table}).
 @end table
 
-@node Other commands,  , Parameter setting commands, Commands
-@subsection Other commands
+@node Other Commands,  , Parameter Setting Commands, Commands
+@subsection Other Commands
 
+@kindex C-x C-c
 In case Emacs gets completely crazy and refuses to run commands
-because of a bug in speechd-el or in a speech output related custom
-definition, you can try to invoke the following command as the last
-resort:
+including @kbd{C-x C-c} because of a bug in speechd-el or in a speech
+output related custom definition, you can try to invoke the following
+command as the last resort:
 
 @table @kbd
 @item C-e C-x
 @kindex C-e C-x
 @findex speechd-unspeak
+@cindex recovery
 Try to disable all modes, hooks and wrappers installed by
 @code{speechd-speak} (@code{speechd-unspeak}).
 @end table
@@ -527,27 +531,319 @@ Repeat the last text sent to Speech Dispatcher
 Prompt for a text and speak it.
 @end table
 
-@node Customization, Definitions, Commands, speechd-el user manual
+@node Customization, Advanced Customization, Commands, speechd-el User Manual
 @section Customization
 
 @menu
-* Connections::                 
+* Host Configuration::          Where to connect to.
+* Default Priorities::          Priorities of various kinds of messages.
+* Basic Speaking::              Simple options.
+* Auto-Speaking Buffers::       Making certain buffers speak automatically.
+* Signalling::                  Signalling empty lines, etc.
+* Text Properties::             Handling faces and special pieces of text.
+* Connection Parameters::       Setting Speech Dispatcher parameters.
+* Multiple Connections::        Different parameters for some modes & buffers.
+* Keys::                        Customizing command keys.
+* Modes::                       Minor mode hooks.
 @end menu
 
-@node Connections,  , Customization, Customization
-@subsection Connections 
+@node Host Configuration, Default Priorities, Customization, Customization
+@subsection Speech Dispatcher Host Connection Configuration
 
-@node Definitions,  , Customization, speechd-el user manual
-@section Defining your own command feedbacks
+Host connection variables allow you connect to Speech Dispatcher
+running on a remote host or a non-default port.
 
-Writing your own definitions generally requires knowledge of Elisp
-programming.  But don't be afraid, you can set some things without it,
-just following instructions here.
+@vtable @code
+@item speechd-host
+@cindex host
+Name of the host running Speech Dispatcher to connect to, given as a
+string.  Default is localhost.
 
+@item speechd-port
+@cindex port
+Port number to connect to.  Default is the default Speech Dispatcher
+port.
+
+@item speechd-timeout
+@cindex timeout
+Maximum number of seconds to wait for a Speech Dispatcher answer.  If
+it is exceeded, speechd-el closes the connection.  Normally, Speech
+Dispatcher should answer protocol commands immediately, but if you
+talk to a Speech Dispatcher in a strange way through a lagging
+network, you may want to increase the limit.
+@end vtable
+
+@node Default Priorities, Basic Speaking, Host Configuration, Customization
+@subsection Default Priorities
+@cindex priorities
+
+If a speechd-el function sends a message to Speech Dispatcher without
+an explicitly specified priority, the priorities defined by the
+following variables are used.  By changing the values, you can achieve
+interesting effects.  For instance, changing the value of
+@code{speechd-default-key-priority} from @code{notification} to
+@code{message} makes all typed characters to be echoed and makes them
+to interrupt common text reading.
+
+The valid values of all the variables here are: @code{important},
+@code{message}, @code{text}, @code{notification}, @code{progress}.
+They correspond to Speech Dispatcher priorities, see the Speech
+Dispatcher manual for more details.
+
+@vtable @code
+@item speechd-default-text-priority
+Default priority of most text messages.
+
+@item speechd-default-sound-priority
+Default priority of sound icons.
+
+@item speechd-default-char-priority
+Default priority of spelled characters.
+
+@item speechd-default-key-priority
+Default priority of typed keys.
+@end vtable
+
+@node Basic Speaking, Auto-Speaking Buffers, Default Priorities, Customization
+@subsection Basic Customization of Speaking
+
+@vtable @code
+@item speechd-speak-deleted-char
+@cindex deletions
+Defines which character to read when deleting a character.  If
+non-@code{nil}, speak the deleted character, otherwise speak the
+adjacent character.
+
+@item speechd-speak-buffer-name
+@cindex buffer names
+When you switch to another buffer and this variable is non-@code{nil},
+speak the new buffer name.  Otherwise speak the text on the cursor
+position in a usual way.
+@end vtable
+
+@node Auto-Speaking Buffers, Signalling, Basic Speaking, Customization
+@subsection Auto-Speaking Buffers
+@cindex buffers
+@cindex inserted text
+
+It sometimes useful to start speaking some buffers without user's
+explicit request.  For instance, if a help command is invoked, the
+user usually wants to read the help text immediately.  The following
+variables contain lists of names of the buffers that may be spoken
+automatically if they get changed by the last command and are visible
+in some window of the current frame.
+
+@vtable @code
+@item speechd-speak-auto-speak-buffers
+Content of these buffers is spoken after the command on the above
+conditions if nothing else (e.g. text around a new cursor position) is
+to be spoken.
+
+@item speechd-speak-force-auto-speak-buffers
+Like @code{speechd-speak-auto-speak-buffers} except that the buffer
+content is spoken forcibly, even when something else could be spoken.
+@end vtable
+
+The following variables define how to handle texts inserted during
+performing user commands.  Only newly inserted text is read, the
+options don't affect processing of deleted text.  Also, the options
+don't affect insertions within commands processed in a special way by
+speechd-el or user definitions, like @code{self-insert-command}.
+
+@vtable @code
+@item speechd-speak-buffer-insertions
+Defines whether insertions in the current buffer should be read
+automatically.  The value may be one of the following symbols:
+
+@table @code
+@item nil
+Don't speak the inserted texts.
+
+@item t
+Speak all the inserted texts.
+
+@item one-line
+Speak only those inserted texts that don't exceed line boundaries.
+@end table
+
+@item speechd-speak-insertions-in-buffers
+List of names of buffers, in which insertions are automatically
+spoken, whether the buffer is current or not and regardless the
+@code{speechd-speak-buffer-insertions} variable.
+
+@item speechd-speak-align-buffer-insertions
+If non-@code{nil}, the insertion text to be spoken is extended to the
+beginning of the first word affected by the insertion.  This is
+particularly useful in completion functions.
+@end vtable
+
+@node Signalling, Text Properties, Auto-Speaking Buffers, Customization
+@subsection Signalling
+
+Certain situations may be signalled by sound icons.  The following
+flags enable or disable the predefined signalizations.  To learn how
+to define your own signalizations, @xref{Advanced Customization}.
+
+@vtable @code
+@item speechd-speak-signal-empty
+@cindex empty text
+If non-@code{nil}, signal an empty text in various situations.
+
+@item speechd-speak-signal-beginning-of-line
+@cindex line
+@cindex beginning of line
+If non-@code{nil}, signal reaching beginning of line after the
+@code{forward-char} and @code{backward-char} commands.
+
+@item speechd-speak-signal-end-of-line
+@cindex end of line
+If non-@code{nil}, signal reaching end of line after the
+@code{forward-char} and @code{backward-char} commands.
+@end vtable
+
+@node Text Properties, Connection Parameters, Signalling, Customization
+@subsection Text Properties
+@cindex text properties
+@cindex faces
+@cindex cursor
+@cindex movement
+
+!!!
+
+By default, after a movement command speechd-el speaks the current
+line.  But if the cursor position is surrounded by a text having text
+properties (typically faces, but any text properties count),
+speechd-el may read just the piece of the text around the cursor
+having uniform properties.
+
+Also, if font lock mode is enabled, faces may be mapped to different
+voices.
+
+@vtable @code
+@item speechd-speak-by-properties-on-movement
+Method of selection of the piece of text to be spoken on movement.
+The variable may take one of the following values.
+
+@table @asis
+@item @code{nil}
+Text properties are not considered at all.
+
+@item @code{t}
+All text properties are considered.
+
+@item list of faces
+Only the named faces are considered.
+@end table
+
+@item speechd-speak-by-properties-always
+List of commands that always consider text properties, even when the
+@code{speechd-speak-by-properties-on-movement} variable is @code{nil}.
+
+@item speechd-speak-by-properties-never
+List of commands that never consider text properties, even when the
+@code{speechd-speak-by-properties-on-movement} variable is
+non-@code{nil}.
+
+@item speechd-speak-faces
+This variable allows you to invoke actions when the cursor ends up on
+a certain face after a user command is performed.  The variable value
+is an alist with elements of the form @code{(@var{face}
+. @var{action})}.
+
+If a movement command leaves the cursor on a @var{face} and there is
+no explicit speaking bound to the command, @var{action} is invoked.
+If @var{action} is a string, that string is spoken.  If @var{action}
+is a function, it is invoked, with no arguments.
+
+@item speechd-face-voices
+Mapping of faces to voices.  The variable value is an alist with
+elements of the form @code{(@var{face} . @var{voice})} where
+@var{face} is a face and @var{voice} is a voice name, a string.  Each
+face is spoken in the corresponding voice.  If there's no item for a
+given face in this variable, the face is spoken in the current voice.
+
+Note that the mapping takes the effect only if font lock mode is
+enabled.
+@end vtable
+
+@node Connection Parameters, Multiple Connections, Text Properties, Customization
+@subsection Connection Parameters
+@cindex parameters
+!!!
+
+@vtable @code
+@item speechd-connection-parameters
+
+@end vtable
+
+@node Multiple Connections, Keys, Connection Parameters, Customization
+@subsection Multiple Connections
+@cindex connections
+
+!!!
+
+@vtable @code
+@item speechd-speak-connections
+
+@end vtable
+
+@node Keys, Modes, Multiple Connections, Customization
+@subsection Keys
+@cindex keys
+@cindex prefix key
+@cindex key map
+
+The command keys of speechd-el are defined by the
+@code{speechd-speak-prefix} variable and the
+@code{speechd-speak-mode-map} key map.
+
+@vtable @code
+@item speechd-speak-prefix
+This variable defines the prefix key of the speechd-el commands, which
+is @kbd{C-e} by default.  If you change the variable value after
+speaking has already been started through the @code{speechd-speak}
+command and you do not set it through the customization interface, you
+must rerun the @code{speechd-speak} so that the change took any
+effect.
+
+@item speechd-speak-mode-map
+This key map holds the mapping of the keys following the prefix key.
+You can set keys here in the usual way, e.g.
+
+@lisp
+(define-key speechd-speak-mode-map "t" 'speechd-say-text)
+@end lisp
+
+to get the @code{'speechd-say-text} command bound to the @code{C-e t}
+key (assuming @code{C-e} is the prefix key).
+@end vtable
+
+@node Modes,  , Keys, Customization
+@subsection Minor mode hooks
+@cindex minor modes
+@cindex hooks
+
+speechd-el provides a minor mode that enables and disables the
+speaking, @xref{Starting Speech Output}.  You can let perform custom
+actions on entering it through the following hook.
+
+@vtable @code
+@item speechd-speak-mode-hook
+Hook run when speechd-speak minor mode is enabled.
+@end vtable
+
+@node Advanced Customization,  , Customization, speechd-el User Manual
+@section Defining Your Own Command Feedbacks
+
+Writing your own feedback definitions generally requires knowledge of
+Elisp programming.  But don't be afraid, you can set some things
+without it, just following instructions here.
+
+!!!
 
 @c ****************************************************************************
 
-@node speechd-el Elisp Library, Contact information, speechd-el user manual, Top
+@node speechd-el Elisp Library, Contact Information, speechd-el User Manual, Top
 @chapter speechd-el Emacs Lisp Library
 
 Right now, there's no real programmer's manual to the library.  Please
@@ -588,8 +884,8 @@ to do anything what makes sense.
 
 @c ****************************************************************************
 
-@node Contact information, Copying This Manual, speechd-el Elisp Library, Top
-@chapter Contact information
+@node Contact Information, Copying This Manual, speechd-el Elisp Library, Top
+@chapter Contact Information
 @cindex authors
 @cindex contact
 
@@ -599,7 +895,7 @@ address @email{speechd-devel@@freebsoft.org}.
 
 @c ****************************************************************************
 
-@node Copying This Manual, Index, Contact information, Top
+@node Copying This Manual, Index, Contact Information, Top
 @appendix Copying This Manual
 
 @include fdl.texi
