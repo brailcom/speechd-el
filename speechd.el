@@ -220,7 +220,7 @@ locally through `let'.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.51 2003-08-19 17:26:55 mlang Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.52 2003-08-19 18:30:11 mlang Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -241,7 +241,9 @@ Useful only for diagnosing problems.")
                                                   speechd--language-codes))
                                       "en"))
 
-(defconst speechd--coding-system 'utf-8-dos)
+(defconst speechd--coding-system (if (featurep 'xemacs)
+				     'no-conversion-dos ;; No utf yet
+				   'utf-8-dos))
 
 (defconst speechd--parameter-names
   '((client-name . "CLIENT_NAME")
