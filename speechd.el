@@ -216,7 +216,7 @@ language.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.79 2003-11-13 10:07:11 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.80 2003-12-16 17:08:45 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -720,9 +720,9 @@ Return the opened connection on success, nil otherwise."
       (save-match-data
         (while (and (> (length text*) 0)
                     (string-match
-                     "\\(\\`\\|.*\n\\)\\(\\..*\\)\\(\n\\|\\'\\)"
+                     "\\(\\`\\|\n\\)\\(\\..*\\)\\(\n\\|\\'\\)"
                      text*))
-          (let ((start (match-end 1))
+          (let ((start (match-beginning 2))
                 (end (match-end 0)))
             (send (substring text* 0 start))
             (send (concat "." (substring text* start end)))
