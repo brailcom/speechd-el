@@ -1,7 +1,7 @@
 speechd-el 0.3 released
 =======================
 
-The Free(b)soft project is pleased to announce speechd-el 0.2.
+The Free(b)soft project is pleased to announce speechd-el 0.3.
 
 * What is speechd-el?
 
@@ -35,22 +35,18 @@ The Free(b)soft project is pleased to announce speechd-el 0.2.
   with Speech Dispatcher, allowing you to write your own Emacs speech
   output extensions and your own Emacs interfaces to Speech Dispatcher.
 
-* What is new in the 0.2 version?
+* What is new in the 0.3 version?
 
   - Bug fixes.
 
-  - read-event prompts are spoken now.
-
-  - Spelling support added.
-
-  - Choosing widget values improved.
+  - Some performance improvements.
 
   See the NEWS file for more details.
 
 * Where to get it?
   
   You can get the distribution tarball of the released version from
-  http://www.freebsoft.org/pub/projects/speechd-el/speechd-el-0.2.tar.gz .
+  http://www.freebsoft.org/pub/projects/speechd-el/speechd-el-0.3.tar.gz .
 
   The home page of the project is http://www.freebsoft.org/speechd-el .
 
