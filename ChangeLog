@@ -1,3 +1,23 @@
+2003-06-24  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak--speak-new-message): Removed;
+	don't add it to after-change-functions.
+	(speechd-speak--command-start-info): Be vector.
+	(speechd-speak--with-minibuffer-depth): New macro.
+	(speechd-speak--set-command-start-info)
+	(speechd-speak--reset-command-start-info)
+	(speechd-speak--command-start-info): New functions.
+	(speechd-speak--pre-command-hook)
+	(speechd-speak--post-command-hook)
+	(speechd-speak--command-feedback): Use them.  Don't check for
+	minibuffer depth.
+	(speechd-speak-toggle-quiet): Call speechd-stop if the new state
+	is quiet.
+	(y-or-n-p): New advice.
+	(read-key-sequence): New advice.
+	(speechd-speak-read-other-window): New function.  Assign it a key.
+	(speechd-speak-read-buffer): New optional argument BUFFER.
+
 2003-06-13  Milan Zamazal  <pdm@brailcom.org>
 	
 	* speechd-speak.el (speechd-speak--speak-new-message) 
