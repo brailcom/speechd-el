@@ -13,6 +13,8 @@ Prerequisites:
 
 Installation:
 
+- Do you have Elib installed?  speechd-el won't run without it!
+
 - Copy the *.el files somewhere to your Emacs load path.
 
 - If you like, byte compile them.

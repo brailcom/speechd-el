@@ -43,6 +43,10 @@ The Free(b)soft project is pleased to announce speechd-el 0.2.
 
   - Spelling support added.
 
+  - Choosing widget values improved.
+
+  See the NEWS file for more details.
+
 * Where to get it?
   
   You can get the distribution tarball of the released version from

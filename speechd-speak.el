@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.67 2003-12-10 14:22:21 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.68 2003-12-11 20:54:36 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -1323,13 +1323,9 @@ connections, otherwise create completely new connection."
 (speechd-speak--command-feedback choose-completion before
   (speechd-speak--speak-completion))
 
-;; The `widget-choose' function is written in a non-extensible way.  So before
-;; this is fixed, we have to use some dirty hacks.
-(defconst speechd-speak--widget-choose-buffer-name " widget-choose")
-(speechd-speak--defadvice scroll-other-window after
-  (when (string= (buffer-name (window-buffer (next-window)))
-		 speechd-speak--widget-choose-buffer-name)
-    (speechd-speak-read-buffer speechd-speak--widget-choose-buffer-name)))
+(speechd-speak--defadvice widget-choose around
+  (let ((widget-menu-minibuffer-flag t))
+    ad-do-it))
 
 
 ;;; Other functions and packages
