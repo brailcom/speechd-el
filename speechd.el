@@ -69,8 +69,9 @@
   :type 'integer
   :group 'speechd)
 
-(defconst speechd--priority-tags
-  '(radio (const :tag "Important"    :value important)
+(define-widget 'speechd-priority-tag 'radio
+  "Radio group for selecting a speechd priority tag."
+  :args '((const :tag "Important"    :value important)
 	  (const :tag "Message"      :value message)
 	  (const :tag "Text"         :value text)
 	  (const :tag "Notification" :value notification)
@@ -78,22 +79,22 @@
 
 (defcustom speechd-default-text-priority 'text
   "Default Speech Dispatcher priority of sent texts."
-  :type speechd--priority-tags
+  :type 'speechd-priority-tag
   :group 'speechd)
 
 (defcustom speechd-default-sound-priority 'message
   "Default Speech Dispatcher priority of sent sound icons."
-  :type speechd--priority-tags
+  :type 'speechd-priority-tag
   :group 'speechd)
 
 (defcustom speechd-default-char-priority 'notification
   "Default Speech Dispatcher priority of sent single letters."
-  :type speechd--priority-tags
+  :type 'speechd-priority-tag
   :group 'speechd)
 
 (defcustom speechd-default-key-priority 'notification
   "Default Speech Dispatcher priority of sent symbols of keys."
-  :type speechd--priority-tags
+  :type 'speechd-priority-tag
   :group 'speechd)
 
 
@@ -158,33 +159,41 @@ You must reopen the connections to apply the changes to this variable."
            (when (fboundp 'speechd-reopen)
              (speechd-reopen)))
   :type `(repeat
-          (cons :tag "Connection"
-                (choice (string :tag "Connection name")
-                        (const :tag "Default parameters" :value t))
-           (set :tag "Parameters"
-            (cons :tag "Language" (const language) string)
-            (cons :tag "Messsage priority" (const message-priority)
-                  ,speechd--priority-tags)
-            (cons :tag "Punctuation mode" (const punctuation-mode)
-                  ,(speechd--generate-customization-options
-                    speechd--punctuation-modes))
-            (cons :tag "Important punctuation" (const important-punctuation)
-                  string)
-            (cons :tag "Punctuation table" (const punctuation-table) string)
-            (cons :tag "Spelling table" (const spelling-table) string)
-            (cons :tag "Text table" (const text-table) string)
-            (cons :tag "Character table" (const character-table) string)
-            (cons :tag "Key table" (const key-table) string)
-            (cons :tag "Sound table" (const sound-table) string)
-            (cons :tag "Capital character table"
-                  (const capital-character-table) string)
-            (cons :tag "Capital character mode" (const capital-character-mode)
-                  ,(speechd--generate-customization-options
-                    speechd--capital-character-modes))
-            (cons :tag "Voice" (const voice) string)
-            (cons :tag "Rate" (const rate) integer)
-            (cons :tag "Pitch" (const pitch) integer)
-            (cons :tag "Output module" (const output-module) string))))
+          (cons
+	   :tag "Connection"
+	   (choice (string :tag "Connection name")
+		   (const :tag "Default parameters" :value t))
+	   (set
+	    :tag "Parameters"
+	    (cons :tag "Language" (const :format "" language) string)
+	    (cons :tag "Messsage priority"
+		  (const :format "" message-priority)
+		  (speechd-priority-tag :value text))
+	    (cons :tag "Punctuation mode" (const :format "" punctuation-mode)
+		  ,(speechd--generate-customization-options
+		    speechd--punctuation-modes))
+	    (cons :tag "Important punctuation"
+		  (const :format "" important-punctuation) string)
+	    (cons :tag "Punctuation table" (const :format "" punctuation-table)
+		  string)
+	    (cons :tag "Spelling table" (const :format "" spelling-table)
+		  string)
+	    (cons :tag "Text table" (const :format "" text-table) string)
+	    (cons :tag "Character table" (const :format "" character-table)
+		  string)
+	    (cons :tag "Key table" (const :format "" key-table) string)
+	    (cons :tag "Sound table" (const :format "" sound-table) string)
+	    (cons :tag "Capital character table"
+		  (const :format "" capital-character-table) string)
+	    (cons :tag "Capital character mode"
+		  (const :format "" capital-character-mode)
+		  ,(speechd--generate-customization-options
+		    speechd--capital-character-modes))
+	    (cons :tag "Voice" (const :format "" voice) string)
+	    (cons :tag "Rate" (const :format "" rate) integer)
+	    (cons :tag "Pitch" (const :format "" pitch) integer)
+	    (cons :tag "Output module" (const :format "" output-module)
+		  string))))
   :group 'speechd)
 
 (defcustom speechd-face-voices '()
@@ -193,7 +202,7 @@ Each of the alist element is of the form (FACE . STRING) where FACE is a face
 and string voice identifier.  Each face is spoken in the corresponding voice.
 If there's no item for a given face in this variable, the face is spoken in the
 current voice."
-  :type '(repeat (cons face string))
+  :type '(alist :key-type face :value-type string)
   :group 'speechd)
 
 
@@ -211,7 +220,7 @@ locally through `let'.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.50 2003-08-19 14:29:50 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.51 2003-08-19 17:26:55 mlang Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
