@@ -2,6 +2,9 @@ User-visible changes to speechd-el:
 
 * Changes in speechd-el 0.3
 
+** New command speechd-bug-reproduce.
+
+
 * Changes in speechd-el 0.2
 
 ** read-event prompts are spoken now.

@@ -31,7 +31,7 @@
 (require 'speechd-speak)
 
 
-(defconst speechd-bug--version "$Id: speechd-bug.el,v 1.8 2003-12-30 12:13:35 pdm Exp $"
+(defconst speechd-bug--version "$Id: speechd-bug.el,v 1.9 2003-12-31 11:52:07 pdm Exp $"
   "Version of the speechd-bug.el file.")
 
 
@@ -205,7 +205,17 @@
   (let ((time (current-time)))
     (format "speechd-el-%d-%d-%d" (first time) (second time) (third time))))
   
-(defun speechd-bug--start-repro ()
+(defun speechd-bug-reproduce ()
+  "Start reproducing a speechd-el or Speech Dispatcher bug.
+All user and speechd actions are watched from this moment.
+
+Bug reproduction is finished by pressing the `C-e C-z' keys.  After the bug
+reproduction is finished, information about it is inserted into the buffer
+where the `speechd-bug-reproduce' command was invoked.
+
+This command is useful when you want to provide information about a bug without
+generating new bug report."
+  (interactive)
   (setq speechd-bug--marker (point-marker))
   (setq speechd-bug--repro-id (speechd-bug--generate-repro-id))
   (speechd-say-sound (concat "_debug_on" speechd-bug--repro-id)
@@ -278,7 +288,7 @@
           (message "Reproduce the bug now and finish it with `%s %s'"
                    (key-description speechd-speak-prefix)
                    (key-description speechd-bug--finish-repro-key))
-          (speechd-bug--start-repro))
+          (speechd-bug-reproduce))
       (save-excursion
         (speechd-bug--ensure-empty-line)
         (speechd-bug--insert "The bug was not reproduced."))

@@ -1181,6 +1181,20 @@ bug.  If you can, answer @kbd{y} and start reproducing the bug
 immediately.  As soon as the bug is reproduced, type @kbd{C-e .}.
 Then you can (and should) further edit the generated mail and send it
 in the usual way.
+
+@item M-x speechd-bug-reproduce
+@findex speechd-bug-reproduce
+@kindex C-e C-z
+Start reproducing a speechd-el or Speech Dispatcher bug.  All user and
+speechd actions are watched from this moment.
+
+Bug reproduction is finished by pressing the @kbd{C-e C-z} keys.
+After the bug reproduction is finished, information about it is
+inserted into the buffer where the @code{speechd-bug-reproduce}
+command was invoked.
+
+This command is useful when you want to provide information about a
+bug without generating new bug report.
 @end ftable
 
 When reporting the bugs, please always remember the following
