@@ -57,8 +57,6 @@ Documentation License.''
 * Index::                       Concept index.
 @end menu
 
-TEST3
-
 @c ****************************************************************************
 
 @node Introduction, speechd-el user manual, Top, Top
