@@ -1,3 +1,12 @@
+2003-11-10  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-connection-parameters): Important
+	punctuation setting removed.
+
+	* Makefile (dist): Copy only files starting with letters.
+	(VERSION): Increased to 0.2.
+	(distclean): *.orig and *.rej added.
+
 2003-11-06  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-el.texi (Parameter Setting Commands): Keys of
