@@ -1,5 +1,8 @@
 2003-07-07  Milan Zamazal  <pdm@brailcom.org>
 
+	* speechd.el (speechd-connection-parameters): Customization type
+	fixed.
+
 	* speechd-speak.el (speechd-speak-read-region): Call
 	speechd-speak--text for ordinary text.
 
