@@ -3,6 +3,12 @@
 	* speechd.el (speechd--send-string): Don't assign CONNECTION
 	redundantly.  Call process-send-string with PROCESS, not
 	CONNECTION.
+	(speechd--send-string): Don't try to reopen the connection.
+	(speechd--process-request): On answer timeout, call
+	speechd--permanent-connection-failure instead of speechd-close.
+	(speechd-open): Don't try to open the connection if it is a failed
+	connection; new key argument FORCE-REOPEN.
+	(speechd-reopen): Call speechd-open with FORCE-REOPEN.
 
 2003-07-16  Milan Zamazal  <pdm@brailcom.org>
 
