@@ -1,5 +1,11 @@
 2003-10-27  Milan Zamazal  <pdm@brailcom.org>
 
+	* speechd-speak.el (speechd-speak--command-keys): Take one
+	optional argument instead of &rest arguments.  Enclose the keys by
+	a block.
+	(speechd-speak--pre-command-hook, command-keys): Honor the
+	previous change.
+
 	* speechd.el (speechd-repeat): Disabled.
 
 	* speechd-bug.el (speechd-bug): Completion list fixed.
