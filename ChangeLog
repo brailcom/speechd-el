@@ -1,3 +1,22 @@
+2004-02-18  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (command-keys): Wrong negation in the guard
+	fixed.
+
+2004-02-18  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-bug.el (speechd-bug--version): Renamed to
+	speechd-bug-version.
+	(speechd-bug): Extract variables to report automatically, not from
+	a hand prepared list.
+
+	* speechd.el (speechd--el-version): Renamed to
+	speechd-el-version.
+
+2004-02-14  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-priority-tag): Type changed to `choice'.
+
 2004-02-13  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-el.texi (Parameter Setting Commands): Prefix argument

@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "2004-02-11 12:22 pdm"
+(defconst speechd-speak-version "2004-02-18 12:50 pdm"
   "Version of the speechd-speak file.")
 
 
@@ -1098,7 +1098,7 @@ connections, otherwise create completely new connection."
   ;; Keys that invoked the command
   (and (not (memq this-command speechd-speak-ignore-command-keys))
        (not (eq this-command 'self-insert-command))
-       (or (not (eq speechd-speak-read-command-keys t))
+       (or (eq speechd-speak-read-command-keys t)
            (and buffer-modified point-moved
                 (memq 'modification-movement speechd-speak-read-command-keys))
            (and buffer-modified (not point-moved)

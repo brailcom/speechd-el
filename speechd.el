@@ -72,7 +72,7 @@
   :type 'integer
   :group 'speechd)
 
-(define-widget 'speechd-priority-tag 'radio
+(define-widget 'speechd-priority-tag 'choice
   "Radio group for selecting a speechd priority tag."
   :args '((const :tag "Important"    :value important)
 	  (const :tag "Message"      :value message)
@@ -217,7 +217,7 @@ language.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "2004-02-13 20:11 pdm"
+(defconst speechd-el-version "2004-02-18 12:27 pdm"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 

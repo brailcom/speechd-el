@@ -27,7 +27,7 @@
 (require 'speechd-speak)
 
 
-(defconst speechd-bug--version "2004-02-11 15:09 pdm"
+(defconst speechd-bug-version "2004-02-18 12:42 pdm"
   "Version of the speechd-bug.el file.")
 
 (defvar speechd-bug--log-extractor "speechd-log-extractor")
@@ -254,31 +254,8 @@ generating new bug report."
     (reporter-submit-bug-report
      (format "%s@bugs.freebsoft.org" package)
      package
-     '(speechd-bug--version
-       speechd-speak-version
-       speechd--el-version
-       speechd-speak--debug
-       speechd-connection-parameters
-       speechd-face-voices
-       speechd-speak-deleted-char
-       speechd-speak-buffer-name
-       speechd-speak-on-minibuffer-exit
-       speechd-speak-auto-speak-buffers
-       speechd-speak-force-auto-speak-buffers
-       speechd-speak-buffer-insertions
-       speechd-speak-insertions-in-buffers
-       speechd-speak-priority-insertions-in-buffers
-       speechd-speak-align-buffer-insertions
-       speechd-speak-movement-on-insertions
-       speechd-speak-read-command-keys
-       speechd-speak-read-command-name
-       speechd-speak-by-properties-on-movement
-       speechd-speak-by-properties-always
-       speechd-speak-by-properties-never
-       speechd-speak-faces
-       speechd-speak-whole-line
-       speechd-speak-connections
-       speechd-speak-signal-events))
+     (append (list speechd-speak--debug)
+             (apropos-internal "^speechd\\(-[a-z]+\\)+$" 'boundp)))
     (ignore-errors
       (save-excursion
         (speechd-bug--insert-general-info)))
