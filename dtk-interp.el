@@ -58,8 +58,7 @@
   (speechd-say-text text :finish nil))
 
 (defun dtk-interp-queue-set-rate (rate)
-  ;; unsupported in speechd
-  )
+  (dtk-interp-set-rate rate))
 
 (defun dtk-interp-speak ()
   (speechd-say-text ""))
