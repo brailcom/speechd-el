@@ -37,9 +37,9 @@ The Free(b)soft project is pleased to announce speechd-el 0.4.
 
 * What is new in the 0.4 version?
 
-  - Responsiveness improved.
-
   - Whitespace signalization.
+
+  - Repetition of last speech output possible in character reading prompts.
 
   - Language selection based on currently selected input method.
 
