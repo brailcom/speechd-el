@@ -1,4 +1,15 @@
+2003-08-08  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-block): Blocks enabled again.
+
+	* speechd-el.texi (Problems): New section.
+
 2003-08-07  Milan Zamazal  <pdm@brailcom.org>
+
+	* Makefile (NAME, VERSION, DISTDIR, TARFILE): New variables.
+	(dist): Implemented.
+	(distclean): Remove DISTDIR and TARFILE.
+	(mostlyclean): Remove backup files.
 
 	* speechd.el (speechd-add-connection-settings): New command.
 	* speechd-speak.el (speechd-speak-mode-map): Added.
