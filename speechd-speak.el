@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.42 2003-10-07 10:19:04 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.43 2003-10-13 10:52:57 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -236,6 +236,10 @@ created."
 (defvar speechd-speak--empty-message "*empty-text")
 (defvar speechd-speak--beginning-of-line-message "*beginning-of-line")
 (defvar speechd-speak--end-of-line-message "*end-of-line")
+(defvar speechd-speak--start-message "*start")
+(defvar speechd-speak--finish-message "*finish")
+(defvar speechd-speak--minibuffer-message "*prompt")
+(defvar speechd-speak--message-message "*message")
 
 
 ;;; Control functions
@@ -356,6 +360,8 @@ Level 1 is the slowest, level 9 is the fastest."
   (speechd-speak--maybe-speak
    (apply #'speechd-say-sound args)))
 
+(defvar speechd-speak--last-report "")
+
 (defun speechd-speak-report (message &rest args)
   "Speak text or sound icon MESSAGE.
 MESSAGE is a string; if it starts with the `*' character, the asterisk is
@@ -366,10 +372,12 @@ ARGS are appended to the arguments of the corresponding speaking
 function (`speechd-say-text' or `speechd-say-sound') without change after the
 message argument."
   (speechd-speak--maybe-speak
-   (unless (string= message "")
+   (unless (or (string= message "")
+               (string= message speechd-speak--last-report))
      (if (string= (substring message 0 (min 1 (length message))) "*")
          (apply #'speechd-say-sound (substring message 1) args)
-       (apply #'speechd-say-text message args)))))
+       (apply #'speechd-say-text message args))
+     (setq speechd-speak--last-report message))))
 
 (defun speechd-speak-read-char (&optional char)
   "Read character CHAR.
@@ -761,7 +769,9 @@ connections, otherwise create completely new connection."
       (setq speechd-speak--last-message message
 	    speechd-speak--last-spoken-message message)
       (let ((speechd-speak--special-area t))
-        (speechd-speak--minibuffer-prompt message :priority 'progress))))
+        (speechd-block ()
+         (speechd-speak-report speechd-speak--message-message)
+         (speechd-speak--minibuffer-prompt message :priority 'progress)))))
   (when reset-last-spoken
     (setq speechd-speak--last-spoken-message "")))
 
@@ -784,7 +794,9 @@ connections, otherwise create completely new connection."
   (speechd-speak--with-command-start-info
    (setf (speechd-speak--command-info-struct-minibuffer-contents info)
          (minibuffer-contents)))
-  (speechd-speak--speak-minibuffer-prompt))
+  (speechd-block ()
+    (speechd-speak-report speechd-speak--minibuffer-message)
+    (speechd-speak--speak-minibuffer-prompt)))
 
 (defun speechd-speak--minibuffer-exit-hook ()
   (speechd-speak--with-command-start-info
@@ -897,6 +909,7 @@ connections, otherwise create completely new connection."
 
 (defun speechd-speak--pre-command-hook ()
   (speechd-speak--set-command-start-info)
+  (setq speechd-speak--last-report "")
   (when speechd-speak-mode
     ;; Some parameters of interactive commands don't set up the minibuffer, so
     ;; we have to speak the prompt in a special way.
@@ -1114,7 +1127,6 @@ connections, otherwise create completely new connection."
 (speechd-speak--command-feedback indent-for-tab-command after
   (speechd-speak--speak-current-column))
 
-
 
 ;;; Mode definition
 
@@ -1290,7 +1302,7 @@ With a prefix argument, close all open connections first."
     (speechd-speak--build-mode-map)
     (global-speechd-speak-mode 1)
     (global-speechd-speak-map-mode 1)
-    (message "Speechd-speak %s" (if already-started "restarted" "started"))))
+    (speechd-speak-report speechd-speak--start-message)))
 
 
 ;;; Announce
