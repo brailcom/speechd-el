@@ -211,7 +211,7 @@ locally through `let'.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.46 2003-08-06 14:40:20 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.47 2003-08-07 18:58:43 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -329,6 +329,17 @@ macro."
 
 (defmacro speechd--iterate-connections (&rest body)
   `(maphash #'(lambda (_ connection) ,@body) speechd--connections))
+
+(defun speechd--iterate-connections-collect (function)
+  (let ((result '()))
+    (speechd--iterate-connections
+     (push (funcall function) result))
+    result))
+
+(defun speechd-connection-names ()
+  "Return the list of all present connection names."
+  (speechd--iterate-connections-collect
+   #'(lambda () (speechd--connection-name connection))))
 
 (defmacro speechd--with-current-connection (&rest body)
   `(let ((connection (speechd--connection)))
@@ -836,6 +847,25 @@ VALUE must be %s."
 ;; TODO: Remove this one once proper output module setting is defined.
 (speechd--generate-set-command output-module "Output module" nil)
 
+(defun speechd-add-connection-settings ()
+  "Add current connection and its settings to `speechd-connection-parameters'."
+  (interactive)
+  (setq speechd-connection-parameters
+        (cons
+         (speechd--with-current-connection
+          (cons (speechd--connection-name connection)
+                (let ((parameters ())
+                      (orig-parameters
+                       (speechd--connection-parameters connection)))
+                  (while orig-parameters
+                    (unless (memq (first orig-parameters)
+                                  '(client-name message-priority))
+                      (push (first orig-parameters) parameters)
+                      (push (second orig-parameters) parameters))
+                    (setq orig-parameters (nthcdr 2 orig-parameters)))
+                  (nreverse parameters))))
+         (remove (assoc speechd-client-name speechd-connection-parameters)
+                 speechd-connection-parameters))))
 
 ;;; Blocks
 

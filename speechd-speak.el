@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.39 2003-08-06 14:40:30 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.40 2003-08-07 18:58:43 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -256,45 +256,52 @@ Level 1 is the slowest, level 9 is the fastest."
 
 (defvar speechd-speak--last-buffer-mode t)
 (defvar speechd-speak--last-connection-name nil)
+(make-variable-buffer-local 'speechd-speak--client-name-set)
 (defvar speechd-speak--last-connections nil)
 (defvar speechd-speak--default-connection-name "default")
 (defvar speechd-speak--special-area nil)
+(defvar speechd-speak--client-name-set nil)
+(make-variable-buffer-local 'speechd-speak--client-name-set)
 (defun speechd-speak--connection-name ()
   (let ((buffer-mode (if speechd-speak--special-area
                          nil
                        (cons major-mode (buffer-name)))))
-    (if (and (eq speechd-speak-connections speechd-speak--last-connections)
-             (equal buffer-mode speechd-speak--last-buffer-mode))
-        speechd-speak--last-connection-name
-      (progn
-        (setq speechd-speak--last-buffer-mode buffer-mode
-              speechd-speak--last-connections speechd-speak-connections
-              speechd-speak--last-connection-name
-              (if buffer-mode
-                  (or (cdr (or ;; functional test
-                               (let ((specs speechd-speak-connections)
-                                     (result nil))
-                                 (while (and (not result) specs)
-                                   (if (and (listp (caar specs))
-                                            (eval (caar specs)))
-                                       (setq result (car specs))
-                                     (setq specs (cdr specs))))
-                                 result)
-                               ;; buffer name
-                               (assoc (buffer-name) speechd-speak-connections)
-                               ;; minibuffer
-                               (and (speechd-speak--in-minibuffer-p)
-                                    (assoc :minibuffer
-                                           speechd-speak-connections))
-                               ;; major mode
-                               (assq major-mode speechd-speak-connections)
-                               ;; default
-                               (assq t speechd-speak-connections)))
-                      speechd-speak--default-connection-name)
-                (or (cdr (assq nil speechd-speak-connections))
-                    speechd-speak--default-connection-name)))
-        (set (make-local-variable 'speechd-client-name)
-             speechd-speak--last-connection-name)))))
+    (cond
+     (speechd-speak--client-name-set 
+      speechd-client-name)
+     ((and (not speechd-speak--client-name-set)
+           (eq speechd-speak-connections speechd-speak--last-connections)
+           (equal buffer-mode speechd-speak--last-buffer-mode))
+      speechd-speak--last-connection-name)
+     (t
+      (setq speechd-speak--last-buffer-mode buffer-mode
+            speechd-speak--last-connections speechd-speak-connections
+            speechd-speak--last-connection-name
+            (if buffer-mode
+                (or (cdr (or ;; functional test
+                          (let ((specs speechd-speak-connections)
+                                (result nil))
+                            (while (and (not result) specs)
+                              (if (and (listp (caar specs))
+                                       (eval (caar specs)))
+                                  (setq result (car specs))
+                                (setq specs (cdr specs))))
+                            result)
+                          ;; buffer name
+                          (assoc (buffer-name) speechd-speak-connections)
+                          ;; minibuffer
+                          (and (speechd-speak--in-minibuffer-p)
+                               (assoc :minibuffer
+                                      speechd-speak-connections))
+                          ;; major mode
+                          (assq major-mode speechd-speak-connections)
+                          ;; default
+                          (assq t speechd-speak-connections)))
+                    speechd-speak--default-connection-name)
+              (or (cdr (assq nil speechd-speak-connections))
+                  speechd-speak--default-connection-name)))
+      (set (make-local-variable 'speechd-client-name)
+           speechd-speak--last-connection-name)))))
 
 (defmacro speechd-speak--maybe-speak (&rest body)
   `(when speechd-speak-mode
@@ -577,6 +584,29 @@ FUNCTION is invoked interactively."
                                                            (limit (point-min)))
   (previous-char-property-change point limit))
 
+(defun speechd-speak--new-connection-name ()
+  (let* ((i 0)
+         (base-name (buffer-name))
+         (name base-name)
+         (connections (speechd-connection-names)))
+    (while (member name connections)
+      (setq name (format "%s%d" base-name (incf i))))
+    name))
+
+(defun speechd-speak-new-connection (&optional arg)
+  "Open a separate connection for the current buffer.
+If the optional prefix argument is used, let the user choose from the existing
+connections, otherwise create completely new connection."
+  (interactive "P")
+  (let ((name (if arg
+                  (completing-read
+                   "Connection name: "
+                   (mapcar #'(lambda (c) (cons c c))
+                           (speechd-connection-names)))
+                (read-string "Connection name: "
+                             (speechd-speak--new-connection-name)))))
+    (set (make-local-variable 'speechd-client-name) name)
+    (setq speechd-speak--client-name-set t)))
 
 
 ;;; Basic speaking
@@ -1066,11 +1096,13 @@ FUNCTION is invoked interactively."
 (define-key speechd-speak-mode-map "'" 'speechd-speak-read-sexp)
 (define-key speechd-speak-mode-map "[" 'speechd-speak-read-page)
 (define-key speechd-speak-mode-map ">" 'speechd-speak-read-rest-of-buffer)
+(define-key speechd-speak-mode-map "\C-a" 'speechd-add-connection-settings)
+(define-key speechd-speak-mode-map "\C-c" 'speechd-speak-new-connection)
+(define-key speechd-speak-mode-map "\C-n" 'speechd-speak-read-next-line)
+(define-key speechd-speak-mode-map "\C-p" 'speechd-speak-read-previous-line)
 (define-key speechd-speak-mode-map "\C-r" 'speechd-repeat)
 (define-key speechd-speak-mode-map "\C-s" 'speechd-speak)
 (define-key speechd-speak-mode-map "\C-x" 'speechd-unspeak)
-(define-key speechd-speak-mode-map "\C-n" 'speechd-speak-read-next-line)
-(define-key speechd-speak-mode-map "\C-p" 'speechd-speak-read-previous-line)
 (dotimes (i 9)
   (define-key speechd-speak-mode-map (format "%s" (1+ i))
               'speechd-speak-key-set-predefined-rate))

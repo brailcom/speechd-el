@@ -380,6 +380,22 @@ apply on the current Speech Dispatcher connection (for more
 information about Speech Dispatcher connections, @pxref{Connection
 Parameters}).
 
+You can also set a separate connection for a buffer using the
+following command:
+
+@table @kbd
+@item C-e C-s
+@kindex C-e C-s
+@findex speechd-speak-new-connection
+@cindex connection
+Set a given connection for the current buffer
+(@code{speechd-speak-new-connection}).  The command prompts for a
+connection name, you can give either new name or a name of an existent
+connection.  Normally, you are offered with a newly generated
+connection name, while with a prefix argument, you can choose from the
+names of existent connections.
+@end table
+
 Commands affecting basic parameters of the text-to-speech process:
 
 @table @kbd
@@ -811,6 +827,19 @@ So that changing the value of the variable could take the full effect,
 the open connections must be reopened.  Unless you use the
 customization interface, you must invoke the @kbd{C-u M-x
 speechd-speak} command to ensure this.
+
+There is a command to help you with setting this variable a bit:
+
+@table @kbd
+@item C-e C-a
+@kindex C-e C-a
+@findex speechd-add-connection-parameters
+Add the name and parameters of the current connection to the
+@code{speechd-connection-parameters} variable
+(@code{speechd-add-connection-parameters}).  Please note you are still
+responsible to save the variable if you want to use it in future
+sessions.
+@end table
 
 @node Multiple Connections, Keys, Connection Parameters, Customization
 @subsection Multiple Connections
