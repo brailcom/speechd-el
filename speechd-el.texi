@@ -54,7 +54,7 @@ Documentation License.''
 * Contact Information::         How to speak to us.
 
 * Copying This Manual::         GNU Free Documentation License.
-* Index::                       Concept index.
+* Index::                       Concept, function, variable and key index.
 @end menu
 
 @c ****************************************************************************
@@ -866,9 +866,9 @@ selection is driven by the @code{speechd-speak-connections} variable.
 
 @vtable @code
 @item speechd-speak-connections
-Alist mapping major modes and buffers to speechd connections.  Each
-element of the alist is of the form @code{(@var{mode-or-buffer}
-. @var{connection-name})}.
+Alist mapping major modes and buffers to Speech Dispatcher
+connections.  Each element of the alist is of the form
+@code{(@var{mode-or-buffer} . @var{connection-name})}.
 
 When speechd-el wants to send a message, it tests the current
 environment against the @var{mode-or-buffer} entries.
@@ -1103,7 +1103,10 @@ address @email{speechd-devel@@freebsoft.org}.
 @c ****************************************************************************
 
 @node Copying This Manual, Index, Contact Information, Top
-@appendix Copying This Manual
+@appendix GNU Free Documentation License
+
+@cindex FDL, GNU Free Documentation License
+@center Version 1.2, November 2002
 
 @include fdl.texi
 
