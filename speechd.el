@@ -135,7 +135,7 @@ current voice."
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.25 2003-07-04 13:29:28 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.26 2003-07-04 15:23:39 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -296,8 +296,13 @@ wrapped by this macro."
 	(when moving
 	  (goto-char marker-position)))))
   (speechd--with-current-connection
-    (setf (speechd--connection-process-output connection)
-	  (concat (speechd--connection-process-output connection) string))))
+    (let ((c (if (eq process (speechd--connection-process connection))
+                 connection
+               (speechd--connection (substring
+                                     (buffer-name (process-buffer process))
+                                     (1+ (length speechd--buffer)))))))
+      (setf (speechd--connection-process-output c)
+            (concat (speechd--connection-process-output c) string)))))
 
 (defun speechd--close-process (connection)
   (let ((process (speechd--connection-process connection)))
