@@ -1,4 +1,9 @@
 2003-10-23  Milan Zamazal  <pdm@brailcom.org>
+	
+	* speechd-speak.el (speechd-speak--pre-command-hook): Speak
+	self-insert-command keys with the priority NOTIFICATION.
+	(speechd-speak-ignore-command-keys): Character deletion commands
+	added.
 
 	* speechd-speak.el (speechd-speak-ignore-command-keys): New user
 	option.
