@@ -140,7 +140,7 @@ You must reopen the connections to apply the changes to this variable."
                       (let ((result '())
                             (params (cdr v)))
                         (while params
-                          (push (cons (first params) (second params)) result)
+                          (push (cons (car params) (cadr params)) result)
                           (setq params (nthcdr 2 params)))
                         (nreverse result))))
             (symbol-value name)))
@@ -211,7 +211,7 @@ locally through `let'.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.48 2003-08-08 09:49:23 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.49 2003-08-13 19:51:15 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
