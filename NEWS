@@ -1,5 +1,7 @@
 User-visible changes to speechd-el:
 
+* Changes in speechd-el 0.3
+
 * Changes in speechd-el 0.2
 
 ** read-event prompts are spoken now.
