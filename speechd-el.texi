@@ -636,6 +636,27 @@ adjacent character.
 When you switch to another buffer and this variable is non-@code{nil},
 speak the new buffer name.  Otherwise speak the text on the cursor
 position in a usual way.
+
+@item speechd-speak-read-command-keys
+@cindex command keys
+@cindex keys
+This variable defines in which situations command keys should be read
+after their command is performed.  If @code{t}, the command keys are
+always read.  If @code{nil}, they are never read.  If list, it may
+contain one or more of the following symbols describing the situations
+in which the keys should be read:
+
+@table @code
+@item movement
+Read the command keys if the cursor has moved, no buffer modification
+happened.
+
+@item modification
+Buffer was modified, the cursor hasn't moved.
+
+@item movement-modification
+Buffer was modified and the cursor was moved.
+@end table
 @end vtable
 
 @node Auto-Speaking Buffers, Signalling, Basic Speaking, Customization

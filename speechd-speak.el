@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.47 2003-10-13 19:31:58 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.48 2003-10-14 16:51:53 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -104,10 +104,33 @@ This is typically useful in comint buffers."
   :type 'boolean
   :group 'speechd-speak)
 
-(defcustom speechd-speak-movement-on-insertions nil
+(defcustom speechd-speak-movement-on-insertions t
   "If non-nil, speak the text around moved cursor even in modified buffers.
 If nil, additional cursor movement doesn't cause speaking the text around the
 new cursor position in modified buffers."
+  :type 'boolean
+  :group 'speechd-speak)
+
+(defcustom speechd-speak-read-command-keys '(modification-movement)
+  "Defines whether command keys should be read after their command.
+If t, alway read command keys.
+If nil, never read them.
+Otherwise it is a list, consisting of one or more of the following symbols:
+`movement' -- read the keys if the cursor has moved without any buffer change
+`modification' -- read the keys if the buffer was modified without moving the
+  cursor
+`modification-movement' -- read the keys if the buffer was modified and the
+  cursor has moved"
+  :type '(choice (const :tag "Always" t)
+                 (const :tag "Never" nil)
+                 (set :tag "Sometimes"
+                      (const movement)
+                      (const modification)
+                      (const modification-movement)))
+  :group 'speechd-speak)
+
+(defcustom speechd-speak-read-command-name nil
+  "If non-nil, read command name instead of command keys."
   :type 'boolean
   :group 'speechd-speak)
 
@@ -385,7 +408,8 @@ message argument."
   (when (memq event speechd-speak-signal-events)
     (apply #'speechd-speak-report
            (speechd-speak--event-mapping event)
-           args)))
+           args)
+    t))
 
 (defun speechd-speak-read-char (&optional char)
   "Read character CHAR.
@@ -514,12 +538,16 @@ If BUFFER is nil, read current buffer."
   other-buffer-modified
   minibuffer-contents)
 
+(defmacro speechd-speak--cinfo (slot)
+  `(,(intern (concat "speechd-speak--command-info-struct-" (symbol-name slot)))
+    info))
+
 (defun speechd-speak--command-info-struct-buffer (info)
-  (let ((marker (speechd-speak--command-info-struct-marker info)))
+  (let ((marker (speechd-speak--cinfo marker)))
     (and marker (marker-buffer marker))))
 
 (defun speechd-speak--command-info-struct-point (info)
-  (let ((marker (speechd-speak--command-info-struct-marker info)))
+  (let ((marker (speechd-speak--cinfo marker)))
     (and marker (marker-position marker))))
 
 (defvar speechd-speak--command-start-info (make-vector 5 nil))
@@ -799,29 +827,24 @@ connections, otherwise create completely new connection."
 (defun speechd-speak--minibuffer-setup-hook ()
   (speechd-speak--enforce-speak-mode)
   (speechd-speak--with-command-start-info
-   (setf (speechd-speak--command-info-struct-minibuffer-contents info)
-         (minibuffer-contents)))
+   (setf (speechd-speak--cinfo minibuffer-contents) (minibuffer-contents)))
   (speechd-speak--signal 'minibuffer :priority 'message)
   (speechd-speak--speak-minibuffer-prompt))
 
 (defun speechd-speak--minibuffer-exit-hook ()
   (speechd-speak--with-command-start-info
-   (setf (speechd-speak--command-info-struct-minibuffer-contents info)
-         'unset)))
+   (setf (speechd-speak--cinfo minibuffer-contents) 'unset)))
 
 (defun speechd-speak--speak-minibuffer ()
   (speechd-speak--text (minibuffer-contents)))
 
 (defun speechd-speak--read-other-changes ()
   (speechd-speak--with-command-start-info
-   (when (speechd-speak--command-info-struct-other-changes info)
+   (when (speechd-speak--cinfo other-changes)
      (speechd-speak--text
-      (mapconcat #'identity
-                 (nreverse
-                  (speechd-speak--command-info-struct-other-changes info))
-                 "")
+      (mapconcat #'identity (nreverse (speechd-speak--cinfo other-changes)) "")
       :priority 'message)
-     (setf (speechd-speak--command-info-struct-other-changes info) '()))))
+     (setf (speechd-speak--cinfo other-changes) '()))))
 
 (defun speechd-speak--minibuffer-prompt (prompt &rest args)
   (speechd-speak--read-other-changes)
@@ -843,20 +866,25 @@ connections, otherwise create completely new connection."
 ;;; Commands
 
 
+(defun speechd-speak--command-keys (&rest args)
+  (let ((keys (this-command-keys-vector)))
+    (dotimes (i (length keys))
+      (apply #'speechd-say-key (aref keys i) args))))
+
 (defun speechd-speak--add-command-text (info beg end)
-  (let ((last (first (speechd-speak--command-info-struct-changes info)))
-        (last-end (speechd-speak--command-info-struct-change-end info))
+  (let ((last (first (speechd-speak--cinfo changes)))
+        (last-end (speechd-speak--cinfo change-end))
         (text (speechd-speak--buffer-substring beg end)))
-    (setf (speechd-speak--command-info-struct-change-end info) end)
+    (setf (speechd-speak--cinfo change-end) end)
     (cond
      ((and last (string= last text))
       ;; nothing to do
       )
      ((and last-end (= last-end beg))
-      (rplaca (speechd-speak--command-info-struct-changes info)
+      (rplaca (speechd-speak--cinfo changes)
               (concat last (buffer-substring beg end))))
      (t
-      (push text (speechd-speak--command-info-struct-changes info))))))
+      (push text (speechd-speak--cinfo changes))))))
 
 (defun speechd-speak--buffer-substring (beg end)
   (buffer-substring
@@ -883,13 +911,11 @@ connections, otherwise create completely new connection."
 
 (defun speechd-speak--minibuffer-update (beg end len)
   (speechd-speak--with-command-start-info
-   (let ((old-content (speechd-speak--command-info-struct-minibuffer-contents
-                       info))
+   (let ((old-content (speechd-speak--cinfo minibuffer-contents))
          (new-content (minibuffer-contents)))
      (unless (or (eq old-content 'unset)
                  (string= old-content new-content))
-       (setf (speechd-speak--command-info-struct-minibuffer-contents info)
-             new-content)
+       (setf (speechd-speak--cinfo minibuffer-contents) new-content)
        (speechd-speak--minibuffer-update-report
         info old-content new-content)))))
 
@@ -904,9 +930,8 @@ connections, otherwise create completely new connection."
                                :priority 'message))
          ((member (buffer-name) speechd-speak-insertions-in-buffers)
           (push (speechd-speak--buffer-substring beg end)
-                (speechd-speak--command-info-struct-other-changes info)))
-         ((eq (current-buffer)
-              (speechd-speak--command-info-struct-buffer info))
+                (speechd-speak--cinfo other-changes)))
+         ((eq (current-buffer) (speechd-speak--cinfo buffer))
           (if (speechd-speak--in-minibuffer-p)
               (progn
                 (speechd-speak--read-other-changes)
@@ -927,6 +952,153 @@ connections, otherwise create completely new connection."
           (speechd-speak--prompt (match-string 2 interactive))))))
   (add-hook 'pre-command-hook 'speechd-speak--pre-command-hook))
 
+(defmacro speechd-speak--post-defun (name shy new-state guard &rest body)
+  (let* ((name (intern (concat "speechd-speak--post-read-"
+                               (symbol-name name))))
+         (state-condition (case shy
+                            ((t) `(eq state nil))
+                            (sometimes `(not (eq state t)))
+                            (t t))))
+    `(defun ,name (state buffer-changed buffer-modified point-moved
+                   in-minibuffer other-buffer)
+       (if (and ,state-condition
+                ,guard)
+           (progn
+             ,@body
+             ,new-state)
+         state))))
+
+(speechd-speak--post-defun special-commands t t
+  ;; Speak commands that can't speak in a regular way
+  (memq this-command '(forward-char backward-char))
+  (speechd-block ('message-priority speechd-default-char-priority)
+    (cond
+     ((looking-at "^")
+      (speechd-speak--signal 'beginning-of-line)
+      (speechd-speak-read-char))
+     ((and (looking-at "$")
+           (memq 'end-of-line speechd-speak-signal-events))
+      (speechd-speak-report (speechd-speak--event-mapping 'end-of-line)))
+     (t
+      (speechd-speak-read-char)))))
+  
+(speechd-speak--post-defun buffer-switch t t
+  ;; Any buffer switch
+  buffer-changed
+  (if speechd-speak-buffer-name
+      (speechd-speak--text (buffer-name) :priority 'message)
+    (speechd-speak-read-line)))
+
+(speechd-speak--post-defun command-keys t nil
+  ;; Keys that invoked the command
+  (and (not (eq this-command 'self-insert-command))
+       (or (eq speechd-speak-read-command-keys t)
+           (and buffer-modified point-moved
+                (memq 'modification-movement speechd-speak-read-command-keys))
+           (and buffer-modified (not point-moved)
+                (memq 'modification speechd-speak-read-command-keys))
+           (and (not buffer-modified) point-moved
+                (memq 'movement speechd-speak-read-command-keys))))
+  (if speechd-speak-read-command-name
+      (speechd-speak--text (symbol-name this-command) :priority 'message)
+    (speechd-speak--command-keys :priority 'message)))
+
+(speechd-speak--post-defun buffer-modifications t
+    (if (eq this-command 'self-insert-command) t 'insertions)
+  ;; Any buffer modification, including abbrev expansions and
+  ;; self-insert-command
+  buffer-modified
+  (let ((self-insert (eq this-command 'self-insert-command)))
+    (when (and speechd-speak-buffer-insertions
+               (or (not speechd-speak-movement-on-insertions)
+                   point-moved))
+      (let ((text (mapconcat #'identity
+                             (funcall (if self-insert
+                                          #'butlast #'identity)
+                                      (reverse (speechd-speak--cinfo changes)))
+                             " ")))
+        (cond
+         ((and (eq speechd-speak-buffer-insertions 'whole-buffer)
+               (not self-insert))
+          (speechd-speak-read-buffer))
+         ((or (eq speechd-speak-buffer-insertions t)
+              (save-match-data (not (string-match "\n" text))))
+          (speechd-speak--text text)))))
+    (when self-insert
+      (speechd-speak--command-keys))))
+
+(speechd-speak--post-defun special-face-movement sometimes t
+  ;; Special face hit
+  (and (not in-minibuffer)
+       point-moved
+       (assq (get-char-property (point) 'face) speechd-speak-faces))
+  (let ((action (cdr (assq (get-char-property (point) 'face)
+                           speechd-speak-faces))))
+    (cond
+     ((stringp action)
+      (speechd-speak--text action))
+     ((functionp action)
+      (ignore-errors
+        (funcall action))))))
+
+(speechd-speak--post-defun text-property-movement sometimes t
+  ;; General text or overlay property hit
+  (and (not in-minibuffer)
+       point-moved
+       (not (memq this-command speechd-speak-by-properties-never))
+       (or (eq speechd-speak-by-properties-on-movement t)
+           (memq this-command speechd-speak-by-properties-always)
+           (memq (get-char-property (point) 'face)
+                 speechd-speak-by-properties-on-movement))
+       (or (get-char-property (point) 'face)
+           (overlays-at (point)))
+       (let ((position (speechd-speak--cinfo point)))
+         (or (> (speechd-speak--previous-property-change
+                 (1+ (point)) position)
+                position)
+             (<= (speechd-speak--next-property-change
+                  (point) (1+ position))
+                 position))))
+  (speechd-speak--uniform-text-around-point))
+
+(speechd-speak--post-defun plain-movement sometimes t
+  ;; Other kinds of movement
+  point-moved
+  (speechd-speak-read-line (not speechd-speak-whole-line)))
+
+(speechd-speak--post-defun other-window-event t 'other-window
+  ;; Something interesting in other window
+  (and (not in-minibuffer)
+       other-buffer
+       (member (buffer-name other-buffer) speechd-speak-auto-speak-buffers)
+       (or (not (eq (next-window) (speechd-speak--cinfo other-window)))
+           (not (= (buffer-modified-tick other-buffer)
+                   (speechd-speak--cinfo other-buffer-modified)))))
+  (speechd-speak-read-buffer (window-buffer (next-window))))
+
+(speechd-speak--post-defun other-window-buffer nil t
+  ;; Other window buffer is very interesting
+  (and (not (eq state 'other-window))
+       (not in-minibuffer)
+       other-buffer
+       (member (buffer-name other-buffer)
+               speechd-speak-force-auto-speak-buffers)
+       (or (not (eq (next-window) (speechd-speak--cinfo other-window)))
+           (not (= (buffer-modified-tick other-buffer)
+                   (speechd-speak--cinfo other-buffer-modified)))))
+  (speechd-speak-read-buffer (window-buffer (next-window))))
+
+(defvar speechd-speak--post-command-speaking
+  '(speechd-speak--post-read-special-commands
+    speechd-speak--post-read-buffer-switch
+    speechd-speak--post-read-command-keys
+    speechd-speak--post-read-buffer-modifications
+    speechd-speak--post-read-special-face-movement
+    speechd-speak--post-read-text-property-movement
+    speechd-speak--post-read-plain-movement
+    speechd-speak--post-read-other-window-event
+    speechd-speak--post-read-other-window-buffer))
+
 (defun speechd-speak--post-command-hook ()
   (speechd-speak--enforce-speak-mode)
   ;; Now, try to speak something useful
@@ -937,126 +1109,23 @@ connections, otherwise create completely new connection."
     ;; the mechanism can't be used.
     (speechd-speak--current-message t)
     (speechd-speak--with-command-start-info
-      (macrolet ((getinfo (slot)
-                    `(,(intern (concat "speechd-speak--command-info-struct-"
-                                       (symbol-name slot)))
-                      info)))
-        (let* ((buffer-changed (not (eq (getinfo buffer) (current-buffer))))
-               (buffer-modified (and (not buffer-changed)
-                                     (/= (getinfo modified)
-                                         (buffer-modified-tick))))
-               (point-moved (and (not buffer-changed)
-                                 (not (= (getinfo point) (point)))))
-               (in-minibuffer (speechd-speak--in-minibuffer-p))
-               (other-spoken nil)
-               (done t))
-          (flet ((other-window-change (buffers)
-                   (let* ((other-window (next-window))
-                          (other-buffer (and other-window
-                                             (window-buffer other-window))))
-                     (and other-window
-                          (not in-minibuffer)
-                          (member (buffer-name other-buffer) buffers)
-                          (not (eq other-buffer (current-buffer)))
-                          (or (not (eq other-window (getinfo other-window)))
-                              (not (= (buffer-modified-tick other-buffer)
-                                      (getinfo other-buffer-modified))))))))
-            (cond
-             ;; Speak commands that can't speak in a regular way
-             ((memq this-command '(forward-char backward-char))
-              (speechd-block ('message-priority speechd-default-char-priority)
-               (cond
-                ((looking-at "^")
-                 (speechd-speak--signal 'beginning-of-line)
-                 (speechd-speak-read-char))
-                ((and (looking-at "$")
-                      (memq 'end-of-line speechd-speak-signal-events))
-                 (speechd-speak-report
-                  (speechd-speak--event-mapping 'end-of-line)))
-                (t
-                 (speechd-speak-read-char)))))
-             ;; Buffer switch
-             (buffer-changed
-              (if speechd-speak-buffer-name
-                  (speechd-speak--text (buffer-name) :priority 'message)
-                (speechd-speak-read-line)))
-             ;; Buffer modification
-             (buffer-modified
-              (let ((self-insert (eq this-command 'self-insert-command)))
-                (when speechd-speak-buffer-insertions
-                  (let ((text (mapconcat #'identity
-                                         (funcall (if self-insert
-                                                      #'butlast #'identity)
-                                                  (reverse (getinfo changes)))
-                                         " ")))
-                    (cond
-                     ((and (eq speechd-speak-buffer-insertions 'whole-buffer)
-                           (not self-insert))
-                      (speechd-speak-read-buffer))
-                     ((or (eq speechd-speak-buffer-insertions t)
-                          (save-match-data (not (string-match "\n" text))))
-                      (speechd-speak--text text)))))
-                (when self-insert
-                  (speechd-speak-read-char (preceding-char)))
-                (when (and (not self-insert)
-                           speechd-speak-movement-on-insertions)
-                  (setq done 'except-movement))))
-             (t
-              (setq done nil)))
-            (unless (eq done t)
-              (setq done t)
-              (cond
-               ;; Special face hit
-               ((and (not in-minibuffer)
-                     point-moved
-                     (assq (get-char-property (point) 'face)
-                           speechd-speak-faces))
-                (let ((action (cdr (assq (get-char-property (point) 'face)
-                                         speechd-speak-faces))))
-                  (cond
-                   ((stringp action)
-                    (speechd-speak--text action))
-                   ((functionp action)
-                    (ignore-errors
-                      (funcall action))))))
-               ;; General text or overlay property hit
-               ((and (not in-minibuffer)
-                     (or (eq speechd-speak-by-properties-on-movement t)
-                         (memq (get-char-property (point) 'face)
-                               speechd-speak-by-properties-on-movement)
-                         (memq this-command
-                               speechd-speak-by-properties-always))
-                     (not (memq this-command
-                                speechd-speak-by-properties-never))
-                     point-moved
-                     (or (get-char-property (point) 'face)
-                         (overlays-at (point)))
-                     (let ((position (getinfo point)))
-                       (or (> (speechd-speak--previous-property-change
-                               (1+ (point)) position)
-                              position)
-                           (<= (speechd-speak--next-property-change
-                                (point) (1+ position))
-                               position))))
-                (speechd-speak--uniform-text-around-point))
-               ;; Boring movement
-               (point-moved
-                (speechd-speak-read-line (not speechd-speak-whole-line)))
-               (t
-                (setq done nil))))
-            (unless done
-              (cond
-               ;; Something interesting in other window
-               ((other-window-change speechd-speak-auto-speak-buffers)
-                (speechd-speak-read-buffer (window-buffer (next-window))))
-               (t
-                (setq other-spoken t))))
-            ;; If other window buffer is very interesting, speak it too
-            (when (and (not other-spoken)
-                       (other-window-change
-                        speechd-speak-force-auto-speak-buffers))
-              (speechd-speak-read-buffer
-               (window-buffer (next-window))))))))
+      (let* ((state '())
+             (buffer-changed (not (eq (speechd-speak--cinfo buffer)
+                                      (current-buffer))))
+             (buffer-modified (and (not buffer-changed)
+                                   (/= (speechd-speak--cinfo modified)
+                                       (buffer-modified-tick))))
+             (point-moved (and (not buffer-changed)
+                               (not (= (speechd-speak--cinfo point) (point)))))
+             (in-minibuffer (speechd-speak--in-minibuffer-p))
+             (other-window (next-window))
+             (other-buffer (let* ((buffer (and other-window
+                                               (window-buffer other-window))))
+                             (unless (eq buffer (current-buffer))
+                               buffer))))
+        (dolist (f speechd-speak--post-command-speaking)
+          (setq state (funcall f state buffer-changed buffer-modified
+                               point-moved in-minibuffer other-buffer)))))
     (add-hook 'post-command-hook 'speechd-speak--post-command-hook)))
 
 
@@ -1207,6 +1276,8 @@ Null prefix argument turns off the mode."
  :group 'speechd-speak)
 
 (defun speechd-speak--shutdown ()
+  (when (speechd-speak--signal 'finish :priority 'important)
+    (sit-for 0.5))                      ; not to CANCEL prematurely
   (global-speechd-speak-mode -1))
 
 ;;;###autoload
