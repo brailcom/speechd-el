@@ -1,3 +1,9 @@
+2003-06-28  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (kill-ring-save): Advice removed.
+	(speechd-speak--pre-command-hook): Forgotten reference to
+	debugging variable removed.
+
 2003-06-27  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-speak.el (speechd-speak--speak-minibuffer-completion)
