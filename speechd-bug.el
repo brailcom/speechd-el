@@ -25,10 +25,8 @@
 
 (eval-when-compile (require 'cl))
 (require 'speechd-speak)
-
-
-(defconst speechd-bug-version "2004-07-23 10:27 pdm"
-  "Version of the speechd-bug.el file.")  
+(require 'speechd-version)
+  
 
 (defvar speechd-bug--log-extractor "speechd-log-extractor")
 
@@ -277,13 +275,5 @@ generating new bug report."
 
 (provide 'speechd-bug)
 
-
-;; Local variables:
-;; time-stamp-format: "%:y-%02m-%02d %02H:%02M %u"
-;; time-stamp-time-zone: "UTC"
-;; time-stamp-start: "^(defconst speechd.*-version \""
-;; time-stamp-end: "\""
-;; time-stamp-line-limit: 0
-;; End:
 
 ;;; speechd-bug.el ends here

@@ -248,10 +248,6 @@ language.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd-el-version "2004-09-02 17:28 pdm"
-  "Version stamp of the source file.
-Useful only for diagnosing problems.")
-
 (defconst speechd--buffer " *speechd*"
   "Name of the buffer associated with speechd connections.")
 
@@ -1099,13 +1095,5 @@ clients."
 
 (provide 'speechd)
 
-
-;; Local variables:
-;; time-stamp-format: "%:y-%02m-%02d %02H:%02M %u"
-;; time-stamp-time-zone: "UTC"
-;; time-stamp-start: "^(defconst speechd.*-version \""
-;; time-stamp-end: "\""
-;; time-stamp-line-limit: 0
-;; End:
 
 ;;; speechd.el ends here

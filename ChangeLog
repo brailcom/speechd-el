@@ -1,3 +1,17 @@
+2004-09-03  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak-version): Removed.
+
+	* speechd.el (speechd-el-version): Removed.
+
+	* speechd-bug.el: Require speechd-version.
+	(speechd-bug-version): Removed.
+
+	* Makefile (speechd-version.elc, speechd-version.el): New targets.
+	(compile): Depend on speechd-version.elc.
+	(dist): Depend on speechd-version.el.
+	(maintainer-clean): Remove speechd-version.el.
+
 2004-09-02  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd.el (speechd--close-connection): If the connection

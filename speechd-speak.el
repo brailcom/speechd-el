@@ -32,10 +32,6 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "2004-08-09 10:41 pdm"
-  "Version of the speechd-speak file.")
-
-
 ;;; User options
 
 
@@ -1770,13 +1766,5 @@ With a prefix argument, close all open connections first."
 
 (provide 'speechd-speak)
 
-
-;; Local variables:
-;; time-stamp-format: "%:y-%02m-%02d %02H:%02M %u"
-;; time-stamp-time-zone: "UTC"
-;; time-stamp-start: "^(defconst speechd.*-version \""
-;; time-stamp-end: "\""
-;; time-stamp-line-limit: 0
-;; End:
 
 ;;; speechd-speak.el ends here

@@ -13,13 +13,20 @@ TARFILE = $(NAME)-$(VERSION).tar
 
 all: compile info
 
-compile: speechd.elc speechd-speak.elc speechd-bug.elc
+compile: speechd.elc speechd-speak.elc speechd-bug.elc speechd-version.elc
 speechd.elc: speechd.el
 	$(EMACS) --batch -l speechd.el -f batch-byte-compile $<
 speechd-speak.elc: speechd-speak.el speechd.elc
 	$(EMACS) --batch -l speechd.elc -l speechd-speak.el -f batch-byte-compile $<
-speechd-bug.elc: speechd-bug.el speechd-speak.elc speechd.elc
-	$(EMACS) --batch -l speechd.elc -l speechd-speak.elc -l speechd-bug.el -f batch-byte-compile $<
+speechd-bug.elc: speechd-bug.el speechd-speak.elc speechd.elc speechd-version.elc
+	$(EMACS) --batch -l speechd.elc -l speechd-speak.elc -l speechd-version.elc -l speechd-bug.el -f batch-byte-compile $<
+
+speechd-version.elc: speechd-version.el
+	$(EMACS) --batch -f batch-byte-compile $<
+
+speechd-version.el:
+	echo '(defconst speechd-version "' `tla logs -f -r | head -1` '")' > $@
+	echo "(provide 'speechd-version)" >> $@
 
 install:
 
@@ -38,7 +45,7 @@ distclean: clean
 	rm -rf $(DISTDIR) $(TARFILE)* *.orig *.rej
 
 maintainer-clean: distclean
-	rm -f *.info*
+	rm -f *.info* speechd-version.el
 
 TAGS:
 	etags *.el
@@ -59,7 +66,7 @@ ps: speechd-el.ps
 %.ps: %.texi
 	texi2ps $<
 
-dist: maintainer-clean info
+dist: maintainer-clean info speechd-version.el
 	mkdir $(DISTDIR)
 	chmod 755 $(DISTDIR)
 	install -m 644 `find . -maxdepth 1 -type f -name '[a-zA-Z]*'` \
