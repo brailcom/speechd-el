@@ -1,3 +1,11 @@
+2003-05-29  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-set-punctuation-mode): Use `assoc', not
+	`rassoc'.
+
+	* speechd-emacspeak.el (emacspeak-keymap): Map `C-e p' and `C-e
+	SPC' to speechd-pause and speechd-resume respectively.
+
 2003-05-28  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-emacspeak.el (comint-output-filter): New redefinition.
