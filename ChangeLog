@@ -2,6 +2,12 @@
 
 	* speechd-speak.el (speechd-speak--post-command-hook): Enforce
 	speechd-speak minor modes if needed.
+	(speechd-speak--enforce-speak-mode): New function.
+	(speechd-speak--post-command-hook): Use it.
+	(speechd-speak--minibuffer-setup-hook): Call it.
+	(speechd-speak-insertions-in-buffers): New user option.
+	(speechd-speak--after-change-hook): Consider it; call
+	speechd-speak--enforce-speak-mode.
 
 	* speechd.el (speechd-say-text): Don't process null properties.
 
