@@ -48,7 +48,7 @@
 (defgroup speechd ()
   "Speech Dispatcher interface.")
 
-(defcustom speechd-host "localhost"
+(defcustom speechd-host (or (getenv "SPEECHD_HOST") "localhost")
   "Name of the default host running speechd to connect to."
   :type 'string
   :group 'speechd)
@@ -60,6 +60,14 @@
       6560)
   "Default port of speechd."
   :type 'integer
+  :group 'speechd)
+
+(defcustom speechd-spdsend nil
+  "If string, it names the spdsend binary to be used to talk to SSIP.
+If the new version of accept-process-output is available or the value of this
+variable is nil, Emacs talks to SSIP directly."
+  :type '(choice (const :tag "Don't use spdsend" nil)
+                 (string :tag "spdsend binary"))
   :group 'speechd)
 
 (defcustom speechd-timeout 3
@@ -240,7 +248,7 @@ language.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd-el-version "2004-08-25 22:07 pdm"
+(defconst speechd-el-version "2004-09-02 17:28 pdm"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -439,9 +447,11 @@ code."
 	   (let ((speechd-client-name name))
 	     (speechd-open)))))
 
-(defvar speechd--spdsend (and (not (> emacs-major-version 21))
-                              (not (> emacs-minor-version 3))
-                              "spdsend"))
+(defvar speechd--advanced-apo (condition-case _
+                                  (progn
+                                    (accept-process-output nil 0 0 1)
+                                    t)
+                                (error)))
 
 (defun speechd--call-spdsend (args &optional input)
   (with-temp-buffer
@@ -453,17 +463,21 @@ code."
                 (process-coding-system-alist nil)
                 (last-coding-system-used nil))
             (apply #'call-process-region (point-min) (point-max)
-                   speechd--spdsend t t nil args)))
-      (apply #'call-process speechd--spdsend nil t nil args))
+                   speechd-spdsend t t nil args)))
+      (apply #'call-process speechd-spdsend nil t nil args))
     (buffer-string)))
 
 (defun speechd--process-filter (process output)
-  (speechd--with-current-connection
-    (setf (speechd--connection-process-output connection)
-          (concat (speechd--connection-process-output connection) output))))
+  (when speechd--advanced-apo
+    (speechd--with-current-connection
+     (setf (speechd--connection-process-output connection)
+           (concat (speechd--connection-process-output connection) output)))))
+
+(defun speechd--use-spdsend ()
+  (and (not speechd--advanced-apo) speechd-spdsend))
 
 (defun speechd--open-connection (host port)
-  (if speechd--spdsend
+  (if (speechd--use-spdsend)
       (let* ((answer (speechd--call-spdsend
                       (list "--open" host (format "%d" port))))
              (alen (and answer (length answer))))
@@ -474,30 +488,43 @@ code."
       (when process
         (set-process-coding-system process
                                    speechd--coding-system
-                                   speechd--coding-system)
+                                   (if speechd--advanced-apo
+                                       speechd--coding-system
+                                     'raw-text))
         (set-process-filter process #'speechd--process-filter))
       process)))
 
 (defun speechd--close-connection (connection)
-  (if speechd--spdsend
-      (speechd--call-spdsend
-       (list "--close" (speechd--connection-process connection)))
-    (delete-process (speechd--connection-process connection)))
-  (setf (speechd--connection-process connection) nil))
+  (let ((process (speechd--connection-process connection)))
+    (when process
+      (if (speechd--use-spdsend)
+          (speechd--call-spdsend (list "--close" process))
+        (delete-process (speechd--connection-process connection)))
+      (setf (speechd--connection-process connection) nil))))
 
 (defun speechd--send-connection (connection command)
   (let ((process (speechd--connection-process connection)))
-    (if speechd--spdsend
-        (speechd--call-spdsend (list "--send" process) command)
-      (process-send-string process command)
-      (while (not (string-match
-                   speechd--end-regexp
-                   (speechd--connection-process-output connection)))
-        (unless (accept-process-output process speechd-timeout nil 1)
-          (error "Error in communication with Speech Dispatcher")))
-      (prog1 (speechd--connection-process-output connection)
-        (setf (speechd--connection-process-output connection) "")))))
-
+    (when process
+      (condition-case _
+          (if (speechd--use-spdsend)
+              (speechd--call-spdsend (list "--send" process) command)
+            (process-send-string
+             process
+             (if speechd--advanced-apo
+                 command
+               (encode-coding-string command speechd--coding-system)))
+            (when speechd--advanced-apo
+              (while (not (string-match
+                           speechd--end-regexp
+                           (speechd--connection-process-output connection)))
+                (unless (accept-process-output process speechd-timeout nil 1)
+                  (error "Timeout in communication with Speech Dispatcher"))))
+            (prog1 (speechd--connection-process-output connection)
+              (setf (speechd--connection-process-output connection) "")))
+        (error
+         (speechd--permanent-connection-failure connection)
+         (error "Error in communication with Speech Dispatcher"))))))
+  
 ;;;###autoload
 (defun* speechd-open (&optional host port &key quiet force-reopen)
   "Open connection to Speech Dispatcher running on the given host and port.
@@ -505,7 +532,7 @@ If the connection corresponding to the current `speechd-client-name' value
 already exists, close it and reopen again, with the same connection parameters.
 
 The optional arguments HOST and PORT identify the speechd server location.
-They can override default values stored in the varibales `speechd-host' and
+They can override default values stored in the variables `speechd-host' and
 `speechd-port'.
 
 If the key argument QUIET is non-nil, don't report failures and quit silently.
@@ -608,11 +635,7 @@ Return the opened connection on success, nil otherwise."
 	(speechd--connection-paused-p connection) nil
 	(speechd--connection-parameters connection) ()))
 
-(defun speechd--send-string (string)
-  (speechd--with-current-connection
-    (speechd--send-connection connection string)))
-
-(defun speechd--process-request (request)
+(defun speechd--send-request (request)
   (speechd--with-current-connection
    (save-match-data
      (let ((answer (speechd--send-connection
@@ -623,18 +646,19 @@ Return the opened connection on success, nil otherwise."
                      (string-match speechd--result-regexp answer))
            (push (match-string 1 answer) data)
            (setq answer (substring answer (match-end 0))))
-         (setq success (and answer
-                            (string-match speechd--success-regexp answer)))
-         (unless success
-           (setq data nil))
-         (list success
-               data
-               (and success (substring answer 0 3))
-               (and success (substring answer 4))))))))
+         (if (or speechd--advanced-apo (speechd--use-spdsend))
+             (progn
+               (setq success (and answer
+                                  (string-match speechd--success-regexp
+                                                answer)))
+               (unless success
+                 (setq data nil))
+               (list success
+                     data
+                     (and success (substring answer 0 3))
+                     (and success (substring answer 4))))
+           '(t nil nil nil)))))))
 
-(defun speechd--send-request (request)
-  (speechd--with-current-connection
-    (speechd--process-request request)))
 
 (defconst speechd--block-commands
   '(("speak")
@@ -946,9 +970,8 @@ is empty."
                           change-point))
                    (substring (substring text beg end)))
               (if properties
-                  (speechd--with-current-connection
-                    (speechd--with-connection-parameters properties
-                      (speechd--send-text substring)))
+                  (speechd--with-connection-parameters properties
+                    (speechd--send-text substring))
                 (speechd--send-text substring))
               (setq beg end))))))))
 

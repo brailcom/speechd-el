@@ -626,11 +626,13 @@ running on a remote host or a non-default port.
 @item speechd-host
 @cindex host
 Name of the host running Speech Dispatcher to connect to, given as a
-string.  Default is @code{"localhost"}.
+string.  Default is either the contents of the @code{SPEECHD_HOST}
+variable if set, or @code{"localhost"}.
 
 @item speechd-port
 @cindex port
-Port number to connect to.  Default is the default Speech Dispatcher
+Port number to connect to.  Default is either the contents of the
+@code{SPEECHD_PORT} variable if set, or the default Speech Dispatcher
 port.
 
 @item speechd-timeout
@@ -640,6 +642,15 @@ it is exceeded, speechd-el closes the connection.  Normally, Speech
 Dispatcher should answer protocol commands immediately, but if you
 talk to a Speech Dispatcher in a strange way through a lagging
 network, you may want to increase the limit.
+
+@item speechd-spdsend
+@cindex spdsend
+If non-@code{nil}, it is a string naming the @emph{spdsend} binary
+(normally @code{"spdsend"}) to use for communication with Speech
+Dispatcher.  If @code{nil} or if you use Emacs version higher than
+21.3, spdsend is not used.
+
+Usually you shouldn't care about this variable.
 @end vtable
 
 @node Default Priorities, Basic Speaking, Host Configuration, Customization

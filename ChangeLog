@@ -1,3 +1,59 @@
+2004-09-02  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd--close-connection): If the connection
+	process is nil, do nothing.
+
+2004-09-02  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd--send-connection): When any error occurs,
+	call speechd--permanent-connection-failure; do nothing if the
+	process is nil.
+	(speechd--close-connection): Delete the process only if it is
+	non-nil.
+
+2004-09-02  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd--open-connection): Set process input system
+	to raw-text in older Emacs versions.
+	(speechd--send-connection): Recode the input string in older Emacs
+	versions.
+
+2004-09-02  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd--send-string): Removed.
+
+2004-09-01  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd--advanced-apo): New variable.
+	(speechd--spdsend): Removed.
+	(speechd-spdsend): New user option.
+	(speechd--call-spdsend): Honor the changes above.
+	(speechd--send-connection): Don't accept process output if
+	speechd--advanced-apo is nil.
+	(speechd--process-filter): Do nothing if speechd--advanced-apo is
+	nil.
+	(speechd--use-spdsend): New function.
+	(speechd--open-connection, speechd--close-connection)
+	(speechd--send-connection): Use it.
+	(speechd--send-request): Handle unidirectional mode.
+
+2004-09-01  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-host): Honor SPEECHD_HOST environment
+	variable.
+
+2004-08-26  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd--spdsend): Use accept-process-output to
+	figure out the default value.
+
+2004-08-26  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-say-text): Don't call
+	speechd--with-current-connection redundantly.
+	(speechd--send-request): Removed.
+	(speechd--process-request): Renamed to speechd--send-request.
+
 2004-08-25  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd.el (speechd--spdsend): Set to nil in new Emacs version.

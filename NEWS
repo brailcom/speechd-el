@@ -5,14 +5,19 @@ User-visible changes to speechd-el:
 
 ** Messages from built-in functions can be read now.
 
-** Mode line can be read in new versions of Emacs.
+** Mode line can be read in CVS versions of Emacs.
 
 See the command speechd-speak-read-mode-line bound to the `C-e RET' key.
 
-** spdsend is now used for communication with Speech Dispatcher.
+** The SPEECHD_HOST environment variable is honored now.
 
-This avoids various problems experienced when using Emacs native asynchronous
-communication.
+** Changes in communication with Speech Dispatcher.
+
+Former socket based asynchronous communication with Speech Dispatcher was
+unreliable and could cause errors in some situations.  This has been fixed for
+CVS Emacs versions.  In Emacs 21.3, two alternative workarounds are available:
+either one-way communication with Speech Dispatcher (the default) or using the
+spdsend utility (if the speechd-spdsend variable is set).
 
 ** speechd-connection-parameters removed.
 
