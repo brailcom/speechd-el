@@ -408,10 +408,13 @@ the fastest rate.
 These commands set various properties of the speech output.  They all
 apply on the current Speech Dispatcher connection (for more
 information about Speech Dispatcher connections, @pxref{Connection
-Parameters}).
+Parameters}), unless there are invoked with a prefix argument.  With a
+numeric prefix argument they apply on all speechd-el connections, with
+a universal prefix argument they apply on all Speech Dispatcher
+connections.
 
-You can also set a separate connection for a buffer using the
-following command:
+You can set a separate connection, having its own connection
+parameters, for a buffer using the following command:
 
 @table @kbd
 @item C-e C-c

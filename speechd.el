@@ -217,7 +217,7 @@ language.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "2004-02-11 12:22 pdm"
+(defconst speechd--el-version "2004-02-13 20:11 pdm"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -785,31 +785,42 @@ Return the opened connection on success, nil otherwise."
     (cdr (assoc value
 		(cdr (assoc parameter speechd--parameter-value-mappings)))))))
 
-(defun speechd--set-parameter (parameter value)
-  (speechd--with-current-connection
-    (let* ((plist (speechd--connection-parameters connection))
-	   (orig-value (if (plist-member plist parameter)
-			   (plist-get plist parameter)
-			 'unknown)))
-      (when (or (memq parameter speechd--volatile-parameters)
-                (and (not (equal orig-value value))
-                     (or
-                      (not (eq parameter 'message-priority))
-                      (not (speechd--connection-forced-priority connection)))))
-	(let ((answer
-	       (speechd--send-command
-                (let ((p (cdr (assoc parameter speechd--parameter-names)))
-                      (v (speechd--transform-parameter-value parameter value)))
-                  (unless p
-                    (error "Invalid parameter name: `%s'" parameter))
-                  (unless v
-                    (error "Invalid parameter value: %s=%s" parameter value))
-                  (list "SET" "self" p v)))))
-	  (setq connection (speechd--connection))
-          (when (first answer)
-            (setf (speechd--connection-parameters connection)
-                  (plist-put (speechd--connection-parameters connection)
-                             parameter value))))))))
+(defun speechd--call-set-parameter (parameter value globally)
+  (let ((p (or (cdr (assoc parameter speechd--parameter-names))
+               (error "Invalid parameter name: `%s'" parameter)))
+        (v (or (speechd--transform-parameter-value parameter value)
+               (error "Invalid parameter value: %s=%s" parameter value))))
+    (speechd--send-command (list "SET" (if globally "all" "self") p v))))
+
+(defun speechd--set-connection-parameter (parameter value)
+  (let* ((plist (speechd--connection-parameters connection))
+         (orig-value (if (plist-member plist parameter)
+                         (plist-get plist parameter)
+                       'unknown)))
+    (when (or (memq parameter speechd--volatile-parameters)
+              (and (not (equal orig-value value))
+                   (or
+                    (not (eq parameter 'message-priority))
+                    (not (speechd--connection-forced-priority connection)))))
+      (let ((answer (speechd--call-set-parameter parameter value nil)))
+        (setq connection (speechd--connection))
+        (when (first answer)
+          (setf (speechd--connection-parameters connection)
+                (plist-put (speechd--connection-parameters connection)
+                           parameter value)))))))
+
+(defun speechd--set-parameter (parameter value &optional all)
+  (if all
+      (progn
+        ;; We must iterate clients even on global all, to update speechd-el
+        ;; connection parameters.
+        (speechd--iterate-connections
+         (speechd--set-connection-parameter parameter value))
+        (when (consp all)
+          (speechd--with-current-connection
+           (speechd--call-set-parameter parameter value t))))
+    (speechd--with-current-connection
+     (speechd--set-connection-parameter parameter value))))
 
 (defun speechd--set-connection-name (name)
   (speechd--set-parameter
@@ -828,7 +839,8 @@ Language must be an RFC 1766 language code, as a string."
          (argdesc* (eval argdesc))
          (docstring
           (format "Set %s of the current connection.
-VALUE must be %s."
+VALUE must be %s.
+If called with a prefix argument, set it for al connections."
                   (downcase prompt)
                   (cond
                    ((integerp argdesc*)
@@ -843,14 +855,14 @@ VALUE must be %s."
                     (concat "one of the strings allowed by your "
                             "Speech Dispatcher\ninstallation"))))))
     `(defun ,(intern (concat "speechd-set-" (symbol-name parameter)))
-            (value)
+            (value &optional all)
        ,docstring
        (interactive
 	,(cond
 	  ((integerp argdesc*)
-	   (concat "n" prompt*))
+	   (concat "n" prompt* "\nP"))
 	  ((not argdesc*)
-	   (concat "s" prompt*))
+	   (concat "s" prompt* "\nP"))
           ((listp argdesc*)
             `(list
               (cdr
@@ -859,9 +871,10 @@ VALUE must be %s."
 	   `(list
 	     (completing-read ,prompt*
 			      (mapcar #'list
-                                      (speechd--list (quote ,argdesc*))))))))
+                                      (speechd--list (quote ,argdesc*))))
+             current-prefix-arg))))
        (when value
-         (speechd--set-parameter (quote ,parameter) value)
+         (speechd--set-parameter (quote ,parameter) value all)
          (message "%s set to %s." ,prompt value)))))
 
 (speechd--generate-set-command capital-character-mode "Capital character mode"
