@@ -1,3 +1,11 @@
+2003-06-29  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak): speechd-speak-toggle-quiet
+	argument fixed.
+	(speechd-speak-toggle-quiet): Argument QUIET renamed to SPEAK.
+	(speechd-speak--post-command-hook): Missing argument to the
+	next-property-change call added.
+
 2003-06-28  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-speak.el (kill-ring-save): Advice removed.
