@@ -1,5 +1,7 @@
 2003-06-09  Milan Zamazal  <pdm@brailcom.org>
 
+	* speechd-emacspeak.el (message): New redefinition.
+
 	* dtk-interp.el (dtk-interp-say): Use priority :important
 	unconditionally.
 	(dtk-interp-current-priority): New function.
