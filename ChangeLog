@@ -1,3 +1,20 @@
+2003-07-28  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak-mode): Don't call
+	speechd-cancel.
+	(global-speechd-speak-mode): New advice.
+	(speechd-speak--command-info-struct): New slot CHANGE-END; assign
+	default value to CHANGES.
+	(speechd-speak--set-command-start-info): Don't initialize CHANGES.
+	(speechd-speak--add-command-text): Argument TEXT replaced by
+	arguments BEG and END; rewritten.
+	(speechd-speak--after-change-hook) 
+	(speechd-speak--minibuffer-update-report): Consider the previous
+	change.
+
+	* speechd.el (speechd--set-parameter): Complain on invalid
+	parameter or value instead of generating an invalid SET command.
+
 2003-07-27  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-speak.el (speechd-speak--post-command-hook): Enforce
