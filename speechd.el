@@ -89,7 +89,7 @@
   :type speechd-priority-tags
   :group 'speechd)
 
-(defcustom speechd-speak-connection-parameters '()
+(defcustom speechd-connection-parameters '()
   "Alist of connection names and their parameters.
 
 Each element of the list is of the form (CONNECTION-NAME . PARAMETERS), where
@@ -135,7 +135,7 @@ current voice."
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.24 2003-07-04 13:25:57 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.25 2003-07-04 13:29:28 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -333,7 +333,7 @@ Return the opened connection on success, nil otherwise."
 	     (parameters (if connection
                              (speechd--connection-parameters connection)
                            (cdr (assoc speechd-client-name
-                                       speechd-speak-connection-parameters))))
+                                       speechd-connection-parameters))))
 	     (process (condition-case nil
 			  (open-network-stream
 			   "speechd-proc"
