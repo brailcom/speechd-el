@@ -1,4 +1,5 @@
-This is an Emacs client to Speech Dispatcher.
+speechd-el is an Emacs client to Speech Dispatcher, providing full speech
+output environment for Emacs.
 
 It consists of two parts:
 

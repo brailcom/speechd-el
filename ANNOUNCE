@@ -42,10 +42,11 @@ The Free(b)soft project is pleased to announce speechd-el 1.0.
 
 * What is new in the 1.0 version?
 
-  There is no significant change in this release.  This release
-  completes the development of the first stable version of speechd-el.
+  There is no significant change in this release.  It completes the
+  development of the first stable version of speechd-el.
+
   After this stable release, major changes are planned in speechd-el,
-  focused on providing more kinds of alternative user interfaces than
+  focused on providing more kinds of accessible user interfaces than
   just speech output.
 
 * Where to get it?

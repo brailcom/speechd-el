@@ -4,6 +4,7 @@ User-visible changes to speechd-el:
 
 ** The top customization group is called speechd-el now.
 
+
 * Changes in speechd-el 0.5
 
 ** Messages from built-in functions can be read now.
