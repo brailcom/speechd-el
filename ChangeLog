@@ -1,3 +1,11 @@
+2003-07-15  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak-connections): :minibuffer
+	allowed as the value (docstring change only).
+	(speechd-speak-connection-name): Consider the previous change.
+	(speechd-speak--last-connections): New variable.
+	(speechd-speak--connection-name): Use it.
+
 2003-07-09  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd.el: Generate capital character table commands.
