@@ -671,6 +671,16 @@ Buffer was modified, the cursor hasn't moved.
 Buffer was modified and the cursor was moved.
 @end table
 
+If the variable value is @code{t}, the command keys are read before
+the command is performed.  Otherwise, their speaking is delayed after
+the command is executed, since the buffer changes and cursor movement
+must be detected first.
+
+@item speechd-speak-ignore-command-keys
+@cindex command keys
+@cindex keys
+List of commands that should never echo their command keys.
+
 @item speechd-speak-read-command-name
 @cindex command name
 If non-@code{nil}, read in the situations defined by the variable

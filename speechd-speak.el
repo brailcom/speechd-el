@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.57 2003-10-22 14:25:17 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.58 2003-10-23 09:05:07 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -122,23 +122,29 @@ If `read-only', speak the text around cursor in read-only buffers only."
   :type 'boolean
   :group 'speechd-speak)
 
-(defcustom speechd-speak-read-command-keys '(modification
-                                             modification-movement)
+(defcustom speechd-speak-read-command-keys t
   "Defines whether command keys should be read after their command.
-If t, alway read command keys.
+If t, always read command keys, before the command is performed.
 If nil, never read them.
 Otherwise it is a list, consisting of one or more of the following symbols:
 `movement' -- read the keys if the cursor has moved without any buffer change
 `modification' -- read the keys if the buffer was modified without moving the
   cursor
 `modification-movement' -- read the keys if the buffer was modified and the
-  cursor has moved"
+  cursor has moved
+and the keys are read after the command is performed."
   :type '(choice (const :tag "Always" t)
                  (const :tag "Never" nil)
                  (set :tag "Sometimes"
                       (const movement)
                       (const modification)
                       (const modification-movement)))
+  :group 'speechd-speak)
+
+(defcustom speechd-speak-ignore-command-keys
+  '(forward-char backward-char next-line previous-line)
+  "List of commands for which their keys are never read."
+  :type '(repeat command)
   :group 'speechd-speak)
 
 (defcustom speechd-speak-read-command-name nil
@@ -1018,6 +1024,9 @@ connections, otherwise create completely new connection."
   (speechd-speak--set-command-start-info)
   (setq speechd-speak--last-report "")
   (when speechd-speak-mode
+    (when (and (eq speechd-speak-read-command-keys t)
+               (not (memq this-command speechd-speak-ignore-command-keys)))
+      (speechd-speak--command-keys :priority 'message))
     ;; Some parameters of interactive commands don't set up the minibuffer, so
     ;; we have to speak the prompt in a special way.
     (let ((interactive (cadr (interactive-form this-command))))
@@ -1068,8 +1077,9 @@ connections, otherwise create completely new connection."
 
 (speechd-speak--post-defun command-keys t nil
   ;; Keys that invoked the command
-  (and (not (eq this-command 'self-insert-command))
-       (or (eq speechd-speak-read-command-keys t)
+  (and (not (memq this-command speechd-speak-ignore-command-keys))
+       (not (eq this-command 'self-insert-command))
+       (or (not (eq speechd-speak-read-command-keys t))
            (and buffer-modified point-moved
                 (memq 'modification-movement speechd-speak-read-command-keys))
            (and buffer-modified (not point-moved)
@@ -1112,7 +1122,10 @@ connections, otherwise create completely new connection."
                                  (save-match-data
                                    (string-match "^.*$" text)
                                    (match-string 0 text))))))))
-    (when self-insert
+    (when (and self-insert
+               (not (eq speechd-speak-read-command-keys t))
+               (not (memq 'self-insert-command
+                          speechd-speak-ignore-command-keys)))
       (speechd-speak--command-keys))))
 
 (speechd-speak--post-defun special-face-movement sometimes t
