@@ -124,10 +124,8 @@ Each element of the list is of the form (CONNECTION-NAME . PARAMETERS), where
 CONNECTION-NAME is a connection name as expected to be in `speechd-client-name'
 and PARAMETERS is a property list with the pairs of parameter identifiers and
 parameter values.  Valid parameter names are the following symbols:
-language, message-priority, punctuation-mode, important-punctuation,
-punctuation-table, spelling-table, text-table, character-table, key-table,
-sound-table, capital-character-table, capital-character-mode, voice, rate,
-pitch, output-module.  See the corresponding speechd-set-* functions for
+language, message-priority, punctuation-mode, capital-character-mode, voice,
+rate, pitch, output-module.  See the corresponding speechd-set-* functions for
 valid parameter values.
 
 If the symbol t is specified as the connection name, the element defines
@@ -178,17 +176,6 @@ You must reopen the connections to apply the changes to this variable."
 		    speechd--punctuation-modes))
 	    (cons :tag "Important punctuation"
 		  (const :format "" important-punctuation) string)
-	    (cons :tag "Punctuation table" (const :format "" punctuation-table)
-		  string)
-	    (cons :tag "Spelling table" (const :format "" spelling-table)
-		  string)
-	    (cons :tag "Text table" (const :format "" text-table) string)
-	    (cons :tag "Character table" (const :format "" character-table)
-		  string)
-	    (cons :tag "Key table" (const :format "" key-table) string)
-	    (cons :tag "Sound table" (const :format "" sound-table) string)
-	    (cons :tag "Capital character table"
-		  (const :format "" capital-character-table) string)
 	    (cons :tag "Capital character mode"
 		  (const :format "" capital-character-mode)
 		  ,(speechd--generate-customization-options
@@ -206,7 +193,7 @@ Each of the alist element is of the form (FACE . STRING) where FACE is a face
 and string voice identifier.  Each face is spoken in the corresponding voice.
 If there's no item for a given face in this variable, the face is spoken in the
 current voice."
-  :type '(alist :key-type face :value-type string)
+  :type '(alist :key-type face :value-type (string :tag "Voice"))
   :group 'speechd)
 
 
@@ -224,7 +211,7 @@ locally through `let'.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.61 2003-10-01 11:14:15 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.62 2003-10-07 10:19:04 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -254,15 +241,7 @@ Useful only for diagnosing problems.")
     (language . "LANGUAGE")
     (message-priority . "PRIORITY")
     (punctuation-mode . "PUNCTUATION")
-    (important-punctuation . "IMPORTANT_PUNCTUATION")
-    (punctuation-table . "PUNCTUATION_TABLE")
-    (spelling-table . "SPELLING_TABLE")
-    (capital-character-table . "CAP_LET_RECOGN_TABLE")
     (capital-character-mode . "CAP_LET_RECOGN")
-    (text-table . "TEXT_TABLE")
-    (character-table . "CHARACTER_TABLE")
-    (key-table . "KEY_TABLE")
-    (sound-table . "SOUND_TABLE")
     (voice . "VOICE")
     (rate . "RATE")
     (pitch . "PITCH")
@@ -270,14 +249,7 @@ Useful only for diagnosing problems.")
     ))
 
 (defconst speechd--list-parameter-names
-  '((spelling-tables . "SPELLING_TABLES")
-    (punctuation-tables . "PUNCTUATION_TABLES")
-    (text-tables . "TEXT_TABLES")
-    (sound-tables . "SOUND_TABLES")
-    (character-tables . "CHARACTER_TABLES")
-    (key-tables . "KEY_TABLES")
-    (capital-character-tables . "CAP_LET_RECOGN_TABLES")
-    (voices . "VOICES")))
+  '((voices . "VOICES")))
 
 (defconst speechd--parameter-value-mappings
   '((message-priority
@@ -843,20 +815,8 @@ VALUE must be %s."
          (speechd--set-parameter (quote ,parameter) value)
          (message "%s set to %s." ,prompt value)))))
 
-(speechd--generate-set-command punctuation-table "Punctuation table"
-			       'punctuation-tables)
-(speechd--generate-set-command spelling-table "Spelling table"
-			       'spelling-tables)
-(speechd--generate-set-command text-table "Text table" 'text-tables)
-(speechd--generate-set-command sound-table "Sound table" 'sound-tables)
-(speechd--generate-set-command character-table "Character table"
-			       'character-tables)
-(speechd--generate-set-command capital-character-table
-                               "Capital character spelling table"
-                               'capital-character-tables)
 (speechd--generate-set-command capital-character-mode "Capital character mode"
                                speechd--capital-character-modes)
-(speechd--generate-set-command key-table "Key table" 'key-tables)
 (speechd--generate-set-command pitch "Pitch" 0)
 (speechd--generate-set-command rate "Rate" 0)
 (speechd--generate-set-command voice "Voice" 'voices)

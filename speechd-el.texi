@@ -681,6 +681,9 @@ Speak all the inserted texts.
 
 @item one-line
 Speak only those inserted texts that don't exceed line boundaries.
+
+@item whole-buffer
+Speak whole buffer if it was modified in any way.
 @end table
 
 @item speechd-speak-insertions-in-buffers
@@ -698,6 +701,17 @@ useful in comint buffers.
 If non-@code{nil}, the insertion text to be spoken is extended to the
 beginning of the first word affected by the insertion.  This is
 particularly useful in completion functions.
+@end vtable
+
+If the last command modified the current buffer and moved its cursor
+to a completely different position, the new cursor position is not
+indicated in speech output.  You can change it through the following
+variable:
+
+@vtable @code
+@item speechd-speak-movement-on-insertions
+If non-@code{nil}, speak the text around new cursor position even when
+the current buffer was modified.
 @end vtable
 
 @node Signalling, Text Properties, Auto-Speaking Buffers, Customization
