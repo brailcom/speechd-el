@@ -215,7 +215,7 @@ but may create a new connection.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.36 2003-07-24 19:06:39 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.37 2003-07-25 11:49:37 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -974,8 +974,10 @@ clients."
       (setq connection (speechd--connection))
       (setf (speechd--connection-paused-p connection) nil))))
 
+;;;###autoload
 (defun speechd-repeat ()
   "Repeat the last message sent to speechd."
+  (interactive)
   (let ((id (first (first (speechd--send-command '("HISTORY" "GET" "LAST"))))))
     (when id
       (speechd--send-command (list "HISTORY" "SAY" id)))))
