@@ -31,7 +31,7 @@
 (require 'speechd-speak)
 
 
-(defconst speechd-bug--version "$Id: speechd-bug.el,v 1.7 2003-12-12 10:55:26 pdm Exp $"
+(defconst speechd-bug--version "$Id: speechd-bug.el,v 1.8 2003-12-30 12:13:35 pdm Exp $"
   "Version of the speechd-bug.el file.")
 
 
@@ -125,7 +125,7 @@
   (speechd-bug--ensure-empty-line)
   (speechd-bug--insert "===" file-name ":logbegin===")
   (shell-command
-   (format "sed -n '1,/_debug_on%s/d ; 0,/_debug_off%s/p' %s"
+   (format "awk 'BEGIN { p = 0 } /_debug_on%s/ { p = 1 } p == 1 { print } /_debug_off%s/ { exit }' %s"
            speechd-bug--repro-id speechd-bug--repro-id file-name) t)
   (speechd-bug--insert "===" file-name ":logend==="))
 
