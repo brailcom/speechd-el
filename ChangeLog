@@ -1,3 +1,46 @@
+2003-04-22  Milan Zamazal  <pdm@brailcom.org>
+
+	* dtk-interp.el (dtk-interp-queue, dtk-interp-speak) 
+	(dtk-interp-say, dtk-interp-letter) 
+	(dtk-interp-toggle-capitalization, dtk-interp-set-punctuations):
+	Updated for the new speechd.el.
+	* speechd-emacspeak.el
+	(speechd-protect-against-dtk-process-errors): Use
+	speechd-running-p instead of speechd-connection.
+	* speechd.el: All non-exported functions renamed to speechd--*.
+	Most debugging code removed.
+	(speechd-capitalizations, speechd-current-priority): Removed.
+	(speechd-current-parameters): New variable.
+	(speechd--reset-connection-parameters): Consider previous changes.
+	(speechd--command-answer): Use string-match again.  Use prog1 for
+	returning the speechd-connection-output value.  Return list of
+	values, including the answer and its data.  Accept multiline
+	answers correctly.
+	(speechd-last-host, speechd-last-port): New variables.
+	(speechd-open): Assign values to them.
+	(speechd--set-parameter): New function.
+	(speechd--set-connection-name): Use it.
+	(speechd--convert-numeric): Return number.
+	(speechd--transform-parameter-value): New function.
+	(speechd-priorities, speechd-punctuations): Removed.
+	(speechd-parameter-names, speechd-parameter-value-mappings): New
+	constants.
+	(speechd-set-priority, speechd-set-capitalization): Removed.
+	(speechd-say): Renamed to speechd-say-text.
+	(speechd-say-key): New function.
+	(speechd-set-language): Turned into a command.
+	(speechd--set-punctuation-mode-table): New constant.
+	(speechd-set-punctuation-mode): New command.
+	(speechd--generate-set-command): New macro.  New setting commands
+	declared.
+	(speechd-set-rate, speechd-set-punctuation): Removed.
+	(speechd--list): New function.
+	(speechd-list-parameter-names): New constant.
+	(speechd-repeat): New command.
+	(speechd--send-command): Arguments changed.
+	(speechd-end-regexp, speechd-result-regexp)
+	(speechd-success-regexp): New constants.
+
 2003-04-17  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd.el (speechd-set-connection-name): Prepend
