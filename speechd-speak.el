@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.35 2003-07-31 12:08:22 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.36 2003-08-04 07:28:38 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -335,7 +335,7 @@ function (`speechd-say-text' or `speechd-say-sound') without change after the
 message argument."
   (speechd-speak--maybe-speak
    (unless (string= message "")
-     (if (string-match "^\\*" message)
+     (if (string= (substring message 0 (min 1 (length message))) "*")
          (apply #'speechd-say-sound (substring message 1) args)
        (apply #'speechd-say-text message args)))))
 

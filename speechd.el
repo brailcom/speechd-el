@@ -208,7 +208,7 @@ locally through `let'.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.43 2003-07-31 08:55:07 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.44 2003-08-04 07:28:38 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -569,6 +569,7 @@ Return the opened connection on success, nil otherwise."
 
 (defun speechd--process-request (request)
   (speechd--with-current-connection
+   (save-match-data
     (flet ((read-command-answer ()
 	     (while (let ((output (speechd--connection-process-output
 				   connection)))
@@ -590,9 +591,10 @@ Return the opened connection on success, nil otherwise."
 		   (data '())
 		   success
 		   result)
-	       (while (and answer (string-match speechd--result-regexp answer))
-		 (push (match-string 1 answer) data)
-		 (setq answer (substring answer (match-end 0))))
+               (while (and answer
+                           (string-match speechd--result-regexp answer))
+                 (push (match-string 1 answer) data)
+                 (setq answer (substring answer (match-end 0))))
 	       (setq success (and answer
 				  (string-match speechd--success-regexp
 						answer)))
@@ -655,7 +657,7 @@ Return the opened connection on success, nil otherwise."
 				     connection))))
 		      (read-command-answer)))))
 	    ;; Free the commands blocked by this speechd--command-answer
-	    (speechd--process-queues)))))))
+	    (speechd--process-queues))))))))
 
 (defun speechd--send-request (request &optional now)
   (speechd--with-current-connection
@@ -689,17 +691,18 @@ Return the opened connection on success, nil otherwise."
            (speechd--send-request (make-speechd--request
 				   :string string :answer-type nil
 				   :transaction-state '(in-data in-data)))))
-    (while (and (> (length text) 0)
-		(string-match "\\(`\\|.*\n\\)\\(\\.\\)\\(.*\\)\\(\n\\|\\'\\)"
-			      text))
-      (replace-match ".." nil nil text 2)
-      (let ((end (1+ (match-end 0))))
-	(send (substring text 0 end))
-	(setq text (substring text end))))
-    (send text)
-    (unless (or (string= text "")
-		(eql (aref text (1- (length text))) ?\n))
-      (send speechd--eol))))
+    (save-match-data
+      (while (and (> (length text) 0)
+                  (string-match "\\(`\\|.*\n\\)\\(\\.\\)\\(.*\\)\\(\n\\|\\'\\)"
+                                text))
+        (replace-match ".." nil nil text 2)
+        (let ((end (1+ (match-end 0))))
+          (send (substring text 0 end))
+          (setq text (substring text end))))
+      (send text)
+      (unless (or (string= text "")
+                  (eql (aref text (1- (length text))) ?\n))
+        (send speechd--eol)))))
 
 (defun speechd--send-data-end (&optional now)
   (speechd--send-command "." t '(in-data nil) :now now))
