@@ -8,6 +8,10 @@ It consists of two parts:
 - The files speechd-emacspeak.el and dtk-interp.el to access Speech Daemon from
   Emacspeak.
 
+Prerequisites:
+
+- The Elib Elisp library is required (available in Debian as `elib').
+
 If you want to use Emacspeak with Speech Daemon, you must perform the following
 installation steps:
 
