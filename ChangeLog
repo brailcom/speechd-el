@@ -1,3 +1,10 @@
+2003-04-14  Milan Zamazal  <pdm@brailcom.org>
+
+	* dtk-interp.el (dtk-interp-set-punctuations): Changed to none,
+	some, all.
+	* speechd.el (speechd-punctuations): Changed to none, some, all.
+	(speechd-cancel): New command.
+
 2003-04-11  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd.el: All `defsubst's changed to `defun'.  Autoload
