@@ -25,7 +25,7 @@ Documentation License.''
 @dircategory Sound
 @dircategory Emacs
 @direntry
-* speechd-el: (speechd-el) Emacs interface to Speech Dispatcher.
+* speechd-el: (speechd-el).	Emacs interface to Speech Dispatcher.
 @end direntry
 
 @titlepage
