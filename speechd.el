@@ -487,6 +487,9 @@ code."
                                    (if speechd--advanced-apo
                                        speechd--coding-system
                                      'raw-text))
+        (if (fboundp 'set-process-query-on-exit-flag)
+            (set-process-query-on-exit-flag process nil)
+          (process-kill-without-query process))
         (set-process-filter process #'speechd--process-filter))
       process)))
 
