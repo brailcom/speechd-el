@@ -293,7 +293,7 @@ language.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "2004-05-11 16:49 pdm"
+(defconst speechd--el-version "2004-05-12 12:26 pdm"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -1015,14 +1015,18 @@ the `speechd--set-parameter' function."
 
 
 ;;;###autoload
-(defun* speechd-say-text (text &key (priority speechd-default-text-priority))
+(defun* speechd-say-text (text &key (priority speechd-default-text-priority)
+                               say-if-empty)
   "Speak the given TEXT, represented by a string.
 The key argument `priority' defines the priority of the message and must be one
 of the symbols `important', `message', `text', `notification' or
-`progress'."
+`progress'.
+The key argument SAY-IF-EMPTY is non-nil, TEXT is sent through SSIP even if it
+is empty."
   (interactive "sText: ")
   (speechd--set-parameter 'message-priority priority)
-  (unless (string= text "")
+  (when (or speak-empty
+            (not (string= text "")))
     (flet ((properties (point)
              (let ((voice (cdr (assq (get-text-property point 'face text)
                                      speechd-face-voices)))

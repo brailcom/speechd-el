@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "2004-05-03 21:03 pdm"
+(defconst speechd-speak-version "2004-05-12 12:42 pdm"
   "Version of the speechd-speak file.")
 
 
@@ -1167,6 +1167,10 @@ connections, otherwise create completely new connection."
   ;; Any buffer modification, including completion, abbrev expansions and
   ;; self-insert-command
   buffer-modified
+  ;; We handle self-insert-command in a special way.  We don't speak the
+  ;; inserted character itself, we only read other buffer modifications caused
+  ;; by the command (typically abbrev expansions).  Instead of speaking the
+  ;; inserted character, we try to speak the command key.
   (let ((self-insert (eq this-command 'self-insert-command))
         (changes (speechd-speak--cinfo changes)))
     (when speechd-speak-buffer-insertions
