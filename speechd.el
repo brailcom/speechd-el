@@ -211,11 +211,11 @@ locally through `let'.")
 If text is read and this variable is non-nil, the text is read in the given
 language.")
 
-
+
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.71 2003-10-22 11:02:37 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.72 2003-10-22 14:25:10 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -306,7 +306,7 @@ Useful only for diagnosing problems.")
 (defvar speechd--protect nil
   "If non-nil, don't call `access-process-output'.")
 
-
+
 ;;; Utilities
 
 
@@ -387,7 +387,7 @@ code."
   (put-text-property 0 (length string) 'language language string)
   string)
 
-
+
 ;;; Process management functions
 
 
@@ -568,14 +568,12 @@ Return the opened connection on success, nil otherwise."
 (defun speechd--process-queues ()
   (unless speechd--in-recursion
     (let ((speechd--in-recursion t))
-      (maphash
-       #'(lambda (speechd-client-name connection)
-	   (let ((queue (speechd--connection-request-queue connection)))
-	     (while (not (queue-empty queue))
-	       (let* ((request (queue-dequeue queue))
-		      (answer-type (speechd--request-answer-type request)))
-		 (speechd--process-request request)))))
-       speechd--connections))))
+      (speechd--iterate-connections
+        (let ((queue (speechd--connection-request-queue connection)))
+          (while (not (queue-empty queue))
+            (let* ((request (queue-dequeue queue))
+                   (answer-type (speechd--request-answer-type request)))
+              (speechd--process-request request))))))))
 
 (defun speechd--process-request (request)
   (speechd--with-current-connection
@@ -619,9 +617,10 @@ Return the opened connection on success, nil otherwise."
 				  (and answer (substring answer 0 3))
 				  (and answer (substring answer 4))))
 	       result)))
-      ;; Read pending answer
-      (when (speechd--connection-process-output connection)
-	(read-command-answer))
+      ;; Read pending answers
+      (speechd--iterate-connections
+        (when (speechd--connection-process-output connection)
+          (read-command-answer)))
       ;; Ensure proper transaction state
       (let* ((state-spec (speechd--request-transaction-state request))
 	     (required-state (first state-spec))
@@ -719,7 +718,7 @@ Return the opened connection on success, nil otherwise."
 (defun speechd--send-data-end (&optional now)
   (speechd--send-command "." t '(in-data nil) :now now))
 
-
+
 ;;; Value retrieval functions
 
 
@@ -785,7 +784,8 @@ Return the opened connection on success, nil otherwise."
   "Set language of the current client connection to LANGUAGE.
 Language must be an RFC 1766 language code, as a string."
   (interactive (list (read-string "Language: ")))
-  (speechd--set-parameter 'language language))
+  (speechd--set-parameter 'language language)
+  (setq speechd-language language))
 
 (defmacro speechd--generate-set-command (parameter prompt argdesc)
   (let* ((prompt* (concat prompt ": "))
