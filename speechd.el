@@ -293,7 +293,7 @@ language.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "2004-02-24 15:40 pdm"
+(defconst speechd--el-version "2004-04-06 10:04 pdm"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -594,13 +594,14 @@ Return the opened connection on success, nil otherwise."
 	      (set-process-coding-system process
 					 speechd--coding-system 'raw-text)
 	      (set-process-filter process 'speechd--connection-filter)
-	      (process-kill-without-query process))
+	      (process-kill-without-query process)
+              (setq connection (make-speechd--connection
+                                :name name :host host :port port
+                                :process process :failure-p (not process)))
+              (puthash name connection speechd--connections))
 	  (unless quiet
+            (setq connection nil)
 	    (message "Connection to Speech Dispatcher failed")))
-	(setq connection (make-speechd--connection
-			  :name name :host host :port port
-			  :process process :failure-p (not process)))
-	(puthash name connection speechd--connections)
 	(when process
 	  (speechd--set-connection-name name)
           (setq parameters (append parameters
