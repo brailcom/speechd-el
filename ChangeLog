@@ -1,3 +1,11 @@
+2003-07-31  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak--post-command-hook):
+	message-priority in block parameters, not `priority'.
+
+	* speechd.el (speechd-open): Default parameter fixes and
+	improvements.
+
 2003-07-30  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd.el (speechd-connection-parameters): Support for default
