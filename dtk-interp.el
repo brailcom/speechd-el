@@ -114,10 +114,12 @@
   (speechd-open))
 
 (defun dtk-interp-pause ()
-  (speechd-pause))
+  ;; unsupported in speechd in the given semantics
+  )
 
 (defun dtk-interp-resume ()
-  (speechd-resume))
+  ;; unsupported in speechd in the given semantics
+  )
 
 
 ;;; speechd.el customizations
