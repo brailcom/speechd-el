@@ -1,3 +1,7 @@
+2003-08-19  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd--priority-tags): Extra quotes removed.
+
 2003-08-13  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd.el (speechd-connection-parameters): Don't use cl macros
