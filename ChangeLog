@@ -1,3 +1,10 @@
+2003-05-21  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-cancel, speechd-stop, speechd-pause) 
+	(speechd-resume): New argument ALL.
+	(speechd-resume): Argument SOFTP removed.
+	(speechd--control-command): New function.
+
 2003-05-20  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-emacspeak.el (speechd-emacspeak-auditory-icon-mapping)
