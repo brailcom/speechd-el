@@ -127,8 +127,8 @@ more information about Speech Dispatcher.
 * Commands::                    Usage.
 * Customization::               Basic customization.
 * Advanced Customization::      Writing your own command feedbacks.
-* Tips::                        Useful Emacs tips.
 * Problems::                    Strange behavior.
+* Tips::                        Useful Emacs tips.
 * Bug Reporting::               speechd-el and Speech Dispatcher bugs.
 @end menu
 
@@ -1179,7 +1179,7 @@ can instruct speechd-el to be quiet in Elisp debuggers:
 If @code{nil}, speechd-speak functions won't speak in Elisp debuggers.
 @end vtable
 
-@node Advanced Customization, Tips, Customization, speechd-el User Manual
+@node Advanced Customization, Problems, Customization, speechd-el User Manual
 @section Defining Your Own Command Feedbacks
 @cindex extensions
 
@@ -1241,28 +1241,31 @@ precautions.  If you do not use them, you should make those
 precautions yourself.
 @end itemize
 
-@node Tips, Problems, Advanced Customization, speechd-el User Manual
-@section Useful Emacs tips
+@node Problems, Tips, Advanced Customization, speechd-el User Manual
+@section Problems You May Encounter
+@cindex problems
 
-This section contains Emacs usage advices that are actually not
-directly related to speechd-el but which may be of special interest to
-speechd-el users.
-
-@table @emph
-@cindex appointments
-@cindex diary
-@item How to make appointments speak their notifications?
-Set the variable @code{appt-msg-window} to @code{nil}.
-
+@itemize @bullet
 @cindex Info
-@item Why are some menu items in Info not spoken?
+@item
+@emph{Why are some menu items in Info not spoken?}
+
 This is due the way how Emacs fontifies the menu items.  Try to set
 the @code{Info-fontify-maximum-menu-size} variable to @code{0} to
 avoid the problem.
 
+@cindex appointments
+@cindex diary
+@item
+@emph{How to make appointments speak their notifications?}
+
+Set the variable @code{appt-msg-window} to @code{nil}.
+
 @cindex w3m-el
 @cindex URL speaking
-@item How to avoid printing URL when moving through links in w3m-el?
+@item
+@emph{How to avoid printing URL when moving through links in w3m-el?}
+
 Add the following code to your @file{~/.emacs}:
 
 @lisp
@@ -1270,43 +1273,9 @@ Add the following code to your @file{~/.emacs}:
   (when (eq this-command 'w3m-print-this-url)
     ad-do-it))
 @end lisp
-@end table
 
-Don't forget that Elisp allows you to define many useful functions.
-Typically, you may want to define commands reporting some information,
-which can be easily identified on the Emacs screen, but which is not
-so easily provided in the standard speech output interface.
-
-Some examples:
-
-@table @r
-@cindex buffer name
-@item Reporting current buffer name:
-
-@lisp
-(defun report-current-buffer ()
-  (interactive)
-  (message "%s" (buffer-name)))
-@end lisp
-
-@item Reporting current date in calendar:
-
-@cindex day in calendar
-@lisp
-(defun report-day ()
-  (interactive)
-  (message "%s" (calendar-date-string (calendar-cursor-to-date t))))
-@end lisp
-@end table
-
-
-@node Problems, Bug Reporting, Tips, speechd-el User Manual
-@section Problems You May Encounter
-@cindex problems
-
-@itemize @bullet
-@item
 @cindex repeated reading
+@item
 @emph{In some situations, when a modified text is read after
 performing a command, the text is read in separate pieces and some of
 the pieces are repeated.}
@@ -1321,10 +1290,10 @@ often used commands, you might want to define your own speaking
 feedbacks of those commands.  @xref{Advanced Customization}, for more
 details.
 
-@item
 @cindex delays
 @cindex garbage collection
 @cindex @code{gc-cons-threshold}
+@item
 @emph{There are sometimes small delays (about 1 second) before
 something is spoken after a command.}
 
@@ -1350,7 +1319,39 @@ autorepeat rate or buy a faster computer.
 Certainly, any tips increasing speechd-el performance are welcome.
 @end itemize
 
-@node Bug Reporting,  , Problems, speechd-el User Manual
+@node Tips, Bug Reporting, Problems, speechd-el User Manual
+@section Useful Emacs tips
+
+Don't forget that Elisp allows you to define many useful functions.
+Typically, you may want to define commands reporting some information,
+which can be easily identified on the Emacs screen, but which is not
+so easily provided in the standard speech output interface.
+
+Some examples:
+
+@itemize @bullet
+@cindex buffer name
+@item
+@emph{Reporting current buffer name:}
+
+@lisp
+(defun report-current-buffer ()
+  (interactive)
+  (message "%s" (buffer-name)))
+@end lisp
+
+@item
+@emph{Reporting current date in calendar:}
+
+@cindex day in calendar
+@lisp
+(defun report-day ()
+  (interactive)
+  (message "%s" (calendar-date-string (calendar-cursor-to-date t))))
+@end lisp
+@end itemize
+
+@node Bug Reporting,  , Tips, speechd-el User Manual
 @section How to Report speechd-el or Speech Dispatcher Bugs
 @cindex bug reporting
 
