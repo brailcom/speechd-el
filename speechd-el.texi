@@ -1259,7 +1259,9 @@ avoid the problem.
 @item
 @emph{How to make appointments speak their notifications?}
 
-Set the variable @code{appt-msg-window} to @code{nil}.
+Set the variable @code{appt-msg-window} to @code{nil}.  Also, adding
+@code{"diary"} to the @code{speechd-speak-auto-speak-buffer} variable
+may be useful.
 
 @cindex w3m-el
 @cindex URL speaking
@@ -1348,6 +1350,17 @@ Some examples:
 (defun report-day ()
   (interactive)
   (message "%s" (calendar-date-string (calendar-cursor-to-date t))))
+@end lisp
+
+@item
+@emph{Reporting current diary appointments:}
+
+@cindex appointments
+@lisp
+(defun report-current-appointments ()
+  (interactive)
+  (let ((appt-now-displayed nil))
+    (appt-check)))
 @end lisp
 @end itemize
 
