@@ -194,10 +194,6 @@ After the initial setup, the command can be used again to restart the
 speech support when needed.  Especially, you must run it again if
 Speech Dispatcher gets restarted.
 
-With a prefix argument, all open connections are closed first.  This
-is useful when you need to reset parameters of all connections, see
-@ref{Connection Voices}.
-
 After the first invocation, the command is available under the
 @kbd{C-e C-s} key.
 @end table
@@ -498,22 +494,6 @@ Voices}), unless there are invoked with a prefix argument.  With a
 numeric prefix argument they apply on all speechd-el connections, with
 a universal prefix argument they apply on all Speech Dispatcher
 connections.
-
-You can set a separate connection, having its own connection
-parameters, for a buffer using the following command:
-
-@table @kbd
-@item C-e C-c
-@kindex C-e C-c
-@findex speechd-speak-new-connection
-@cindex connection
-Set a given connection for the current buffer
-(@code{speechd-speak-new-connection}).  The command prompts for a
-connection name, you can give either new name or a name of an existent
-connection.  Normally, you are offered with a newly generated
-connection name, while with a prefix argument, you can choose from the
-names of existent connections.
-@end table
 
 Commands affecting basic parameters of the text-to-speech process:
 

@@ -41,12 +41,15 @@
 
 (eval-when-compile (require 'cl))
 
+(require 'speechd-common)
+
 
 ;;; User variables
 
 
-(defgroup speechd-el ()
-  "Speechd-el speech output system.")
+(defgroup speechd ()
+  "SSIP interface."
+  :group 'speechd-el)
 
 (defgroup speechd ()
   "SSIP interface."
@@ -94,26 +97,6 @@ variable is nil, Emacs talks to SSIP directly."
                   :match (lambda (w value)
                            (or (eq value nil)
                                (assoc value speechd-voices))))))
-
-(defcustom speechd-default-text-priority 'text
-  "Default Speech Dispatcher priority of sent texts."
-  :type 'speechd-priority-tag
-  :group 'speechd)
-
-(defcustom speechd-default-sound-priority 'message
-  "Default Speech Dispatcher priority of sent sound icons."
-  :type 'speechd-priority-tag
-  :group 'speechd)
-
-(defcustom speechd-default-char-priority 'notification
-  "Default Speech Dispatcher priority of sent single letters."
-  :type 'speechd-priority-tag
-  :group 'speechd)
-
-(defcustom speechd-default-key-priority 'notification
-  "Default Speech Dispatcher priority of sent symbols of keys."
-  :type 'speechd-priority-tag
-  :group 'speechd)
 
 
 (defmacro speechd--generate-customization-options (var)
@@ -232,18 +215,6 @@ current voice."
 
 ;;; External variables
 
-
-(defvar speechd-client-name "default"
-  "String defining current client name.
-This variable's value defines which connection is used when communicating with
-Speech Dispatcher, each connection has its own client name.  Usually, you
-select the proper client (connection) by assigning a value to this variable
-locally through `let'.")
-
-(defvar speechd-language nil
-  "If non-nil, it is an RFC 1766 language code, as a string.
-If text is read and this variable is non-nil, the text is read in the given
-language.")
 
 (defvar speechd-spell nil
   "If non-nil, any spoken text is spelled.")
@@ -425,13 +396,6 @@ language.")
 (defmacro speechd--with-voice (voice &rest body)
   `(speechd--with-connection-parameters (speechd--voice-parameters ,voice)
      ,@body))
-
-(defun speechd-language (string language)
-  "Put language property LANGUAGE on whole STRING.
-Language should be a string recognizable by Speech Dispatcher as a language
-code."
-  (put-text-property 0 (length string) 'language language string)
-  string)
 
 (defun speechd--current-language ()
   speechd-language)

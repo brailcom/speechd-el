@@ -8,21 +8,17 @@ VERSION = 1.0
 DISTDIR = $(NAME)-$(VERSION)
 TARFILE = $(NAME)-$(VERSION).tar
 
-.PHONY: all install install-strip uninstall clean distclean mostlyclean \
-	maintainer-clean TAGS info dvi dist check
+.PHONY: all compile install install-strip uninstall \
+        clean distclean mostlyclean maintainer-clean TAGS info dvi dist check
 
 all: compile info
 
-compile: speechd.elc speechd-speak.elc speechd-bug.elc speechd-version.elc
-speechd.elc: speechd.el
-	$(EMACS) --batch -l speechd.el -f batch-byte-compile $<
-speechd-speak.elc: speechd-speak.el speechd.elc
-	$(EMACS) --batch -l speechd.elc -l speechd-speak.el -f batch-byte-compile $<
-speechd-bug.elc: speechd-bug.el speechd-speak.elc speechd.elc speechd-version.elc
-	$(EMACS) --batch -l speechd.elc -l speechd-speak.elc -l speechd-version.elc -l speechd-bug.el -f batch-byte-compile $<
+compile: braille.elc mmanager.elc speechd.elc speechd-braille.elc \
+         speechd-bug.elc speechd-common.elc \
+         speechd-out.elc speechd-speak.elc speechd-ssip.elc speechd-version.elc
 
-speechd-version.elc: speechd-version.el
-	$(EMACS) --batch -f batch-byte-compile $<
+%.elc: %.el
+	$(EMACS) --batch -l speechd-compile.el -f speechd-compile --kill
 
 speechd-version.el:
 	echo '(defconst speechd-version "' `tla logs -f -r | head -1` '")' > $@
