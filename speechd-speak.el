@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.60 2003-10-28 15:28:53 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.61 2003-10-29 10:33:48 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -1022,7 +1022,13 @@ connections, otherwise create completely new connection."
                 (speechd-speak--minibuffer-update beg end len))
             (speechd-speak--add-command-text info beg end))))))))
 
+(defconst speechd-speak--dont-cancel-on-commands
+  '(speechd-speak speechd-unspeak speechd-cancel speechd-stop speechd-pause
+    speechd-resume))
+
 (defun speechd-speak--pre-command-hook ()
+  (unless (memq this-command speechd-speak--dont-cancel-on-commands)
+    (speechd-cancel 1))
   (speechd-speak--set-command-start-info)
   (setq speechd-speak--last-report "")
   (when speechd-speak-mode

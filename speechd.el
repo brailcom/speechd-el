@@ -215,7 +215,7 @@ language.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.74 2003-10-27 16:11:39 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.75 2003-10-29 10:33:48 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -998,10 +998,16 @@ of the symbols `important', `message', `text', `notification' or
 ;;;###autoload
 (defun speechd-cancel (&optional all)
   "Stop speaking all the messages sent through the current client so far.
-If the optional argument ALL is non-nil, stop speaking messages of all
-clients."
+If the universal argument is given, stop speaking messages of all clients.
+If a numeric argument is given, stop speaking messages of all current Emacs
+session clients."
   (interactive "P")
-  (speechd--control-command "CANCEL" all))
+  (if (numberp all)
+      (mapcar #'(lambda (name)
+                  (let ((speechd-client-name name))
+                    (speechd-cancel)))
+              (speechd-connection-names))
+    (speechd--control-command "CANCEL" all)))
 
 ;;;###autoload
 (defun speechd-stop (&optional all)
