@@ -330,26 +330,33 @@ a prefix argument, toggle it in the current buffer only.
 @findex speechd-stop
 @cindex stop
 Stop speaking current message (@code{speechd-stop}).  Other queued
-messages will still be spoken.
+messages will still be spoken.  If the prefix argument is given, stop
+speaking the current message of any client, not just of the current
+connection.
 
 @item C-e x
 @kindex C-e x
 @findex speechd-cancel
 @cindex stop
-Stop speaking all the queued messages.
+Stop speaking all the queued messages of the current connection.  If
+the universal numeric argument is given, stop speaking all the
+messages of all connections.  If a numeric prefix argument is given,
+stop all the messages of the current Emacs session.
 
 @item C-e p
 @kindex C-e p
 @findex speechd-pause
 @cindex pause
 Pause speaking --- just be quiet for now and postpone current speaking
-until the resume command is invoked (@code{speechd-pause}).
+until the resume command is invoked (@code{speechd-pause}).  If the
+prefix argument is given, pause speaking of all clients.
 
 @item C-e SPC
 @kindex C-e SPC
 @findex speechd-resume
 @cindex resume
-Resume paused speaking (@code{speechd-resume}).
+Resume paused speaking (@code{speechd-resume}).  If the
+prefix argument is given, resume speaking of all clients.
 
 @item C-e 1
 @itemx C-e 2
