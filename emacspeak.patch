@@ -51,16 +51,34 @@
   
   ;;}}}
 + 
-*** dtk-tcl.el~	Thu May 15 10:57:38 2003
---- dtk-tcl.el	Thu May 15 10:56:42 2003
+*** dtk-tcl.el~	Wed May 28 10:22:43 2003
+--- dtk-tcl.el	Wed May 28 10:20:18 2003
+***************
+*** 473,479 ****
+          (setq start  last
+                personality (get-text-property last  'personality))) ; end while
+        ))                                ; end clause
+!    (t (dtk-interp-queue (buffer-substring start end  )))))
+  
+                                          ;Force the speech.
+  (defsubst dtk-force ()
+--- 473,479 ----
+          (setq start  last
+                personality (get-text-property last  'personality))) ; end while
+        ))                                ; end clause
+!    (t (dtk-interp-queue (buffer-substring-no-properties start end  )))))
+  
+                                          ;Force the speech.
+  (defsubst dtk-force ()
 ***************
 *** 551,556 ****
---- 551,558 ----
+--- 551,559 ----
     "*Scale factor applied to speech rate when skimming.")
   
   (defun dtk-speak (text &optional ignore-skim)
-+   ;;; Modified on 2003-05-15 by Milan Zamazal <pdm@brailcom.org>, to allow
-+   ;;; use with speechd-el -- dtk-speaker-process handling removed.
++   ;; Modified by Milan Zamazal <pdm@brailcom.org>:
++   ;; 2003-05-15: dtk-speaker-process handling removed
++   ;; 2003-05-27: text chunking removed
     "Speak the TEXT string on the  tts.
   This is achieved by sending the text to the speech server.
   No-op if variable `dtk-quiet' is set to nil.
@@ -76,7 +94,44 @@
                                           ; If you dont want me to talk,
                                           ;or my server is not
                                           ;running, I will remain silent.
---- 567,572 ----
+--- 568,573 ----
+***************
+*** 616,642 ****
+            (when pronunciation-table
+              (emacspeak-pronounce-apply-pronunciations pronunciation-table))
+            (dtk-quote mode))
+!         (goto-char (point-min))
+!         (skip-syntax-forward inherit-chunk-separator-syntax)
+!         (while (and (not (eobp))
+!                     (dtk-move-across-a-chunk
+!                      inherit-chunk-separator-syntax
+!                      complement-separator))
+!                                         ;if we matched a punctuation,
+!                                         ;treat this as a chunk only if the punctuation is followed
+!                                         ;by white space
+! 					;dtk-speak-treat-embedded-punctuations-specially
+! 					;has been T for a long time
+!           (unless
+!               (and (char-after  (point))
+!                    (= (char-syntax (preceding-char )) ?.)
+!                    (not (= 32 (char-syntax (following-char )))))
+!             (setq end (point ))
+!             (dtk-format-text-and-speak  start end )
+!             (setq start  end)))         ; end while
+!                                         ; process trailing text
+!         (or  (= start (point-max))
+!              (dtk-format-text-and-speak start (point-max)))))
+      (dtk-force)))
+  
+  (defun dtk-speak-list (text )
+--- 615,621 ----
+            (when pronunciation-table
+              (emacspeak-pronounce-apply-pronunciations pronunciation-table))
+            (dtk-quote mode))
+! 	(dtk-format-text-and-speak (point-min) (point-max))))
+      (dtk-force)))
+  
+  (defun dtk-speak-list (text )
 ***************
 *** 672,685 ****
                                           ;Say these words, ie speak each of them as a word.
@@ -93,7 +148,7 @@
       (when dtk-speak-server-initialized
         (and dtk-stop-immediately (dtk-stop ))
         (dtk-interp-say words))))
---- 670,682 ----
+--- 651,663 ----
                                           ;Say these words, ie speak each of them as a word.
                                           ; Text is sent via the appropriate TCLSH.
   (defun dtk-say (words)

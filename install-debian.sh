@@ -22,7 +22,8 @@ for F in *.el; do
 done
 
 if [ $(fgrep -c 'tts_set_punctuations' $ELDIR/dtk-speak.el) -gt 0 ] ||
-   [ $(fgrep -c "'run" $ELDIR/dtk-tcl.el) -gt 0 ]; then
+   [ $(fgrep -c "'run" $ELDIR/dtk-tcl.el) -gt 0 ] ||
+   [ $(fgrep -c "skip-syntax-forward inherit-chunk-separator-syntax" $ELDIR/dtk-tcl.el) -gt 0 ]; then
   PATCHED=1
   cat emacspeak.patch | (cd $ELDIR; patch)
 fi
