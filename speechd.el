@@ -211,7 +211,7 @@ locally through `let'.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.63 2003-10-09 21:30:37 hanke Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.64 2003-10-13 10:52:29 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -268,6 +268,8 @@ Useful only for diagnosing problems.")
      (none . "none")
      (spell . "spell")
      (icon . "icon"))))
+
+(defconst speechd--volatile-parameters '(output-module))
 
 
 ;;; Internal variables
@@ -743,9 +745,11 @@ Return the opened connection on success, nil otherwise."
 	   (orig-value (if (plist-member plist parameter)
 			   (plist-get plist parameter)
 			 'unknown)))
-      (unless (or (equal orig-value value)
-                  (and (eq parameter 'message-priority)
-                       (speechd--connection-forced-priority connection)))
+      (when (or (memq parameter speechd--volatile-parameters)
+                (and (not (equal orig-value value))
+                     (or
+                      (not (eq parameter 'message-priority))
+                      (not (speechd--connection-forced-priority connection)))))
 	(let ((answer
 	       (speechd--send-command
                 (let ((p (cdr (assoc parameter speechd--parameter-names)))
