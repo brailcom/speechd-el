@@ -20,7 +20,7 @@
 
 ;;; Commentary:
 
-;; This is a simple experimental Emacs client to speechd.  Many ideas taken
+;; This is a simple experimental Emacs client to speechd.  Some ideas taken
 ;; from the Emacspeak package (http://emacspeak.sourceforge.net) by
 ;; T. V. Raman.
 
@@ -31,7 +31,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.20 2003-07-19 11:17:20 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.21 2003-07-21 09:13:22 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -156,6 +156,20 @@ created."
                          (restricted-sexp :tag "Function call"
                                           :match-alternatives (listp)))
                        (string :tag "Connection name")))
+  :group 'speechd-speak)
+
+(defcustom speechd-speak-buffer-insertions 'one-line
+  "Defines whether insertions in a current buffer should be read automatically.
+The value is a symbol and can be from the following set:
+- nil means don't speak them
+- t means speak them all
+- `one-line' means speak only changes not exceeding line boundary
+Only newly inserted text is read, the option doesn't affect processing of
+deleted text.  Also, the option doesn't affect insertions within commands
+processed in a different way by speechd-speak or user definitions."
+  :type '(choice (const :tag "Never" nil)
+                 (const :tag "One-line changes only" 'one-line)
+                 (const :tag "Always" t))
   :group 'speechd-speak)
 
 (defcustom speechd-speak-signal-empty t
@@ -354,7 +368,7 @@ Level 1 is the slowest, level 9 is the fastest."
                                       speechd-speak--empty-message
                                     ""))
                               :priority :message)
-      (speechd-speak--text text :priority :text))))
+      (speechd-speak--text text))))
 
 (defun speechd-speak-read-line (&optional rest-only in-minibuffer)
   (interactive)
@@ -432,8 +446,10 @@ Level 1 is the slowest, level 9 is the fastest."
   buffer
   point
   modified
+  changes
   other-window
-  other-buffer-modified)
+  other-buffer-modified
+  minibuffer-contents)
 
 (defvar speechd-speak--command-start-info (make-vector 5 nil))
 
@@ -465,11 +481,15 @@ Level 1 is the slowest, level 9 is the fastest."
 		(make-speechd-speak--command-info-struct
 		 :buffer (current-buffer) :point (point)
 		 :modified (buffer-modified-tick)
+                 :changes '()
 		 :other-window other-window
 		 :other-buffer-modified (and other-window
 					     (buffer-modified-tick
 					      (window-buffer other-window)
-					      )))))))))
+					      ))
+                 :minibuffer-contents (if (speechd-speak--in-minibuffer-p)
+                                          (minibuffer-contents)
+                                        ""))))))))
 
 (defun speechd-speak--reset-command-start-info ()
   (speechd-speak--set-command-start-info t))
@@ -671,33 +691,12 @@ FUNCTION is invoked interactively."
   (speechd-speak--prompt (minibuffer-prompt))
   (speechd-speak--prompt (minibuffer-contents)))
 
-(defun speechd-speak--speak-minibuffer-completion (beg end len)
-  (when (and (= len 0)
-	     (speechd-speak--command-start-info))
-    (let ((start (save-excursion
-		   (goto-char beg)
-		   (or (and (looking-at "\\<\\|\\W") (point))
-		       (re-search-backward "\\<" nil t)
-		       beg))))
-      (speechd-speak--text (buffer-substring start end)))
-    (speechd-speak--reset-command-start-info)))
-
 (defun speechd-speak--minibuffer-setup-hook ()
-  (speechd-speak--speak-minibuffer-prompt)
-  (add-hook 'after-change-functions 'speechd-speak--speak-minibuffer-completion
-	    nil t))
-
+  (speechd-speak--speak-minibuffer-prompt))
 (add-hook 'minibuffer-setup-hook 'speechd-speak--minibuffer-setup-hook)
 
 (defun speechd-speak--speak-minibuffer ()
   (speechd-speak--text (minibuffer-contents)))
-    
-(speechd-speak--command-feedback (previous-history-element next-history-element
-				  previous-matching-history-element
-				  next-matching-history-element
-				  minibuffer-complete minibuffer-complete-word)
-				 after
-  (speechd-speak--speak-minibuffer))
 
 (speechd-speak--command-feedback minibuffer-message after
   (speechd-speak--text (ad-get-arg 0) :priority :notification))
@@ -714,6 +713,36 @@ FUNCTION is invoked interactively."
 ;;; Commands
 
 
+(defun speechd-speak--add-command-text (info text)
+  (push text (speechd-speak--command-info-struct-changes info)))
+
+(defun speechd-speak--minibuffer-update-report (info old new)
+  (speechd-speak--add-command-text
+   info
+   (if (and (<= (length old) (length new))
+            (string= old (substring new 0 (length old))))
+       (substring new (length old))
+     new)))
+
+(defun speechd-speak--minibuffer-update (beg end len)
+  (let* ((info (speechd-speak--command-start-info))
+         (old-content (speechd-speak--command-info-struct-minibuffer-contents
+                       info))
+         (new-content (minibuffer-contents)))
+    (when (not (string= old-content new-content))
+      (speechd-speak--minibuffer-update-report
+       info old-content new-content))))
+
+(defun speechd-speak--after-change-hook (beg end len)
+  (let ((info (speechd-speak--command-start-info)))
+    (when (and info
+               (eq (current-buffer)
+                   (speechd-speak--command-info-struct-buffer info))
+               (not (= beg end)))
+      (if (speechd-speak--in-minibuffer-p)
+          (speechd-speak--minibuffer-update beg end len)
+        (speechd-speak--add-command-text info (buffer-substring beg end))))))
+
 (defun speechd-speak--pre-command-hook ()
   (speechd-speak--set-command-start-info)
   ;; Some parameters of interactive commands don't set up the minibuffer, so we
@@ -724,7 +753,8 @@ FUNCTION is invoked interactively."
 		 (string-match "^[@*]*\\([eipPmnr]\n\\)*[ckK]\\(.+\\)"
 			       interactive))
 	(speechd-speak--prompt (match-string 2 interactive)))))
-  (add-hook 'pre-command-hook 'speechd-speak--pre-command-hook))
+  (add-hook 'pre-command-hook 'speechd-speak--pre-command-hook)
+  (add-hook 'after-change-functions 'speechd-speak--after-change-hook))
 
 (defun speechd-speak--post-command-hook ()
   ;; Messages should be handled by an after change function.  Unfortunately, in
@@ -734,7 +764,6 @@ FUNCTION is invoked interactively."
   (speechd-speak--current-message t)
   (let ((command-info (speechd-speak--command-start-info)))
     (when command-info
-      ;(speechd-speak--text (symbol-name this-command) :priority :notice)
       (macrolet ((info (slot)
 		  `(,(intern (concat "speechd-speak--command-info-struct-"
 				     (symbol-name slot)))
@@ -759,9 +788,7 @@ FUNCTION is invoked interactively."
                               (not (= (buffer-modified-tick other-buffer)
                                       (info other-buffer-modified))))))))
             (cond
-             ;; Speak commands that do can't speak in a regular way
-             ((eq this-command 'self-insert-command)
-              (speechd-speak-read-char (preceding-char)))
+             ;; Speak commands that can't speak in a regular way
              ((memq this-command '(forward-char backward-char))
               (cond
                ((looking-at "^")
@@ -782,7 +809,21 @@ FUNCTION is invoked interactively."
                 (speechd-speak-read-line)))
              ;; Buffer modification
              (buffer-modified
-              nil)
+              (when speechd-speak-buffer-insertions
+                (speechd-speak--text
+                 (mapconcat
+                  #'identity
+                  (save-match-data
+                    (delete-if
+                     #'(lambda (c)
+                         (and (eq speechd-speak-buffer-insertions 'one-line)
+                              (string-match "\n" c)))
+                     (funcall (if (eq this-command 'self-insert-command)
+                                  #'butlast #'identity)
+                              (reverse (info changes)))))
+                  "\n")))
+              (when (eq this-command 'self-insert-command)
+                (speechd-speak-read-char (preceding-char))))
              ;; Special face hit
              ((and (not in-minibuffer)
                    point-moved
@@ -833,20 +874,8 @@ FUNCTION is invoked interactively."
 ;;; Comint
 
 
-(speechd-speak--command-feedback (comint-next-matching-input-from-input
-				  comint-previous-matching-input-from-input
-				  shell-forward-command shell-backward-command
-				  comint-copy-old-input
-				  comint-next-input comint-next-matching-input
-				  comint-previous-input
-				  comint-previous-matching-input)
-				 after
-  (speechd-speak-read-line))
-
 (speechd-speak--command-feedback comint-show-output after
   (speechd-speak-read-region))
-  
-(speechd-speak--command-feedback-region comint-dynamic-complete)
 
 (speechd-speak--defadvice comint-output-filter around
   ;; TODO:
@@ -871,14 +900,6 @@ FUNCTION is invoked interactively."
     (setq completion (buffer-substring beg end))
     (speechd-speak--text completion)
     (speechd-speak--reset-command-start-info)))
-
-(speechd-speak--command-feedback-region (expand-abbrev complete-symbol)
-  :move (backward-word 1))
-
-(speechd-speak--command-feedback-region (lisp-complete-symbol))
-
-(speechd-speak--command-feedback dabbrev-expand after
-  (speechd-speak--text dabbrev--last-expansion))
 
 (speechd-speak--command-feedback (next-completion previous-completion) after
   (speechd-speak--speak-completion))
