@@ -33,7 +33,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.2 2003-06-13 13:10:47 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.3 2003-06-24 17:51:13 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -77,7 +77,9 @@ toggle it in the current buffer only."
 	(setq-default speechd-speak-quiet (not speechd-speak-quiet))
 	(set (make-local-variable 'speechd-speak-quiet)
 	     (default-value 'speechd-speak-quiet)))
-    (setq speechd-speak-quiet (not speechd-speak-quiet))))
+    (setq speechd-speak-quiet (not speechd-speak-quiet)))
+  (when speechd-speak-quiet
+    (speechd-cancel)))
 
 (defvar speechd-speak--predefined-rates
   '((1 . -100)
@@ -158,13 +160,20 @@ Level 1 is the slowest, level 9 is the fastest."
     (forward-line -1)
     (speechd-speak-read-line)))
 
-(defun speechd-speak-read-buffer ()
+(defun speechd-speak-read-buffer (&optional buffer)
   (interactive)
-  (speechd-speak-read-region (point-min) (point-max)))
+  (save-excursion
+    (when buffer
+      (set-buffer buffer))
+    (speechd-speak-read-region (point-min) (point-max))))
 
 (defun speechd-speak-read-rest-of-buffer ()
   (interactive)
   (speechd-speak-read-region (point) (point-max)))
+
+(defun speechd-speak-read-other-window ()
+  (interactive)
+  (speechd-speak-read-buffer (window-buffer (get-lru-window))))
 
 (defun speechd-speak--window-contents ()
   (speechd-speak-read-region (window-start) (window-end)))
@@ -196,12 +205,35 @@ Level 1 is the slowest, level 9 is the fastest."
 (speechd-speak--def-speak-object page)
 (speechd-speak--def-speak-object sexp)
 
-(defvar speechd-speak--command-start-info nil)
+(defvar speechd-speak--command-start-info (make-vector 5 nil))
+
+(defmacro* speechd-speak--with-minibuffer-depth (&body body)
+  `(let ((depth (minibuffer-depth)))
+     (when (>= depth (length speechd-speak--command-start-info))
+       (setq speechd-speak--command-start-info
+	     (vconcat speechd-speak--command-start-info
+		      (make-vector
+		       (- (1+ depth)
+			  (length speechd-speak--command-start-info))
+		       nil))))
+     ,@body))
+
+(defun speechd-speak--command-start-info ()
+  (speechd-speak--with-minibuffer-depth
+    (aref speechd-speak--command-start-info depth)))
+
+(defun speechd-speak--set-command-start-info (&optional reset)
+  (speechd-speak--with-minibuffer-depth
+    (aset speechd-speak--command-start-info depth
+	  (if reset nil (ignore-errors (list (current-buffer) (point)))))))
+
+(defun speechd-speak--reset-command-start-info ()
+  (speechd-speak--set-command-start-info t))
 
 (defmacro* speechd-speak--command-feedback (commands position &body body)
   (let ((commands* (if (listp commands) commands (list commands)))
 	(position* position)
-	(body* `(progn (setq speechd-speak--command-start-info nil) ,@body))
+	(body* `(progn (speechd-speak--reset-command-start-info) ,@body))
 	(c (gensym)))
     `(progn
        ,@(mapcar #'(lambda (command)
@@ -222,11 +254,13 @@ Level 1 is the slowest, level 9 is the fastest."
        (speechd-speak--speak-piece start))))
 
 
+
 ;;; Basic speaking
 
 
-;; These two simply don't work in Emacs 21.3 when invoked via key binding, for
-;; an unknown reason. :-(
+;; These two simply don't work in Emacs 21.3 when invoked via key binding.
+;; They're called directly in Emacs 21, to speed them up; no advice is invoked
+;; in such a case.
 
 ;; (speechd-speak--command-feedback (self-insert-command) after
 ;;   (speechd-speak--char (preceding-char)))
@@ -334,19 +368,6 @@ Level 1 is the slowest, level 9 is the fastest."
 
 (defvar speechd-speak--last-message "")
 
-;; Unfortunately, in Emacs 21.3, after change function is not invoked on the
-;; `message' insertion and some other built-in call insertions.  See
-;; `speechd-speak--post-command-hook'.
-(defun speechd-speak--speak-new-message (beg end length)
-  (when (= length 0)
-    (let ((text (buffer-substring-no-properties beg end)))
-      (unless (save-match-data (string-match "times[]]$" text))
-	(setq speechd-speak--last-message text))
-      (speechd-speak--text text :priority :progress))))
-(save-excursion
-  (set-buffer "*Messages*")
-  (add-hook 'after-change-functions 'speechd-speak--speak-new-message nil t))
-
 (defun speechd-speak-last-message ()
   (interactive)
   (speechd-speak--text speechd-speak--last-message))
@@ -373,37 +394,45 @@ Level 1 is the slowest, level 9 is the fastest."
 (speechd-speak--command-feedback minibuffer-message after
   (speechd-speak--text (ad-get-arg 0) :priority :notification))
 
+;; The following functions don't invoke `minibuffer-setup-hook'
+(defadvice y-or-n-p (before speechd-speak activate preactivate compile)
+  (speechd-speak--text (concat (ad-get-arg 0) "(y or n)") :priority :message))
+(defadvice read-key-sequence (before speechd-speak
+			      activate preactivate compile)
+  (speechd-speak--text (ad-get-arg 0) :priority :message))
+
 
 ;;; Commands
 
 
 (defun speechd-speak--pre-command-hook ()
-  (when (= (minibuffer-depth) 0)
-    (setq speechd-speak--command-start-info (ignore-errors
-					      (list (current-buffer)
-						    (point)))))
+  (speechd-speak--set-command-start-info)
   (add-hook 'pre-command-hook 'speechd-speak--pre-command-hook))
 
 (defun speechd-speak--post-command-hook ()
+  ;; Messages should be handled by an after change function.  Unfortunately, in
+  ;; Emacs 21 after change functions in the *Messages* buffer don't work in
+  ;; many situations.  This is a property of the Emacs implementation, so the
+  ;; mechanism can't be used.
   (let ((message (current-message)))
     (when message
       (setq speechd-speak--last-message message)
       (speechd-speak--text message :priority :progress)))
-  (when (and (= (minibuffer-depth) 0)
-	     speechd-speak--command-start-info)
-;    (speechd-speak--text (symbol-name this-command) :priority :notice)
-    (multiple-value-bind (buffer position) speechd-speak--command-start-info
-      (cond
-       ((eq this-command 'self-insert-command)
-	(speechd-speak-read-char (preceding-char)))
-       ((memq this-command '(forward-char backward-char))
-	(speechd-speak-read-char))
-       ((not (eq buffer (current-buffer)))
-	(if speechd-speak-buffer-name
-	    (speechd-speak--text (buffer-name) :priority :message)
-	  (speechd-speak-read-line)))
-       ((not (= position (point)))
-	(speechd-speak-read-line)))))
+  (let ((command-info (speechd-speak--command-start-info)))
+    (when command-info
+      ;(speechd-speak--text (symbol-name this-command) :priority :notice)
+      (multiple-value-bind (buffer position) command-info
+	(cond
+	 ((eq this-command 'self-insert-command)
+	  (speechd-speak-read-char (preceding-char)))
+	 ((memq this-command '(forward-char backward-char))
+	  (speechd-speak-read-char))
+	 ((not (eq buffer (current-buffer)))
+	  (if speechd-speak-buffer-name
+	      (speechd-speak--text (buffer-name) :priority :message)
+	    (speechd-speak-read-line)))
+	 ((not (= position (point)))
+	  (speechd-speak-read-line))))))
   (add-hook 'post-command-hook 'speechd-speak--post-command-hook))
 
 
@@ -495,6 +524,7 @@ Level 1 is the slowest, level 9 is the fastest."
   (speechd-speak--speak-current-column))
 
 
+
 ;;; The startup function
 
 
@@ -538,6 +568,7 @@ Level 1 is the slowest, level 9 is the fastest."
 (define-key speechd-speak-keymap " " 'speechd-resume)
 (define-key speechd-speak-keymap "'" 'speechd-speak-speak-sexp)
 (define-key speechd-speak-keymap "[" 'speechd-speak-read-page)
+(define-key speechd-speak-keymap "\C-n" 'speechd-speak-read-other-window)
 (define-key speechd-speak-keymap "\C-s" 'speechd-reopen)
 (define-key speechd-speak-keymap "\M-\C-k" 'kill-emacs)
 (define-key speechd-speak-keymap '[down] 'speechd-speak-read-next-line)
@@ -566,7 +597,6 @@ Level 1 is the slowest, level 9 is the fastest."
 ;(define-key speechd-speak-keymap "\C-c" 'speechd-speak-clipboard-copy)
 ;; (define-key speechd-speak-keymap "\C-y" 'speechd-speak-clipboard-paste)
 ;; (define-key speechd-speak-keymap "\C-p" 'speechd-speak-speak-previous-window)
-;; (define-key speechd-speak-keymap "\C-n" 'speechd-speak-speak-next-window)
 ;; (define-key speechd-speak-keymap "=" 'speechd-speak-speak-current-column)
 ;; (define-key speechd-speak-keymap "%" 'speechd-speak-speak-current-percentage)
 ;; (define-key speechd-speak-keymap "<" 'speechd-speak-speak-previous-field)
@@ -587,4 +617,3 @@ Level 1 is the slowest, level 9 is the fastest."
 
 
 ;;; speechd-speak.el ends here
-
