@@ -103,7 +103,7 @@
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.20 2003-05-29 15:53:55 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.21 2003-06-03 15:30:35 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -665,8 +665,10 @@ The key argument `priority' defines the priority of the message and must be one
 of the symbols `:high', `:medium', and `:low'."
   (speechd--set-parameter :message-priority priority)
   (speechd--send-command
-   (list "CHAR" (format "%s"
-			(if (eql char ? ) "space" (char-to-string char))))))
+   (list "CHAR" (format "%s" (case char
+			       (?  "space")
+			       (?\n "linefeed")
+			       (t (char-to-string char)))))))
 
 (defun* speechd-say-key (key &key (priority speechd-default-key-priority))
   "Speak the given KEY.
