@@ -23,6 +23,10 @@ adjust speech volume.
 
 ** The *Completion* buffer is spoken now.
 
+** You can shut up speechd-el in debugger.
+
+See the new variable speechd-speak-in-debugger.
+
 
 * Changes in speechd-el 0.2
 

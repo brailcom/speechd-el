@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "2004-03-23 18:45 pdm"
+(defconst speechd-speak-version "2004-03-25 12:54 pdm"
   "Version of the speechd-speak file.")
 
 
@@ -261,6 +261,12 @@ The following actions are supported: `empty', `beginning-of-line',
               (const message))
   :group 'speechd-speak)
 
+(defcustom speechd-speak-in-debugger t
+  "If nil, speechd-speak functions won't speak in Elisp debuggers.
+This may be useful when debugging speechd-el itself."
+  :type 'boolean
+  :group 'speechd-speak)
+
 (defcustom speechd-speak-prefix "\C-e"
   "Default prefix key used for speechd-speak commands."
   :set #'(lambda (name value)
@@ -346,7 +352,6 @@ Level 1 is the slowest, level 9 is the fastest."
 
 (defvar speechd-speak--last-buffer-mode t)
 (defvar speechd-speak--last-connection-name nil)
-(make-variable-buffer-local 'speechd-speak--client-name-set)
 (defvar speechd-speak--last-connections nil)
 (defvar speechd-speak--default-connection-name "default")
 (defvar speechd-speak--special-area nil)
@@ -377,7 +382,7 @@ Level 1 is the slowest, level 9 is the fastest."
                           (let ((specs speechd-speak-connections)
                                 (result nil))
                             (while (and (not result) specs)
-                              (if (and (listp (caar specs))
+                              (if (and (consp (caar specs))
                                        (eval (caar specs)))
                                   (setq result (car specs))
                                 (setq specs (cdr specs))))
@@ -397,13 +402,21 @@ Level 1 is the slowest, level 9 is the fastest."
       (set (make-local-variable 'speechd-client-name)
            speechd-speak--last-connection-name)))))
 
+(defun speechd-speak--in-debugger ()
+  (and (not speechd-speak-in-debugger)
+       (or (eq major-mode 'debugger-mode)
+           (and (boundp 'edebug-active) edebug-active))))
+
 (defmacro speechd-speak--maybe-speak (&rest body)
-  `(when speechd-speak-mode
+  `(when (and speechd-speak-mode
+              (not (speechd-speak--in-debugger)))
      (let ((speechd-client-name (speechd-speak--connection-name)))
        ,@body)))
 
 (defmacro speechd-speak--interactive (&rest body)
-  `(let ((speechd-speak-mode (or (interactive-p) speechd-speak-mode))
+  `(let ((speechd-speak-mode (or (interactive-p)
+                                 (and speechd-speak-mode
+                                      (not (speechd-speak--in-debugger)))))
          (speechd-default-text-priority (if (interactive-p)
                                             'message
                                           speechd-default-text-priority)))
@@ -584,6 +597,7 @@ If BUFFER is nil, read current buffer."
   (changes '())
   (change-end nil)
   (other-changes '())
+  other-changes-buffer
   other-window
   other-buffer-modified
   completion-buffer-modified
@@ -904,9 +918,13 @@ connections, otherwise create completely new connection."
 (defun speechd-speak--read-other-changes ()
   (speechd-speak--with-command-start-info
    (when (speechd-speak--cinfo other-changes)
-     (speechd-speak--text
-      (mapconcat #'identity (nreverse (speechd-speak--cinfo other-changes)) "")
-      :priority 'message)
+     (let ((speechd-speak--special-area nil)
+           (buffer (get-buffer (speechd-speak--cinfo other-changes-buffer))))
+       (with-current-buffer (or buffer (current-buffer))
+         (speechd-speak--text
+          (mapconcat #'identity
+                     (nreverse (speechd-speak--cinfo other-changes)) "")
+          :priority 'message)))
      (setf (speechd-speak--cinfo other-changes) '()))))
 
 (defun speechd-speak--minibuffer-prompt (prompt &rest args)
@@ -1018,7 +1036,7 @@ connections, otherwise create completely new connection."
 
 (defun speechd-speak--after-change-hook (beg end len)
   (speechd-speak--enforce-speak-mode)
-  (when speechd-speak-mode
+  (speechd-speak--maybe-speak
     (speechd-speak--with-command-start-info
       (unless (= beg end)
         (cond
@@ -1026,6 +1044,7 @@ connections, otherwise create completely new connection."
           (speechd-speak--text (speechd-speak--buffer-substring beg end)
                                :priority 'message))
          ((member (buffer-name) speechd-speak-insertions-in-buffers)
+          (setf (speechd-speak--cinfo other-changes-buffer) (buffer-name))
           (push (speechd-speak--buffer-substring beg end)
                 (speechd-speak--cinfo other-changes)))
          ((eq (current-buffer) (speechd-speak--cinfo buffer))
@@ -1046,7 +1065,7 @@ connections, otherwise create completely new connection."
   (setq speechd-speak--last-report "")
   (when speechd-speak-spell-command
     (speechd-speak-spell-mode 1))
-  (when speechd-speak-mode
+  (speechd-speak--maybe-speak
     (when (and (eq speechd-speak-read-command-keys t)
                (not (memq this-command speechd-speak-ignore-command-keys)))
       (speechd-speak--command-keys (if (eq this-command 'self-insert-command)
@@ -1266,7 +1285,7 @@ connections, otherwise create completely new connection."
     (setq speechd-speak-spell-command nil)
     (speechd-speak-spell-mode 0))
   ;; Now, try to speak something useful
-  (when speechd-speak-mode
+  (speechd-speak--maybe-speak
     (condition-case err
         (progn
           ;; Messages should be handled by an after change function.

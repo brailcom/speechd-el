@@ -575,6 +575,7 @@ Prompt for a text and speak it.
 * Multiple Connections::        Different parameters for some modes & buffers.
 * Keys::                        Customizing command keys.
 * Modes::                       Minor mode hooks.
+* Debugging::                   Make debugger quiet.
 @end menu
 
 @node Host Configuration, Default Priorities, Customization, Customization
@@ -1089,7 +1090,7 @@ to get the @code{'speechd-say-text} command bound to the @code{C-e t}
 key (assuming @code{C-e} is the prefix key).
 @end vtable
 
-@node Modes,  , Keys, Customization
+@node Modes, Debugging, Keys, Customization
 @subsection Minor mode hooks
 @cindex minor modes
 @cindex hooks
@@ -1101,6 +1102,19 @@ actions on entering it through the following hook.
 @vtable @code
 @item speechd-speak-mode-hook
 Hook run when speechd-speak minor mode is enabled.
+@end vtable
+
+@node Debugging,  , Modes, Customization
+@subsection Debugging speechd-el
+@cindex debugging
+
+When you try to debug speechd-speak functions, you can experience the
+problem of recursive speaking in the Elisp debugger.  To avoid it, you
+can instruct speechd-el to be quiet in Elisp debuggers:
+
+@vtable @code
+@item speechd-speak-in-debugger
+If @code{nil}, speechd-speak functions won't speak in Elisp debuggers.
 @end vtable
 
 @node Advanced Customization, Problems, Customization, speechd-el User Manual

@@ -1,3 +1,30 @@
+2004-03-25  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak--client-name-set): Duplicate
+	buffer locality declaration removed.
+	(speechd-speak--connection-name): Use consp, not listp, when
+	testing for an eval form.
+	(speechd-speak--command-info-struct): New slot
+	other-changes-buffer.
+	(speechd-speak--after-change-hook): Set it.
+	(speechd-speak--read-other-changes): Speak the changes in their
+	originated buffer, not as a special area.
+
+2004-03-25  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak--in-debugger): Test whether
+	edebug-active is bound.
+
+2004-03-25  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak--in-debugger): New function.
+	(speechd-speak-in-debugger): New user option.
+	(speechd-speak--maybe-speak): Don't speak when in debugger.
+	(speechd-speak--after-change-hook) 
+	(speechd-speak--pre-command-hook) 
+	(speechd-speak--post-command-hook): Use speechd-speak--maybe-speak
+	instead of testing the speechd-speak-mode variable.
+
 2004-03-23  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-speak.el (completions): Set speechd-language in the
