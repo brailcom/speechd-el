@@ -89,7 +89,7 @@
   :type speechd-priority-tags
   :group 'speechd)
 
-(defcustom speechd-connection-parameters '()4
+(defcustom speechd-connection-parameters '()
   "Alist of connection names and their parameters.
 
 Each element of the list is of the form (CONNECTION-NAME . PARAMETERS), where
@@ -135,7 +135,7 @@ current voice."
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.27 2003-07-07 07:43:49 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.28 2003-07-07 09:46:39 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
