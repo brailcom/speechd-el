@@ -61,7 +61,7 @@
 
 (defcustom speechd-port (or (ignore-errors
                               (car (read-from-string (getenv "SPEECHD_PORT"))))
-                            9876)
+                            6560)
   "Default port of speechd."
   :type 'integer
   :group 'speechd)
@@ -222,7 +222,7 @@ locally through `let'.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.59 2003-09-29 14:53:05 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.60 2003-10-01 11:07:16 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
