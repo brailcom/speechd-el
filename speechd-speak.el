@@ -2,6 +2,8 @@
 
 ;; Copyright (C) 2003 Brailcom, o.p.s.
 
+;; Author: Milan Zamazal <pdm@brailcom.org>
+
 ;; COPYRIGHT NOTICE
 ;;
 ;; This program is free software; you can redistribute it and/or modify
@@ -20,9 +22,8 @@
 
 ;;; Commentary:
 
-;; This is a simple experimental Emacs client to speechd.  Some ideas taken
-;; from the Emacspeak package (http://emacspeak.sourceforge.net) by
-;; T. V. Raman.
+;; This is an Emacs client to speechd.  Some ideas taken from the Emacspeak
+;; package (http://emacspeak.sourceforge.net) by T. V. Raman.
 
 ;;; Code:
 
@@ -31,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.30 2003-07-27 18:00:51 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.31 2003-07-28 13:18:31 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -457,7 +458,8 @@ If BUFFER is nil, read current buffer."
   buffer
   point
   modified
-  changes
+  (changes '())
+  (change-end nil)
   other-window
   other-buffer-modified
   minibuffer-contents)
@@ -492,7 +494,6 @@ If BUFFER is nil, read current buffer."
 		(make-speechd-speak--command-info-struct
 		 :buffer (current-buffer) :point (point)
 		 :modified (buffer-modified-tick)
-                 :changes '()
 		 :other-window other-window
 		 :other-buffer-modified (and other-window
 					     (buffer-modified-tick
@@ -739,10 +740,20 @@ FUNCTION is invoked interactively."
 ;;; Commands
 
 
-(defun speechd-speak--add-command-text (info text)
-  (unless (string= (first (speechd-speak--command-info-struct-changes info))
-                   text)
-    (push text (speechd-speak--command-info-struct-changes info))))
+(defun speechd-speak--add-command-text (info beg end)
+  (let ((last (first (speechd-speak--command-info-struct-changes info)))
+        (last-end (speechd-speak--command-info-struct-change-end info))
+        (text (speechd-speak--buffer-substring beg end)))
+    (setf (speechd-speak--command-info-struct-change-end info) end)
+    (cond
+     ((and last (string= last text))
+      ;; nothing to do
+      )
+     ((and last-end (= last-end beg))
+      (rplaca (speechd-speak--command-info-struct-changes info)
+              (concat last (buffer-substring beg end))))
+     (t
+      (push text (speechd-speak--command-info-struct-changes info))))))
 
 (defun speechd-speak--buffer-substring (beg end)
   (buffer-substring
@@ -760,12 +771,12 @@ FUNCTION is invoked interactively."
 (defun speechd-speak--minibuffer-update-report (info old new)
   (speechd-speak--add-command-text
    info
-   (if (and (<= (length old) (length new))
-            (string= old (substring new 0 (length old))))
-       (speechd-speak--buffer-substring
-        (+ (minibuffer-prompt-end) (length old))
-        (point-max))
-     new)))
+   (+ (minibuffer-prompt-end)
+      (if (and (<= (length old) (length new))
+               (string= old (substring new 0 (length old))))
+          (length old)
+        0))
+   (point-max)))
 
 (defun speechd-speak--minibuffer-update (beg end len)
   (speechd-speak--with-command-start-info
@@ -789,9 +800,7 @@ FUNCTION is invoked interactively."
               (speechd-speak--command-info-struct-buffer info))
           (if (speechd-speak--in-minibuffer-p)
               (speechd-speak--minibuffer-update beg end len)
-            (speechd-speak--add-command-text
-             info
-             (speechd-speak--buffer-substring beg end))))
+            (speechd-speak--add-command-text info beg end)))
          ((member (buffer-name (current-buffer))
                   speechd-speak-insertions-in-buffers)
           (speechd-speak--text (speechd-speak--buffer-substring beg end)
@@ -1088,7 +1097,10 @@ the value of the `speechd-speak-prefix' variable:
         (add-hook 'minibuffer-setup-hook 'speechd-speak--minibuffer-setup-hook)
         (add-hook 'minibuffer-exit-hook 'speechd-speak--minibuffer-exit-hook)
         (add-hook 'kill-emacs-hook 'speechd-speak--shutdown))
-    (speechd-cancel))
+    ;; We used to call `speechd-cancel' here, but that slows down global mode
+    ;; disabling if there are many buffers present.  So `speechd-cancel' is
+    ;; called only on global mode disabling now.
+    )
   (when (interactive-p)
     (let ((state (if speechd-speak-mode "on" "off"))
           (speechd-speak-mode t))
@@ -1099,6 +1111,10 @@ the value of the `speechd-speak-prefix' variable:
  global-speechd-speak-mode speechd-speak-mode
  (lambda () (speechd-speak-mode 1))
  :group 'speechd-speak)
+
+(speechd-speak--defadvice global-speechd-speak-mode before
+  (when global-speechd-speak-mode
+    (speechd-cancel)))
 
 ;; global-speechd-speak-map-mode is not enabled until kill-all-local-variables
 ;; is called.  So we have to be a bit more aggressive about it sometimes.  The
