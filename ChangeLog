@@ -1,3 +1,8 @@
+2003-07-01  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak--post-command-hook): Typo in the
+	buffer-modified variable reference fixed.
+
 2003-06-30  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd.el (speechd--close-process): Don't kill or delete if the
