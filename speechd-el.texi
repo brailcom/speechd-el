@@ -1238,6 +1238,8 @@ directly related to speechd-el but which may be of special interest to
 speechd-el users.
 
 @table @emph
+@cindex w3m-el
+@cindex URL speaking
 @item How to avoid printing URL when moving through links in w3m-el?
 Add the following code to your @file{~/.emacs}:
 
@@ -1247,6 +1249,34 @@ Add the following code to your @file{~/.emacs}:
     ad-do-it))
 @end lisp
 @end table
+
+Don't forget that Elisp allows you to define many useful functions.
+Typically, you may want to define commands reporting some information,
+which can be easily identified on the Emacs screen, but which is not
+so easily provided in the standard speech output interface.
+
+Some examples:
+
+@table @r
+@cindex buffer name
+@item Reporting current buffer name:
+
+@lisp
+(defun report-current-buffer ()
+  (interactive)
+  (message "%s" (buffer-name)))
+@end lisp
+
+@item Reporting current date in calendar:
+
+@cindex day in calendar
+@lisp
+(defun report-day ()
+  (interactive)
+  (message "%s" (calendar-date-string (calendar-cursor-to-date t))))
+@end lisp
+@end table
+
 
 @node Problems, Bug Reporting, Tips, speechd-el User Manual
 @section Problems You May Encounter

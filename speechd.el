@@ -34,10 +34,6 @@
 ;; Functions and variables starting with the prefix `speechd--' are considered
 ;; internal and you shouldn't use them outside this file.
 ;;
-;; *Note*: If you call any of the speechd-el functions asynchronously
-;; (typically within a process filter function), you must wrap the whole
-;; asynchronous code by the `speechd-protect' macro.
-;;
 ;; See docstrings and the Texinfo manual for full details.
 
 ;;; Code:
@@ -244,7 +240,7 @@ language.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd-el-version "2004-08-24 11:52 pdm"
+(defconst speechd-el-version "2004-08-25 22:07 pdm"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -327,6 +323,7 @@ Useful only for diagnosing problems.")
   port
   (failure-p nil)
   process
+  (process-output "")
   (paused-p nil)
   (in-block nil)
   (parameters ())
@@ -442,7 +439,9 @@ code."
 	   (let ((speechd-client-name name))
 	     (speechd-open)))))
 
-(defvar speechd--spdsend "spdsend")
+(defvar speechd--spdsend (and (not (> emacs-major-version 21))
+                              (not (> emacs-minor-version 3))
+                              "spdsend"))
 
 (defun speechd--call-spdsend (args &optional input)
   (with-temp-buffer
@@ -458,23 +457,46 @@ code."
       (apply #'call-process speechd--spdsend nil t nil args))
     (buffer-string)))
 
+(defun speechd--process-filter (process output)
+  (speechd--with-current-connection
+    (setf (speechd--connection-process-output connection)
+          (concat (speechd--connection-process-output connection) output))))
+
 (defun speechd--open-connection (host port)
-  (let* ((answer (speechd--call-spdsend
-                  (list "--open" host (format "%d" port))))
-         (alen (and answer (length answer))))
-    (when (and alen (> alen 1))
-      (setq answer (substring answer 0 (1- alen))))
-    answer))
+  (if speechd--spdsend
+      (let* ((answer (speechd--call-spdsend
+                      (list "--open" host (format "%d" port))))
+             (alen (and answer (length answer))))
+        (when (and alen (> alen 1))
+          (setq answer (substring answer 0 (1- alen))))
+        answer)
+    (let ((process (open-network-stream "speechd" nil host port)))
+      (when process
+        (set-process-coding-system process
+                                   speechd--coding-system
+                                   speechd--coding-system)
+        (set-process-filter process #'speechd--process-filter))
+      process)))
 
 (defun speechd--close-connection (connection)
-  (speechd--call-spdsend
-   (list "--close" (speechd--connection-process connection)))
+  (if speechd--spdsend
+      (speechd--call-spdsend
+       (list "--close" (speechd--connection-process connection)))
+    (delete-process (speechd--connection-process connection)))
   (setf (speechd--connection-process connection) nil))
 
 (defun speechd--send-connection (connection command)
-  (speechd--call-spdsend
-   (list "--send" (speechd--connection-process connection))
-   command))
+  (let ((process (speechd--connection-process connection)))
+    (if speechd--spdsend
+        (speechd--call-spdsend (list "--send" process) command)
+      (process-send-string process command)
+      (while (not (string-match
+                   speechd--end-regexp
+                   (speechd--connection-process-output connection)))
+        (unless (accept-process-output process speechd-timeout nil 1)
+          (error "Error in communication with Speech Dispatcher")))
+      (prog1 (speechd--connection-process-output connection)
+        (setf (speechd--connection-process-output connection) "")))))
 
 ;;;###autoload
 (defun* speechd-open (&optional host port &key quiet force-reopen)
@@ -523,8 +545,7 @@ Return the opened connection on success, nil otherwise."
 	(if id
 	    (progn
               (setq connection (make-speechd--connection
-                                :name name :host host :port port
-                                :process id :failure-p (not process)))
+                                :name name :host host :port port :process id))
               (puthash name connection speechd--connections))
 	  (unless quiet
             (setq connection nil)

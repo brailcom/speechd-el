@@ -1,3 +1,17 @@
+2004-08-25  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd--spdsend): Set to nil in new Emacs version.
+	(speechd--connection): New slot process-output.
+	(speechd--open-connection, speechd--close-connection)
+	(speechd--send-connection): Support direct communication with
+	Speech Dispatcher.
+	(speechd--process-filter): New function.
+
+2004-08-25  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-open): Don't initialize :failure-p with an
+	unbound variable in the make-speechd--connection call.
+
 2004-08-24  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd.el (speechd--send-text): Remove text properties before
