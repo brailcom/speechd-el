@@ -71,7 +71,7 @@
 (defun dtk-interp-stop ()
   (if speechd-emacspeak-no-stop
       (setq speechd-emacspeak-no-stop nil)
-    (speechd-stop)))
+    (speechd-cancel)))
 
 (defun dtk-interp-sync ()
   (dtk-interp-set-punctuations dtk-punctuation-mode)
