@@ -84,7 +84,7 @@ Key features of speechd-el are:
 @item
 Support for automated speaking, without necessity to customize each
 particular Emacs function to make it speak; most built-in and external
-Emacs packages produce speech output immediatelly, without any special
+Emacs packages produce speech output immediately, without any special
 support.
 
 @item
@@ -404,9 +404,9 @@ configuration.
 @kindex C-e d c
 @findex speechd-speak-set-capital-character-mode
 @cindex capital character mode
-Set capital letter signalization mode.  @code{icon} means signal them
+Set capital letter indication mode.  @code{icon} means signal them
 with a sound icon, @code{spell} means spell them using a special
-spelling table, and @code{none} means no signalization.
+spelling table, and @code{none} means no indication.
 @end table
 
 Commands affecting speech output properties:
@@ -516,7 +516,7 @@ Try to disable all modes, hooks and wrappers installed by
 @code{speechd-speak} (@code{speechd-unspeak}).
 @end table
 
-The following commands are rarely used, mostly for diagnosting
+The following commands are rarely used, mostly for diagnosing
 purposes:
 
 @table @kbd
@@ -681,8 +681,8 @@ particularly useful in completion functions.
 @subsection Signalling
 
 Certain situations may be signalled by sound icons.  The following
-flags enable or disable the predefined signalizations.  To learn how
-to define your own signalizations, @xref{Advanced Customization}.
+flags enable or disable the predefined indications.  To learn how
+to define your own indications, @xref{Advanced Customization}.
 
 @vtable @code
 @item speechd-speak-signal-empty
@@ -707,8 +707,6 @@ If non-@code{nil}, signal reaching end of line after the
 @cindex faces
 @cindex cursor
 @cindex movement
-
-!!!
 
 By default, after a movement command speechd-el speaks the current
 line.  But if the cursor position is surrounded by a text having text
@@ -769,22 +767,106 @@ enabled.
 @node Connection Parameters, Multiple Connections, Text Properties, Customization
 @subsection Connection Parameters
 @cindex parameters
-!!!
+
+With the help of the following variable you can let set various
+connection parameters, like speech rate, language, etc.,
+automatically.  speechd-el can open multiple connections according to
+various criteria (@pxref{Multiple Connections}), you can set different
+parameters to different connections, based on their names, and you can
+set default parameters common to all connections.
 
 @vtable @code
 @item speechd-connection-parameters
+Alist of connection names and corresponding parameters.  Each list
+element is of the form @code{(@var{connection-name}
+. @var{parameters})}, where @var{connection-name} is a connection name
+given as a string and @var{parameters} is a property list with the
+pairs of parameter identifiers and parameter values.
 
+If you put the symbol @code{t} in the place of @var{connection-name}
+instead of a string, the corresponding element specifies default
+connection parameters common to all connections.  Each of the
+parameters present in such an element applies to all connections which
+don't have its value specified.  Only one element of the whole alist
+may have given the @code{t} symbol instead of connection name.
+
+Valid parameter identifiers are the following symbols:
+@code{language}, @code{message-priority}, @code{punctuation-mode},
+@code{important-punctuation}, @code{punctuation-table},
+@code{spelling-table}, @code{text-table}, @code{character-table},
+@code{key-table}, @code{sound-table}, @code{capital-character-table},
+@code{capital-character-mode}, @code{voice}, @code{rate},
+@code{pitch}, @code{output-module}.  See the corresponding
+@code{speechd-set-*} function docstrings for description of valid
+parameter values.
+
+The @code{message-priority} parameter has a special meaning: It
+overrides the priority of all messages sent through the connection.
+If you specify it for some connection, all the messages sent through
+the connection will get the same priority, even when a message sending
+function explicitly sets a different priority for messages it sends.
 @end vtable
+
+So that changing the value of the variable could take the full effect,
+the open connections must be reopened.  Unless you use the
+customization interface, you must invoke the @kbd{C-u M-x
+speechd-speak} command to ensure this.
 
 @node Multiple Connections, Keys, Connection Parameters, Customization
 @subsection Multiple Connections
 @cindex connections
 
-!!!
+You can arrange speechd-el to use separate connections to Speech
+Dispatcher for certain buffers or major modes.  This is basically
+useful to allow independent parameter setting for those buffers and
+major modes, both by hand and through the configuration
+(@pxref{Connection Parameters}).
+
+Each Speech Dispatcher connection has its unique name.  By default,
+speechd-el uses a connection named @code{"default"}.  All you need to
+create a separate connection is to let speechd-el choose a different
+connection name in certain situations.  The process of connection name
+selection is driven by the @code{speechd-speak-connections} variable.
 
 @vtable @code
 @item speechd-speak-connections
+Alist mapping major modes and buffers to speechd connections.  Each
+element of the alist is of the form @code{(@var{mode-or-buffer}
+. @var{connection-name})}.
 
+When speechd-el wants to send a message, it tests the current
+environment against the @var{mode-or-buffer} entries.
+@var{mode-or-buffer} may be one of the following objects, in the order
+of priority from the highest to the lowest:
+
+@itemize @bullet
+@item
+a list, representing a function call that should return a
+non-@code{nil} value if and only if the element should be applied
+
+@item
+buffer name 
+
+@item
+the symbol @code{:minibuffer}, representing minibuffers
+
+@item
+major mode symbol
+
+@item
+@code{nil}, representing non-buffer areas, e.g. echo area
+
+@item
+@code{t}, representing the default value if nothing else matches
+@end itemize
+
+If more entries match in some situation, the entry with the highest
+priority is used.
+
+@var{connection-name} is an arbitrary non-empty string naming the
+corresponding connection.  If no connection with such a name is open
+in the running speechd-el, it is automatically created when there's
+something to send to it.
 @end vtable
 
 @node Keys, Modes, Multiple Connections, Customization
@@ -834,12 +916,65 @@ Hook run when speechd-speak minor mode is enabled.
 
 @node Advanced Customization,  , Customization, speechd-el User Manual
 @section Defining Your Own Command Feedbacks
+@cindex extensions
 
 Writing your own feedback definitions generally requires knowledge of
-Elisp programming.  But don't be afraid, you can set some things
+Elisp programming.  But don't be afraid, you can set basic things
 without it, just following instructions here.
 
-!!!
+speechd-el allows you to say a text, play a sound icon, or call any
+Elisp expression before or after a command or a function is invoked.
+There are two macros that allow you to do it, while ensuring
+everything is set up properly:
+
+@ftable @code
+@item speechd-speak-command-feedback @var{command} @var{position} @var{feedback}
+Install feedback invocation on @var{command}.  @code{command} is a
+name of an interactive function (use @kbd{C-h C-c} to get a name of
+the command bound to a given key).
+
+@var{position} may be one of the symbols @code{before} and
+@code{after} to call the feedback before or after the command is
+invoked.
+
+@code{feedback} may be a string or any Elisp expression.  If it is a
+string (a text enclosed in double quotes), it defines a text to be
+spoken or a sound icon to be played.  If the string starts with an
+asterisk (@code{*}), it names a sound icon (the asterisk is not a part
+of the name), otherwise it is a normal text.
+
+Example:
+@cindex @code{suspend-emacs}
+
+@lisp
+(speechd-speak-command-feedback suspend-emacs before "Suspending Emacs!")
+@end lisp
+
+You can put this line of Elisp code to your @file{~/.emacs} to ensure
+you are informed when you invoke the @code{suspend-emacs} command
+(usually bound to @kbd{C-z}).
+
+@item speechd-speak-function-feedback @var{function} @var{position} @var{feedback}
+This is the same as @code{speechd-speak-command-feedback}, except it
+is called anytime the given function is invoked, whether interactively
+or not.  Also, @var{function} may be any function, not only an
+interactive command.
+@end ftable
+
+@emph{Please note:}
+
+@itemize @bullet
+@item
+Due to Emacs deficiency, the feedback mechanism may not work on
+built-in functions.
+
+@item
+Be careful if you want to install function feedbacks without help of
+the macros above.  The macros install code ensuring nothing is spoken
+if @code{speechd-speak-mode} is disabled and other similar
+precautions.  If you do not use them, you should make those
+precautions yourself.
+@end itemize
 
 @c ****************************************************************************
 
@@ -882,6 +1017,8 @@ Otherwise there should be no special pitfalls and you should be safe
 to do anything what makes sense.
 @end itemize
 
+You can also look at @ref{Advanced Customization}.
+
 @c ****************************************************************************
 
 @node Contact Information, Copying This Manual, speechd-el Elisp Library, Top
@@ -908,3 +1045,9 @@ address @email{speechd-devel@@freebsoft.org}.
 @printindex cp
 
 @bye
+
+@c  LocalWords:  texinfo setfilename speechd settitle syncodeindex fn cp ky vr
+@c  LocalWords:  Brailcom dircategory direntry titlepage vskip pt filll dir url
+@c  LocalWords:  insertcopying ifnottex cindex Elib autoload kbd findex kindex
+@c  LocalWords:  pxref sexp SPC itemx var unspeak vtable xref asis alist ftable
+@c  LocalWords:  docstrings minibuffers emph vindex fdl texi printindex
