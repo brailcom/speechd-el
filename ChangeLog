@@ -1,3 +1,9 @@
+2003-08-06  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-connection-parameters): Call speechd-reopen
+	in :set, :initialize added.
+	(speechd-connection-parameters): Don't use mapcan in :set.
+
 2003-08-05  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-speak.el (speechd-speak): Message about the (re)started
