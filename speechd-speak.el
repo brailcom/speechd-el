@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "2004-07-27 07:37 pdm"
+(defconst speechd-speak-version "2004-07-29 10:32 pdm"
   "Version of the speechd-speak file.")
 
 
@@ -294,6 +294,9 @@ This may be useful when debugging speechd-el itself."
   :type 'sexp
   :group 'speechd-speak)
 
+(defvar speechd-speak-quiet-functions '(imap-arrival-filter)
+  "List of functions, which shouldn't produce any spoken output.")
+
 
 ;;; Internal constants
 
@@ -528,7 +531,7 @@ played."
             (speechd-speak--event-mapping 'empty)
             "")
         :priority speechd-default-text-priority))
-      ((string-match "\\`[ \t]+\\'" text)
+      ((save-match-data (string-match "\\`[ \t]+\\'" text))
        (speechd-speak-report (or (speechd-speak--event-mapping 'whitespace) "")
                              :priority speechd-default-text-priority))
       (t
@@ -818,6 +821,11 @@ connections, otherwise create completely new connection."
           (apply (car request) (cdr request)))
         (setq speechd-speak--pending-speeches
               (cdr speechd-speak--pending-speeches))))))
+
+(dolist (f speechd-speak-quiet-functions)
+  (eval `(speechd-speak--defadvice ,f around
+           (let ((speechd-speak-mode nil))
+             ad-do-it))))
 
 
 ;;; Basic speaking
@@ -1368,7 +1376,8 @@ Only single characters are allowed in the keymap.")
       (let ((speechd-language "en")
             (speechd-speak-input-method-languages nil))
         (goto-char (point-min))
-        (re-search-forward "\n\n+" nil t)
+        (save-match-data
+          (re-search-forward "\n\n+" nil t))
         (speechd-speak-read-region (point) (point-max) nil))))
 
 (speechd-speak--post-defun special-face-movement sometimes

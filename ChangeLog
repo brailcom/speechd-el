@@ -1,3 +1,13 @@
+2004-07-29  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak-quiet-functions): New variable;
+	advise its functions.
+
+2004-07-27  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (completions, speechd-speak-read-region): Wrap
+	regular expression handling by save-match-data.
+
 2004-07-27  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-speak.el (speechd-speak--command-feedback-region)
