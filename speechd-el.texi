@@ -702,6 +702,11 @@ speak the new buffer name.  If the variable value is the symbol
 line in the new buffer as well.  If the variable is @code{nil}, speak
 the text without speaking the buffer name.
 
+@item speechd-speak-whole-line
+@cindex line reading
+If non-@code{nil}, speak whole line on movement by default.  Otherwise
+speak from the point to the end of line on movement by default.
+
 @item speechd-speak-on-minibuffer-exit
 @cindex minibuffer
 When this variable is non-@code{nil}, speechd-el reads the text around

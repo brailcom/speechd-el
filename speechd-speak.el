@@ -211,7 +211,7 @@ If ACTION is a function, it is invoked, with no arguments."
 
 (defcustom speechd-speak-whole-line nil
   "If non-nil, speak whole line on movement by default.
-Otherwise from the point to the end of line on movement by default."
+Otherwise speak from the point to the end of line on movement by default."
   :type 'boolean
   :group 'speechd-speak)
 
