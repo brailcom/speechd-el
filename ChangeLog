@@ -1,3 +1,8 @@
+2003-04-15  Milan Zamazal  <pdm@brailcom.org>
+
+	* dtk-interp.el (dtk-interp-set-punctuations): `mode' is a string,
+	not a symbol.
+
 2003-04-14  Milan Zamazal  <pdm@brailcom.org>
 
 	* dtk-interp.el (dtk-interp-set-punctuations): Changed to none,
