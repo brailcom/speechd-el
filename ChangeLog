@@ -1,3 +1,8 @@
+2003-06-10  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-emacspeak.el (message): Moved after Emacspeak start.
+	Don't require emacspeak-advice anymore.
+
 2003-06-09  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-emacspeak.el (message): New redefinition.
