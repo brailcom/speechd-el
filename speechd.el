@@ -48,17 +48,17 @@
   "Speech Daemon interface.")
 
 (defcustom speechd-host "localhost"
-  "*Name of the default host running speechd to connect to."
+  "Name of the default host running speechd to connect to."
   :type 'string
   :group 'speechd)
 
 (defcustom speechd-port 9876
-  "*Default port of speechd."
+  "Default port of speechd."
   :type 'integer
   :group 'speechd)
 
 (defcustom speechd-timeout 3
-  "*Number of seconds to wait for speechd response."
+  "Number of seconds to wait for speechd response."
   :type 'integer
   :group 'speechd)
 
@@ -70,27 +70,57 @@
 	  (const :tag "Progress"     :value :progress)))
 
 (defcustom speechd-default-text-priority :text
-  "*Default Speech Daemon priority of sent texts."
+  "Default Speech Daemon priority of sent texts."
   :type speechd-priority-tags
   :group 'speechd)
 
 (defcustom speechd-default-sound-priority :message
-  "*Default Speech Daemon priority of sent sound icons."
+  "Default Speech Daemon priority of sent sound icons."
   :type speechd-priority-tags
   :group 'speechd)
 
 (defcustom speechd-default-char-priority :notification
-  "*Default Speech Daemon priority of sent single letters."
+  "Default Speech Daemon priority of sent single letters."
   :type speechd-priority-tags
   :group 'speechd)
 
 (defcustom speechd-default-key-priority :notification
-  "*Default Speech Daemon priority of sent symbols of keys."
+  "Default Speech Daemon priority of sent symbols of keys."
   :type speechd-priority-tags
   :group 'speechd)
 
+(defcustom speechd-speak-connection-parameters '()
+  "Alist of connection names and their parameters.
+
+Each element of the list is of the form (CONNECTION-NAME . PARAMETERS), where
+CONNECTION-NAME is a connection name as expected to be in `speechd-client-name'
+and PARAMETERS is a property list with the pairs of parameter identifiers and
+parameter values.  Valid parameter names are the following:
+:language, :message-priority, :punctuation-mode, :important-punctuation,
+:punctuation-table, :spelling-table, :text-table, :character-table, :key-table,
+:sound-table, :voice, :rate, :pitch, :output-module.  See the corresponding
+speechd-set-* functions for valid parameter values.
+
+You must reopen the connections to apply the changes to this variable."
+  :type '(cons string (repeat sexp))
+  :group 'speechd)
+
+(defcustom speechd-default-voice "male1"
+  "Voice to be used by default."
+  :type 'string
+  :group 'speechd)
+
+(defcustom speechd-face-voices '()
+  "Alist mapping faces to voices.
+Each of the alist element is of the form (FACE . STRING) where FACE is a face
+and string voice identifier.  Each face is spoken in the corresponding voice.
+If there's no item for a given face in this variable, the face is spoken in the
+current voice."
+  :type '(repeat (cons face string))
+  :group 'speechd)
+
 (defcustom speechd-debug nil
-  "*If non-nil, be verbose about communication with speechd."
+  "If non-nil, be verbose about communication with speechd."
   :type 'boolean
   :group 'speechd)
 
@@ -105,7 +135,7 @@
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.23 2003-06-30 15:22:52 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.24 2003-07-04 13:25:57 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -216,6 +246,25 @@ wrapped by this macro."
 	     ,@body)
 	 (setf (,accessor connection) ,orig-value)))))
 
+(defmacro* speechd--with-connection-parameter ((parameter value) &body body)
+  (let (($parameter (gensym))
+        ($value (gensym))
+        ($orig-value (gensym))
+        ($change-needed (gensym)))
+    `(let* ((,$parameter ,parameter)
+            (,$value ,value)
+            (,$orig-value (plist-get
+                           (speechd--connection-parameters connection)
+                           ,$parameter))
+            (,$change-needed (not (equal ,$value ,$orig-value))))
+       (unwind-protect
+           (progn
+             (when ,$change-needed
+               (speechd--set-parameter ,$parameter ,$value))
+             ,@body)
+         (when ,$change-needed
+           (speechd--set-parameter ,$parameter ,$orig-value))))))
+
 (defconst speechd--maximum-queue-length 10)
 (defun speechd--queue-too-long-p (queue)
   (>= (queue-length queue) speechd--maximum-queue-length))
@@ -281,8 +330,10 @@ Return the opened connection on success, nil otherwise."
 	(setq host (speechd--connection-host connection)
 	      port (speechd--connection-port connection)))
       (let* ((name speechd-client-name)
-	     (parameters (and connection
-			      (speechd--connection-parameters connection)))
+	     (parameters (if connection
+                             (speechd--connection-parameters connection)
+                           (cdr (assoc speechd-client-name
+                                       speechd-speak-connection-parameters))))
 	     (process (condition-case nil
 			  (open-network-stream
 			   "speechd-proc"
@@ -307,6 +358,7 @@ Return the opened connection on success, nil otherwise."
 	(puthash name connection speechd--connections)
 	(when process
 	  (speechd--set-connection-name name)
+          (speechd-set-voice speechd-default-voice)
 	  (while parameters
 	    (destructuring-bind (parameter value . next) parameters
 	      (when (not (eq parameter :client-name))
@@ -656,7 +708,18 @@ initiates sending text data to speechd immediately."
   (interactive "sText: ")
   (speechd--set-parameter :message-priority priority)
   (unless (string= text "")
-    (speechd--send-data text))
+    (let ((beg 0))
+      (while beg
+        (let* ((end (next-property-change beg text))
+               (face (get-text-property beg 'face text))
+               (voice (cdr (assq face speechd-face-voices)))
+               (substring (substring text beg end)))
+          (if voice
+              (speechd--with-current-connection
+                (speechd--with-connection-parameter (:voice voice)
+                  (speechd--send-data substring)))
+            (speechd--send-data substring))
+          (setq beg end)))))
   (when finish
     (speechd--send-data-end)))
 

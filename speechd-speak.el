@@ -31,7 +31,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.13 2003-07-02 15:06:23 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.14 2003-07-04 13:25:57 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -125,6 +125,45 @@ Otherwise from the point to the end of line on movement by default."
   :type 'boolean
   :group 'speechd-speak)
 
+(defcustom speechd-speak-connections '()
+  "Alist mapping major modes and buffers to speechd connection.
+By default, there's a single connection to speechd, named \"default\".  This
+variable can define special connections for particular major modes and buffers.
+
+Each element of the alist is of the form (MODE-OR-BUFFER . CONNECTION-NAME).
+
+MODE-OR-BUFFER may be, in the order of preference from the highest to the
+lowest:
+
+- buffer name
+- major mode symbol
+- nil, representing non-buffer areas, e.g. echo area
+- t, representing the default value if nothing else matches
+
+CONNECTION-NAME is an arbitrary non-empty string naming the corresponding
+connection.  If connection with such a name doesn't exist, it is automatically
+created."
+  :type '(repeat (cons (choice symbol string) string))
+  :group 'speechd-speak)
+
+(defcustom speechd-speak-empty-message "empty"
+  "Message to say on empty lines.
+If the value starts with a star, it names a sound icon, without the star."
+  :type 'string
+  :group 'speechd-speak)
+
+(defcustom speechd-speak-beginning-of-line-message "beginning of line"
+  "Message to say on a beginning of line.
+If the value starts with a star, it names a sound icon, without the star."
+  :type 'string
+  :group 'speechd-speak)
+
+(defcustom speechd-speak-end-of-line-message "end of line"
+  "Message to say on an end of line.
+If the value starts with a star, it names a sound icon, without the star."
+  :type 'string
+  :group 'speechd-speak)
+
 (defcustom speechd-speak-prefix "\C-e"
   "Default prefix key used for speechd-speak commands."
   :set #'(lambda (name value)
@@ -209,9 +248,33 @@ Level 1 is the slowest, level 9 is the fastest."
 ;;; Supporting functions and options
 
 
+(defvar speechd-speak--last-buffer-mode t)
+(defvar speechd-speak--last-connection-name nil)
+(defvar speechd-speak--default-connection-name "default")
+(defvar speechd-speak--special-area nil)
+(defun speechd-speak--connection-name ()
+  (let ((buffer-mode (if speechd-speak--special-area
+                         nil
+                       (cons major-mode (buffer-name)))))
+    (if (equal buffer-mode speechd-speak--last-buffer-mode)
+        speechd-speak--last-connection-name
+      (progn
+        (setq speechd-speak--last-buffer-mode buffer-mode
+              speechd-speak--last-connection-name
+              (if buffer-mode
+                  (or (cdr (or (assoc (buffer-name) speechd-speak-connections)
+                               (assq major-mode speechd-speak-connections)
+                               (assq t speechd-speak-connections)))
+                      speechd-speak--default-connection-name)
+                (or (cdr (assq nil speechd-speak-connections))
+                    speechd-speak--default-connection-name)))
+        (set (make-local-variable 'speechd-client-name)
+             speechd-speak--last-connection-name)))))
+
 (defmacro* speechd-speak--maybe-speak (&body body)
   `(unless speechd-speak-quiet
-     ,@body))
+     (let ((speechd-client-name (speechd-speak--connection-name)))
+       ,@body)))
 
 (defun speechd-speak--text (text &rest args)
   (speechd-speak--maybe-speak
@@ -232,6 +295,13 @@ Level 1 is the slowest, level 9 is the fastest."
   (speechd-speak--maybe-speak
    (apply #'speechd-say-sound args)))
 
+(defun speechd-speak-report (message &rest args)
+  (speechd-speak--maybe-speak
+   (unless (string= message "")
+     (if (string-match "^\\*" message)
+         (apply #'speechd-say-sound (substring message 1) args)
+       (apply #'speechd-say-text message args)))))
+
 (defun speechd-speak-read-char (&optional char)
   (interactive)
   (speechd-speak--char (or char (following-char))))
@@ -239,8 +309,10 @@ Level 1 is the slowest, level 9 is the fastest."
 (defun speechd-speak-read-region (&optional beg end empty-text)
   (interactive "r")
   (let ((text (buffer-substring (or beg (mark)) (or end (point)))))
-    (speechd-speak--text (if (string= text "") (or empty-text "empty") text)
-			 :priority :text)))
+    (speechd-speak-report (if (string= text "")
+                              (or empty-text speechd-speak-empty-message)
+                            text)
+                          :priority :text)))
 
 (defun speechd-speak-read-line (&optional rest-only in-minibuffer)
   (interactive)
@@ -512,7 +584,8 @@ Level 1 is the slowest, level 9 is the fastest."
 	       (not (string= message speechd-speak--last-spoken-message)))
       (setq speechd-speak--last-message message
 	    speechd-speak--last-spoken-message message)
-      (speechd-speak--text message :priority :progress)))
+      (let ((speechd-speak--special-area t))
+        (speechd-speak--text message :priority :progress))))
   (when reset-last-spoken
     (setq speechd-speak--last-spoken-message "")))
 
@@ -622,6 +695,15 @@ Level 1 is the slowest, level 9 is the fastest."
              ((eq this-command 'self-insert-command)
               (speechd-speak-read-char (preceding-char)))
              ((memq this-command '(forward-char backward-char))
+              (cond
+               ((looking-at "^")
+                (speechd-speak-report
+                 speechd-speak-beginning-of-line-message
+                 :priority speechd-default-char-priority))
+               ((looking-at "$")
+                (speechd-speak-report
+                 speechd-speak-end-of-line-message
+                 :priority speechd-default-char-priority)))
               (speechd-speak-read-char))
              ;; Buffer switch
              (buffer-changed
