@@ -112,6 +112,8 @@ Pronounces character phonetically unless called with a PREFIX arg."
 (setq dtk-speech-rate-base -99
       dtk-speech-rate-step 22)
 
+(define-key emacspeak-keymap "s" 'speechd-stop)	; stop, not cancel
+
 ;;; Start Emacspeak now
 
 (setq speechd-emacspeak-start-allowed-p t)
