@@ -5,6 +5,10 @@ User-visible changes to speechd-el:
 
 ** Messages from built-in functions can be read now.
 
+** New user option speechd-speak-message-time-interval.
+
+It allows you to control speaking of repeated messages.
+
 ** Mode line can be read in CVS versions of Emacs.
 
 See the command speechd-speak-read-mode-line bound to the `C-e RET' key.

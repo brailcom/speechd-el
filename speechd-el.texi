@@ -744,6 +744,13 @@ List of commands that should never echo their command keys.
 If non-@code{nil}, read in the situations defined by the variable
 @code{speechd-speak-read-command-keys} command name instead of command
 keys.
+
+@item speechd-speak-message-time-interval
+@cindex messages
+@cindex repeating
+Minimum time in seconds, after which the same message may be repeated.
+If the message is the same as the last one, it is not spoken unless the number
+of seconds defined here has passed from the last spoken message.
 @end vtable
 
 @node Auto-Speaking Buffers, Signalling, Basic Speaking, Customization

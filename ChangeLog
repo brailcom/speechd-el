@@ -1,3 +1,10 @@
+2004-09-20  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak--last-spoken-message-time): New
+	variable.
+	(speechd-speak-message-time-interval): New user option.
+	(speechd-speak--message): Honor them.
+
 2004-09-03  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-speak.el (speechd-speak-version): Removed.

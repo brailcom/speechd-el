@@ -215,6 +215,11 @@ Otherwise from the point to the end of line on movement by default."
   :type 'boolean
   :group 'speechd-speak)
 
+(defcustom speechd-speak-message-time-interval 30
+  "Minimum time in seconds, after which the same message may be repeated.
+If the message is the same as the last one, it is not spoken unless the number
+of seconds defined here has passed from the last spoken message.")
+
 (defcustom speechd-speak-connections '()
   "Alist mapping major modes and buffers to speechd connection.
 By default, there's a single connection to speechd, named \"default\".  This
@@ -911,6 +916,7 @@ connections, otherwise create completely new connection."
 
 (defvar speechd-speak--last-message "")
 (defvar speechd-speak--last-spoken-message "")
+(defvar speechd-speak--last-spoken-message-time 0)
 
 (defun speechd-speak-last-message ()
   "Speak last message from the echo area."
@@ -930,7 +936,9 @@ connections, otherwise create completely new connection."
 (defun speechd-speak--message (message &optional reset-last-spoken)
   (speechd-speak--maybe-speak*
    (when (and message
-              (not (string= message speechd-speak--last-spoken-message)))
+              (or (not (string= message speechd-speak--last-spoken-message))
+                  (>= (- (float-time) speechd-speak--last-spoken-message-time)
+                      speechd-speak-message-time-interval)))
      (let* ((oldlen (length speechd-speak--last-spoken-message))
             (len (length message))
             ;; The following tries to handle answers to y-or-n questions, e.g.
@@ -944,7 +952,8 @@ connections, otherwise create completely new connection."
                           (substring message oldlen)
                         message)))
        (setq speechd-speak--last-message message
-             speechd-speak--last-spoken-message message)
+             speechd-speak--last-spoken-message message
+             speechd-speak--last-spoken-message-time (float-time))
        (speechd-speak--read-message message*)))
    (when reset-last-spoken
      (setq speechd-speak--last-spoken-message ""))))
