@@ -1,5 +1,26 @@
 2003-07-30  Milan Zamazal  <pdm@brailcom.org>
 
+	* speechd.el (speechd-connection-parameters): Support for default
+	parameters added.
+	(speechd-open): Consider the previous change.
+	(speechd-default-voice): Turned into a simple variable and renamed
+	to speechd--default-voice.
+	(speechd-default-language): Likewise.
+	(speechd-open): Consider the previous change.
+	(speechd--language-codes): New variable.
+
+	* speechd-el.texi (Other commands): speechd-unspeak documented.
+
+	* speechd-speak.el (speechd-unspeak): New command.
+	(speechd-speak-mode-map): Bind it.
+	(speechd-speak--defadvice): Run the advice body only if
+	speechd-speak-started is non-nil.
+
+	* Makefile (mostlyclean): Remove auxiliary Texinfo files.
+	(clean): Don't remove speechd-speak.pdf; remove .elc files.
+
+2003-07-30  Milan Zamazal  <pdm@brailcom.org>
+	
 	* README: Refer to the manual.
 	* speechd-el.texi: Initial revision.
 	* fdl.texi: Initial revision.
