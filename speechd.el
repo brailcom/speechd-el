@@ -293,7 +293,7 @@ language.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "2004-05-12 12:26 pdm"
+(defconst speechd--el-version "2004-05-12 12:48 pdm"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -1025,7 +1025,7 @@ The key argument SAY-IF-EMPTY is non-nil, TEXT is sent through SSIP even if it
 is empty."
   (interactive "sText: ")
   (speechd--set-parameter 'message-priority priority)
-  (when (or speak-empty
+  (when (or say-if-empty
             (not (string= text "")))
     (flet ((properties (point)
              (let ((voice (cdr (assq (get-text-property point 'face text)
