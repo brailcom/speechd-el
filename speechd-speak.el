@@ -31,7 +31,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.27 2003-07-25 11:49:40 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.28 2003-07-25 13:26:06 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -350,7 +350,7 @@ played."
                                    (if speechd-speak-signal-empty
                                        speechd-speak--empty-message
                                      ""))
-                               :priority :message)
+                               :priority speechd-default-text-priority)
        (speechd-speak--text text)))))
 
 (defun speechd-speak-read-line (&optional rest-only)
@@ -429,6 +429,7 @@ If BUFFER is nil, read current buffer."
 	 (backward-function (intern (format "backward-%s" name)))
 	 (forward-function (intern (format "forward-%s" name))))
     `(defun ,function-name ()
+       ,(format "Speak current %s." name)
        (interactive)
        (speechd-speak--interactive
         (save-excursion
@@ -671,6 +672,7 @@ FUNCTION is invoked interactively."
 (defvar speechd-speak--last-spoken-message "")
 
 (defun speechd-speak-last-message ()
+  "Speak last message from the echo area."
   (interactive)
   (speechd-speak--interactive
    (speechd-speak--text speechd-speak--last-message)))
@@ -1000,7 +1002,7 @@ FUNCTION is invoked interactively."
 (define-key speechd-speak-mode-map "l" 'speechd-speak-read-line)
 (define-key speechd-speak-mode-map "n" 'speechd-speak-read-rest-of-buffer)
 (define-key speechd-speak-mode-map "p" 'speechd-pause)
-(define-key speechd-speak-mode-map "q" 'speechd-speak-toggle)
+(define-key speechd-speak-mode-map "q" 'speechd-speak-toggle-speaking)
 (define-key speechd-speak-mode-map "r" 'speechd-speak-read-region)
 (define-key speechd-speak-mode-map "s" 'speechd-stop)
 (define-key speechd-speak-mode-map "w" 'speechd-speak-read-word)
@@ -1030,6 +1032,18 @@ FUNCTION is invoked interactively."
         (lookup-key global-map speechd-speak-prefix)))))
 (speechd-speak--build-mode-map)
 
+(define-minor-mode speechd-speak-map-mode
+  "Toggle use of speechd-speak keymap.
+With no argument, this command toggles the mode.
+Non-null prefix argument turns on the mode.
+Null prefix argument turns off the mode."
+  nil nil speechd-speak--mode-map)
+
+(easy-mmode-define-global-mode
+ global-speechd-speak-map-mode speechd-speak-map-mode
+ (lambda () (speechd-speak-map-mode 1))
+ :group 'speechd-speak)
+
 (defun speechd-speak--shutdown ()
   (global-speechd-speak-mode -1))
 
@@ -1051,6 +1065,7 @@ the value of the `speechd-speak-prefix' variable:
   nil " S" speechd-speak--mode-map
   (if speechd-speak-mode
       (progn
+        (speechd-speak-map-mode 1)
         (add-hook 'pre-command-hook 'speechd-speak--pre-command-hook)
         (add-hook 'post-command-hook 'speechd-speak--post-command-hook)
         (add-hook 'after-change-functions 'speechd-speak--after-change-hook)
@@ -1065,10 +1080,11 @@ the value of the `speechd-speak-prefix' variable:
 
 ;;;###autoload
 (easy-mmode-define-global-mode
- global-speechd-speak-mode speechd-speak-mode speechd-speak-mode
+ global-speechd-speak-mode speechd-speak-mode
+ (lambda () (speechd-speak-mode 1))
  :group 'speechd-speak)
 
-(defun speechd-speak-toggle (arg)
+(defun speechd-speak-toggle-speaking (arg)
   "Toggle speaking.
 When prefix ARG is non-nil, toggle it locally, otherwise toggle it globally."
   (interactive "P")
@@ -1087,6 +1103,7 @@ When prefix ARG is non-nil, toggle it locally, otherwise toggle it globally."
   (interactive)
   (speechd-reopen)
   (global-speechd-speak-mode 1)
+  (global-speechd-speak-map-mode 1)
   (message "Speechd-speak %s"
 	   (if speechd-speak--started "restarted" "started"))
   (setq speechd-speak--started t))
