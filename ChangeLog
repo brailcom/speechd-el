@@ -1,5 +1,21 @@
 2003-05-28  Milan Zamazal  <pdm@brailcom.org>
 
+	* speechd-emacspeak.el (comint-output-filter): New redefinition.
+
+	* speechd.el (speechd--protect): New variable.
+	(speechd-protect): New macro.
+	(speechd--send-request): If speechd--protect is non-nil, queue the
+	request.
+	(speechd--process-queues): New function.
+	(speechd--process-request): Use it.
+	(speechd--send-request, speechd--send-command)
+	(speechd--send-data-begin, speechd--send-data-end): New argument
+	NOW.
+	(speechd--process-request): Call state changing functions with the
+	argument NOW.
+
+2003-05-28  Milan Zamazal  <pdm@brailcom.org>
+
 	* speechd.el (speechd-say-text): Don't resume paused speaking.
 	* dtk-interp.el (dtk-interp-pause, dtk-interp-resume): Do nothing.
 
