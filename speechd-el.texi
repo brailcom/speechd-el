@@ -1254,6 +1254,12 @@ speechd-el users.
 @item How to make appointments speak their notifications?
 Set the variable @code{appt-msg-window} to @code{nil}.
 
+@cindex Info
+@item Why are some menu items in Info not spoken?
+This is due the way how Emacs fontifies the menu items.  Try to set
+the @code{Info-fontify-maximum-menu-size} variable to @code{0} to
+avoid the problem.
+
 @cindex w3m-el
 @cindex URL speaking
 @item How to avoid printing URL when moving through links in w3m-el?
