@@ -31,7 +31,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.15 2003-07-04 15:23:27 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.16 2003-07-07 06:48:57 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -309,10 +309,10 @@ Level 1 is the slowest, level 9 is the fastest."
 (defun speechd-speak-read-region (&optional beg end empty-text)
   (interactive "r")
   (let ((text (buffer-substring (or beg (mark)) (or end (point)))))
-    (speechd-speak-report (if (string= text "")
-                              (or empty-text speechd-speak-empty-message)
-                            text)
-                          :priority :text)))
+    (if (string= text "")
+        (speechd-speak-report (or empty-text speechd-speak-empty-message)
+                              :priority :message)
+      (speechd-speak--text text :priority :text))))
 
 (defun speechd-speak-read-line (&optional rest-only in-minibuffer)
   (interactive)
