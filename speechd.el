@@ -99,7 +99,7 @@
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.12 2003-05-17 15:42:30 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.13 2003-05-20 13:10:18 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -378,6 +378,9 @@ Return the opened connection on success, nil otherwise."
 				  (and answer (substring answer 0 3))
 				  (and answer (substring answer 4))))
 	       result)))
+      ;; Read pending answer
+      (when (speechd--connection-process-output connection)
+	(read-command-answer))
       ;; Ensure proper transaction state
       (let* ((state-spec (speechd--request-transaction-state request))
 	     (required-state (first state-spec))
@@ -386,12 +389,13 @@ Return the opened connection on success, nil otherwise."
 		 (when (not (eq (speechd--connection-transaction-state
 				 connection)
 				required-state))
-		   (cond
-		    ((and (eq required-state 'in-data)
-			  (not (eq new-state nil)))
-		     (speechd--send-data-begin))
-		    ((eq required-state nil)
-		     (speechd--send-data-end))))
+		   (let ((speechd--in-recursion t))
+		     (cond
+		      ((and (eq required-state 'in-data)
+			    (not (eq new-state nil)))
+		       (speechd--send-data-begin))
+		      ((eq required-state nil)
+		       (speechd--send-data-end)))))
 		 (eq (speechd--connection-transaction-state connection)
 		     required-state)))
 	  (unless (check-state)
@@ -400,21 +404,27 @@ Return the opened connection on success, nil otherwise."
 	  ;; Continue only if the state can be set properly after reopen,
 	  ;; otherwise give up and ignore the request completely.
 	  ;; This also works for the "." command when in non-data state.
-	  (when (check-state)
-	    (speechd--send-string (speechd--request-string request))
-	    (let ((answer-type (speechd--request-answer-type request)))
-	      (when answer-type
-		(setf (speechd--connection-process-output connection) ""
-		      (speechd--connection-new-state connection) new-state)
-		(read-command-answer))))
-	  ;; Free the commands blocked by this speechd--command-answer
-	  (unless speechd--in-recursion
-	    (let ((speechd--in-recursion t)
-		  (queue (speechd--connection-request-queue connection)))
-	      (while (not (queue-empty queue))
-		(let* ((request (queue-dequeue queue))
-		       (answer-type (speechd--request-answer-type request)))
-		  (speechd--process-request request))))))))))
+	  (prog1
+	      (when (check-state)
+		(speechd--send-string (speechd--request-string request))
+		(let ((answer-type (speechd--request-answer-type request)))
+		  (when answer-type
+		    (setf (speechd--connection-process-output connection) ""
+			  (speechd--connection-new-state connection) new-state)
+		    (when (or (eq answer-type 'required)
+			      speechd--in-recursion
+			      (not (queue-empty
+				    (speechd--connection-request-queue
+				     connection))))
+		      (read-command-answer)))))
+	    ;; Free the commands blocked by this speechd--command-answer
+	    (unless speechd--in-recursion
+	      (let ((speechd--in-recursion t)
+		    (queue (speechd--connection-request-queue connection)))
+		(while (not (queue-empty queue))
+		  (let* ((request (queue-dequeue queue))
+			 (answer-type (speechd--request-answer-type request)))
+		    (speechd--process-request request)))))))))))
 
 (defun speechd--send-request (request)
   (speechd--with-current-connection
@@ -514,6 +524,8 @@ Return the opened connection on success, nil otherwise."
    (format "%s:%s:%s" (user-login-name) speechd--application-name name)))
 
 (defun speechd-set-language (language)
+  "Set language of the current client connection to LANGUAGE.
+Language must be an RFC 1766 language code, as a string."
   (interactive (list (read-string "Language: ")))
   (speechd--set-parameter :language language))
 
@@ -521,6 +533,9 @@ Return the opened connection on success, nil otherwise."
 						("some" . :some)
 						("all" .  :all)))
 (defun speechd-set-punctuation-mode (mode)
+  "Set punctuation mode to MODE.
+Mode must be one of the symbols `:none' (don't read any punctuation), `:some'
+(read only some punctuation), and `:all' (read all the punctuation)."
   (interactive (list
 		(cdr
 		 (rassoc (completing-read "Punctuation mode: "
@@ -562,6 +577,14 @@ Return the opened connection on success, nil otherwise."
 ;;;###autoload
 (defun* speechd-say-text (text &key (priority speechd-default-text-priority)
 			            (finish t))
+  "Speak the given TEXT, represented by a string.
+The key argument `priority' defines the priority of the message and must be one
+of the symbols `:high', `:medium', and `:low'.
+If the key argument `finish' is t, TEXT completes the message -- the next
+invocation of this function will start a new text message to speechd.
+Otherwise the message leaves open and the next invocation this function will
+append the next text to it.  Regardless of the FINISH value, the function
+initiates sending text data to speechd immediately."
   (interactive "sText: ")
   (speechd--set-parameter :message-priority priority)
   (when (speechd--connection-paused-p (speechd--connection))
@@ -571,15 +594,26 @@ Return the opened connection on success, nil otherwise."
     (speechd--send-data-end)))
 
 (defun* speechd-say-sound (name &key (priority speechd-default-sound-priority))
+  "Ask speechd to play an auditory icon.
+NAME is the name of the icon, any string acceptable by speechd.
+The key argument `priority' defines the priority of the message and must be one
+of the symbols `:high', `:medium', and `:low'."
   (speechd--set-parameter :message-priority priority)
   (speechd--send-command (list "SOUND_ICON" name)))
 
 (defun* speechd-say-char (char &key (priority speechd-default-char-priority))
+  "Speak the given CHAR, any UTF-8 character.
+The key argument `priority' defines the priority of the message and must be one
+of the symbols `:high', `:medium', and `:low'."
   (speechd--set-parameter :message-priority priority)
   (speechd--send-command
    (list "CHAR" (format "\"%s\"" (char-to-string char)))))
 
 (defun* speechd-say-key (key &key (priority speechd-default-key-priority))
+  "Speak the given KEY.
+The exact value and meaning of KEY is undefined now.
+The key argument `priority' defines the priority of the message and must be one
+of the symbols `:high', `:medium', and `:low'."
   (speechd--set-parameter :message-priority priority)
   ;; TODO: Implement real key handling
   (speechd--send-command (list "KEY" (format "\"%s\"" key))))
@@ -590,22 +624,26 @@ Return the opened connection on success, nil otherwise."
 
 ;;;###autoload
 (defun speechd-cancel ()
+  "Stop speaking all the messages sent through the current client so far."
   (interactive)
   (speechd--send-command '("CANCEL" "self")))
 
 ;;;###autoload
 (defun speechd-stop ()
+  "Stop speaking the currently spoken message (if any) of this client."
   (interactive)
   (speechd--send-command '("STOP" "self")))
 
 ;;;###autoload
 (defun speechd-pause ()
+  "Pause speaking in the current client."
   (interactive)
   (setf (speechd--connection-paused-p (speechd--connection)) t)
   (speechd--send-command '("PAUSE" "self")))
 
 ;;;###autoload
 (defun speechd-resume (&optional softp)
+  "Resume previously stopped speaking in the current client."
   (interactive)
   (speechd--with-current-connection
     (when (or (speechd--connection-paused-p connection) (not softp))
@@ -627,6 +665,7 @@ Return the opened connection on success, nil otherwise."
 
 ;;;###autoload
 (defun speechd-submit-bug-report ()
+  "Submit a bug report about speechd-el."
   (interactive)
   (require 'reporter)
   (if speechd-debug
