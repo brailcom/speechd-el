@@ -146,7 +146,7 @@ and the keys are read after the command is performed."
   '(forward-char backward-char next-line previous-line
     delete-char delete-backward-char backward-delete-char-untabify)
   "List of commands for which their keys are never read."
-  :type '(repeat command)
+  :type '(repeat function)
   :group 'speechd-speak)
 
 (defcustom speechd-speak-read-command-name nil
