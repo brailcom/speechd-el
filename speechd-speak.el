@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.58 2003-10-23 09:05:07 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.59 2003-10-23 09:21:26 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -142,7 +142,8 @@ and the keys are read after the command is performed."
   :group 'speechd-speak)
 
 (defcustom speechd-speak-ignore-command-keys
-  '(forward-char backward-char next-line previous-line)
+  '(forward-char backward-char next-line previous-line
+    delete-char delete-backward-char backward-delete-char-untabify)
   "List of commands for which their keys are never read."
   :type '(repeat command)
   :group 'speechd-speak)
@@ -1026,7 +1027,10 @@ connections, otherwise create completely new connection."
   (when speechd-speak-mode
     (when (and (eq speechd-speak-read-command-keys t)
                (not (memq this-command speechd-speak-ignore-command-keys)))
-      (speechd-speak--command-keys :priority 'message))
+      (speechd-speak--command-keys
+       :priority (if (eq this-command 'self-insert-command)
+                     'notification
+                   'message)))
     ;; Some parameters of interactive commands don't set up the minibuffer, so
     ;; we have to speak the prompt in a special way.
     (let ((interactive (cadr (interactive-form this-command))))
