@@ -99,7 +99,7 @@
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.13 2003-05-20 13:10:18 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.14 2003-05-21 13:04:21 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -622,32 +622,42 @@ of the symbols `:high', `:medium', and `:low'."
 ;;; Control functions
 
 
-;;;###autoload
-(defun speechd-cancel ()
-  "Stop speaking all the messages sent through the current client so far."
-  (interactive)
-  (speechd--send-command '("CANCEL" "self")))
+(defun speechd--control-command (command all)
+  (speechd--send-command (list command (if all "all" "self"))))
 
 ;;;###autoload
-(defun speechd-stop ()
-  "Stop speaking the currently spoken message (if any) of this client."
-  (interactive)
-  (speechd--send-command '("STOP" "self")))
+(defun speechd-cancel (&optional all)
+  "Stop speaking all the messages sent through the current client so far.
+If the optional argument ALL is non-nil, stop speaking messages of all
+clients."
+  (interactive "P")
+  (speechd--control-command "CANCEL" all))
 
 ;;;###autoload
-(defun speechd-pause ()
-  "Pause speaking in the current client."
-  (interactive)
+(defun speechd-stop (&optional all)
+  "Stop speaking the currently spoken message (if any) of this client.
+If the optional argument ALL is non-nil, stop speaking the currently spoken
+messages of all clients."
+  (interactive "P")
+  (speechd--control-command "STOP" all))
+
+;;;###autoload
+(defun speechd-pause (&optional all)
+  "Pause speaking in the current client.
+If the optional argument ALL is non-nil, pause speaking in all clients."
+  (interactive "P")
   (setf (speechd--connection-paused-p (speechd--connection)) t)
-  (speechd--send-command '("PAUSE" "self")))
+  (speechd--control-command "PAUSE" all))
 
 ;;;###autoload
-(defun speechd-resume (&optional softp)
-  "Resume previously stopped speaking in the current client."
-  (interactive)
+(defun speechd-resume (&optional all)
+  "Resume previously stopped speaking in the current client.
+If the optional argument ALL is non-nil, resume speaking messages of all
+clients."
+  (interactive "P")
   (speechd--with-current-connection
-    (when (or (speechd--connection-paused-p connection) (not softp))
-      (speechd--send-command '("RESUME" "self"))
+    (when (speechd--connection-paused-p connection)
+      (speechd--control-command "RESUME" all)
       (setq connection (speechd--connection))
       (setf (speechd--connection-paused-p connection) nil))))
 
