@@ -31,7 +31,7 @@
 (require 'speechd-speak)
 
 
-(defconst speechd-bug--version "$Id: speechd-bug.el,v 1.6 2003-11-05 15:17:29 pdm Exp $"
+(defconst speechd-bug--version "$Id: speechd-bug.el,v 1.7 2003-12-12 10:55:26 pdm Exp $"
   "Version of the speechd-bug.el file.")
 
 
@@ -223,8 +223,9 @@
   (define-key speechd-speak-mode-map speechd-bug--finish-repro-key 'undefined)
   (sit-for 1)                           ; wait a little for flushing the logs
   (switch-to-buffer (marker-buffer speechd-bug--marker))
-  (speechd-bug--insert-dribble-file)
-  (speechd-bug--insert-logs)
+  (let ((speechd-speak-mode nil))
+    (speechd-bug--insert-dribble-file)
+    (speechd-bug--insert-logs))
   (goto-char (marker-position speechd-bug--marker))
   (setq speechd-bug--marker nil)
   (setq speechd-bug--repro-id nil)
