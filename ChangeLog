@@ -1,3 +1,14 @@
+2003-10-23  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak-ignore-command-keys): New user
+	option.
+	(speechd-speak-read-command-keys): Meaning of t changed, doc only
+	change.  Default value changed to t.
+	(command-keys, buffer-modifications) 
+	(speechd-speak--pre-command-hook): Honor the previous changes.
+	* speechd-el.texi (Basic Speaking): The previous changes
+	documented.
+
 2003-10-22  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-speak.el (buffer-switch): Don't use blocks.  Speak
