@@ -31,9 +31,6 @@
 (require 'speechd)
 
 
-(defvar speechd-emacspeak-no-stop t)
-
-
 (defun dtk-interp-silence (duration force)
   ;; unsupported in speechd
   )
@@ -55,22 +52,21 @@
   )
 
 (defun dtk-interp-queue (text)
-  (speechd-say-text text :finish nil))
+  (speechd-say-text text :finish nil :priority :low))
 
 (defun dtk-interp-queue-set-rate (rate)
   (dtk-interp-set-rate rate))
 
 (defun dtk-interp-speak ()
-  (speechd-say-text ""))
+  (speechd-say-text "" :priority :low))
 
 (defun dtk-interp-say (string)
-  (speechd-say-text string))
+  (speechd-say-text string :priority (if dtk-stop-immediately :low :medium)))
 (defalias 'dtk-interp-dispatch 'dtk-interp-say)
 
 (defun dtk-interp-stop ()
-  (if speechd-emacspeak-no-stop
-      (setq speechd-emacspeak-no-stop nil)
-    (speechd-cancel)))
+  ;; priorities are used instead
+  )
 
 (defun dtk-interp-sync ()
   (dtk-interp-set-punctuations dtk-punctuation-mode)
@@ -84,7 +80,8 @@
   (setq speechd-emacspeak-no-stop t))
 
 (defun dtk-interp-set-rate (rate)
-  (speechd-set-rate (if (numberp rate) rate (string-to-number rate))))
+  ;; unwanted, using speechd.el commands directly
+  )
 
 (defun dtk-interp-set-character-scale (factor)
   ;; unsupported in speechd
@@ -103,10 +100,8 @@
   )
 
 (defun dtk-interp-set-punctuations (mode)
-  (speechd-set-punctuation-mode (cond
-				 ((string= mode "none") :none)
-				 ((string= mode "some") :some)
-				 ((string= mode "all")  :all))))
+  ;; unwanted, using speechd.el commands directly
+  )
 
 (defun dtk-interp-reset-state ()
   (ignore-errors
@@ -120,14 +115,6 @@
 (defun dtk-interp-resume ()
   ;; unsupported in speechd in the given semantics
   )
-
-
-;;; speechd.el customizations
-
-
-(defadvice speechd-send-command (before speechd-emacspeak-send-command-advice
-					activate)
-  (setq speechd-emacspeak-no-stop nil))
 
 
 ;;; Announce
