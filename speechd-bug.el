@@ -31,7 +31,7 @@
 (require 'speechd-speak)
 
 
-(defconst speechd-bug--version "$Id: speechd-bug.el,v 1.4 2003-10-27 16:11:43 pdm Exp $"
+(defconst speechd-bug--version "$Id: speechd-bug.el,v 1.5 2003-10-29 10:33:43 pdm Exp $"
   "Version of the speechd-bug.el file.")
 
 
@@ -111,11 +111,12 @@
   ;; speechd
   (let ((file-name (speechd-bug--look-for-file
                     "speechd.conf"
-                    '("/etc/speechd" "/etc/speech-dispatcher"))))
+                    '("/etc/speechd" "/etc/speech-dispatcher"
+                      "/usr/local/etc/speechd"))))
     (when file-name
       (let ((log-files ()))
         (save-excursion
-          (find-file file-name)
+          (set-buffer (find-file-noselect file-name))
           (save-match-data
             (goto-char (point-min))
             (when (re-search-forward "^[ \t]*LogFile[ \t]+\"\\(.*\\)\"" nil t)
@@ -133,12 +134,13 @@
     (let ((file-name (speechd-bug--look-for-file
                       "festival.conf"
                       '("/etc/speechd/modules"
-                        "/etc/speech-dispatcher/modules")))
+                        "/etc/speech-dispatcher/modules"
+                        "/usr/local/etc/speechd/modules")))
           (festival-server "localhost")
           (festival-port 1314))
       (when file-name
         (save-excursion
-          (find-file file-name)
+          (set-buffer (find-file-noselect file-name))
           (save-match-data
             (goto-char (point-min))
             (when (re-search-forward
@@ -160,12 +162,12 @@
                                         (setq output (concat output str))))
                 (process-send-string process "server_log_file\n")
                 (while output
-                  (unless (accept-process-output nil 1)
-                    (setq output nil))
-                  (save-match-data
-                    (when (string-match "^LP\r?\n\\(.*\\)\n" output)
-                      (setq log-file (match-string 1 output))
-                      (setq output nil)))))
+                  (if (accept-process-output nil 1)
+                      (save-match-data
+                        (when (string-match "^LP\r?\n\\(.*\\)\n" output)
+                          (setq log-file (match-string 1 output))
+                          (setq output nil)))
+                    (setq output nil))))
             (delete-process process))
           (save-match-data
             (when (and log-file
@@ -201,7 +203,7 @@
   (speechd-say-sound (concat "_debug_off" speechd-bug--repro-id)
                      :priority 'important)
   (define-key speechd-speak-mode-map speechd-bug--finish-repro-key 'undefined)
-  (sit-for 1)
+  (sit-for 1)                           ; wait a little for flushing the logs
   (switch-to-buffer (marker-buffer speechd-bug--marker))
   (speechd-bug--insert-logs)
   (goto-char (marker-position speechd-bug--marker))
