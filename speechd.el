@@ -135,7 +135,7 @@ current voice."
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.28 2003-07-07 09:46:39 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.29 2003-07-09 14:33:25 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -155,6 +155,8 @@ Useful only for diagnosing problems.")
     (:important-punctuation . "IMPORTANT_PUNCTUATION")
     (:punctuation-table . "PUNCTUATION_TABLE")
     (:spelling-table . "SPELLING_TABLE")
+    (:capital-character-table . "CAP_LET_RECOGN_TABLE")
+    (:capital-character-mode . "CAP_LET_RECOGN")
     (:text-table . "TEXT_TABLE")
     (:character-table . "CHARACTER_TABLE")
     (:key-table . "KEY_TABLE")
@@ -172,6 +174,7 @@ Useful only for diagnosing problems.")
     (:sound-tables . "SOUND_TABLES")
     (:character-tables . "CHARACTER_TABLES")
     (:key-tables . "KEY_TABLES")
+    (:capital-character-tables . "CAP_LET_RECOGN_TABLES")
     (:voices . "VOICES")))
 
 (defconst speechd--parameter-value-mappings
@@ -185,7 +188,11 @@ Useful only for diagnosing problems.")
     (:punctuation-mode
      (:none . "none")
      (:some . "some")
-     (:all .  "all"))))
+     (:all .  "all"))
+    (:capital-character-mode
+     (:none . "none")
+     (:spell . "spell")
+     (:icon . "icon"))))
 
 
 ;;; Internal variables
@@ -438,6 +445,8 @@ Return the opened connection on success, nil otherwise."
 				       string)
 		(speechd--permanent-connection-failure connection)))))))))
 
+(defvar speechd--in-recursion nil)
+
 (defun speechd--process-queues ()
   (unless speechd--in-recursion
     (let ((speechd--in-recursion t))
@@ -450,7 +459,6 @@ Return the opened connection on success, nil otherwise."
 		 (speechd--process-request request)))))
        speechd--connections))))
 
-(defvar speechd--in-recursion nil)
 (defun speechd--process-request (request)
   (speechd--with-current-connection
     (flet ((read-command-answer ()
@@ -648,21 +656,6 @@ Language must be an RFC 1766 language code, as a string."
   (interactive (list (read-string "Language: ")))
   (speechd--set-parameter :language language))
 
-(defconst speechd--set-punctuation-mode-table '(("none" . :none)
-						("some" . :some)
-						("all" .  :all)))
-(defun speechd-set-punctuation-mode (mode)
-  "Set punctuation mode to MODE.
-Mode must be one of the symbols `:none' (don't read any punctuation), `:some'
-(read only some punctuation), and `:all' (read all the punctuation)."
-  (interactive (list
-		(cdr
-		 (assoc (completing-read "Punctuation mode: "
-					  speechd--set-punctuation-mode-table
-					  nil t)
-			 speechd--set-punctuation-mode-table))))
-  (speechd--set-parameter :punctuation-mode mode))
-
 (defmacro speechd--generate-set-command (parameter prompt argdesc)
   (let ((prompt (concat prompt ": ")))
     `(defun ,(intern (concat "speechd-set-"
@@ -674,11 +667,16 @@ Mode must be one of the symbols `:none' (don't read any punctuation), `:some'
 	   (concat "n" prompt))
 	  ((not argdesc)
 	   (concat "s" prompt))
+          ((listp argdesc)
+            `(list
+              (cdr
+               (assoc (completing-read ,prompt ,argdesc nil t) ,argdesc))))
 	  (t
 	   `(list
 	     (completing-read ,prompt
 			      (mapcar #'list (speechd--list ,argdesc)))))))
        (speechd--set-parameter ,parameter value))))
+
 (speechd--generate-set-command :punctuation-table "Punctuation table"
 			       :punctuation-tables)
 (speechd--generate-set-command :spelling-table "Spelling table"
@@ -687,10 +685,21 @@ Mode must be one of the symbols `:none' (don't read any punctuation), `:some'
 (speechd--generate-set-command :sound-table "Sound table" :sound-tables)
 (speechd--generate-set-command :character-table "Character table"
 			       :character-tables)
+(speechd--generate-set-command :capital-character-table
+                               "Capital character spelling table"
+                               :capital-character-tables)
+(speechd--generate-set-command :capital-character-mode "Capital character mode"
+                               '(("none" . :none)
+                                 ("spell" . :spell)
+                                 ("icon" . :icon)))
 (speechd--generate-set-command :key-table "Key table" :key-tables)
 (speechd--generate-set-command :pitch "Pitch" 0)
 (speechd--generate-set-command :rate "Rate" 0)
 (speechd--generate-set-command :voice "Voice" :voices)
+(speechd--generate-set-command :punctuation-mode "Punctuation mode"
+                               '(("none" . :none)
+                                 ("some" . :some)
+                                 ("all" .  :all)))
 ;; TODO: Remove this one once proper output module setting is defined.
 (speechd--generate-set-command :output-module "Output module" nil)
 
