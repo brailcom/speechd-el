@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.43 2003-10-13 10:52:57 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.44 2003-10-13 14:00:10 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -769,9 +769,9 @@ connections, otherwise create completely new connection."
       (setq speechd-speak--last-message message
 	    speechd-speak--last-spoken-message message)
       (let ((speechd-speak--special-area t))
-        (speechd-block ()
-         (speechd-speak-report speechd-speak--message-message)
-         (speechd-speak--minibuffer-prompt message :priority 'progress)))))
+        (speechd-speak-report speechd-speak--message-message
+                              :priority 'progress)
+        (speechd-speak--minibuffer-prompt message :priority 'progress))))
   (when reset-last-spoken
     (setq speechd-speak--last-spoken-message "")))
 
@@ -794,9 +794,8 @@ connections, otherwise create completely new connection."
   (speechd-speak--with-command-start-info
    (setf (speechd-speak--command-info-struct-minibuffer-contents info)
          (minibuffer-contents)))
-  (speechd-block ()
-    (speechd-speak-report speechd-speak--minibuffer-message)
-    (speechd-speak--speak-minibuffer-prompt)))
+  (speechd-speak-report speechd-speak--minibuffer-message :priority 'message)
+  (speechd-speak--speak-minibuffer-prompt))
 
 (defun speechd-speak--minibuffer-exit-hook ()
   (speechd-speak--with-command-start-info
