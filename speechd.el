@@ -186,7 +186,7 @@ You must reopen the connections to apply the changes to this variable."
 (defcustom speechd-default-language "en"
   "Language to be used by default.
 If nil, no default language is defined and the last language set is used."
-  :type '(choice (string :tag "ISO code") (const :tag "None" nil))
+  :type '(choice (string :tag "ISO 639 language code") (const :tag "None" nil))
   :group 'speechd)
 
 (defcustom speechd-face-voices '()
@@ -213,7 +213,7 @@ locally through `let'.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.40 2003-07-30 11:02:26 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.41 2003-07-30 14:15:07 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
