@@ -31,7 +31,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.28 2003-07-25 13:26:06 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.29 2003-07-27 16:25:04 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -797,6 +797,17 @@ FUNCTION is invoked interactively."
   (add-hook 'pre-command-hook 'speechd-speak--pre-command-hook))
 
 (defun speechd-speak--post-command-hook ()
+  ;; global-speechd-speak-map-mode is not enabled until
+  ;; kill-all-local-variables is called.  So we have to be a bit more
+  ;; aggressive about it.  The same applies to global-speechd-speak-mode.
+  (flet ((enforce-mode (global-mode local-mode-var)
+           (when (and global-mode
+                      (not (symbol-value local-mode-var))
+                      (not (local-variable-p local-mode-var)))
+             (funcall local-mode-var 1))))
+    (enforce-mode global-speechd-speak-map-mode 'speechd-speak-map-mode)
+    (enforce-mode global-speechd-speak-mode 'speechd-speak-mode))
+  ;; Now, try to speak something useful
   (when speechd-speak-mode
     ;; Messages should be handled by an after change function.  Unfortunately,
     ;; in Emacs 21 after change functions in the *Messages* buffer don't work
