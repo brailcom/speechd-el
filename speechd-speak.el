@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.64 2003-11-04 17:12:20 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.65 2003-11-05 11:25:58 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -1144,7 +1144,10 @@ connections, otherwise create completely new connection."
                           speechd-speak-ignore-command-keys)))
       (speechd-speak--command-keys))))
 
-(speechd-speak--post-defun special-face-movement sometimes t
+(speechd-speak--post-defun special-face-movement sometimes
+    (or (not (stringp (cdr (assq (get-char-property (point) 'face)
+                                 speechd-speak-faces))))
+        state)
   ;; Special face hit
   (and (not in-minibuffer)
        point-moved
@@ -1153,7 +1156,7 @@ connections, otherwise create completely new connection."
                            speechd-speak-faces))))
     (cond
      ((stringp action)
-      (speechd-speak--text action))
+      (speechd-speak--text action :priority 'message))
      ((functionp action)
       (ignore-errors
         (funcall action))))))
