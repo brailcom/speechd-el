@@ -1,0 +1,8 @@
+Q: When I scroll the text down with C-n in a buffer rapidly, the cursor doesn't
+   move through each line, but "freezes" instead sometimes.
+
+A: Your computer is too slow to handle all the Emacs actions.  Delayed
+   redisplay is an inherent property of Emacs when it is busy.  All you can do
+   (except buying a faster computer) is to slow down your autorepeat rate.
+   Standard Emacspeak doesn't suffer of this problem, since its communication
+   with the servers is unidirectional only.

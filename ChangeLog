@@ -1,0 +1,101 @@
+2003-04-07  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-reset-connection-parameters): New function.
+	(speechd-open, speechd-set-connection-name): Use it.
+
+2003-04-05  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-send-data-end): Do it only if
+	speechd-send-data-p is non-nil.  First send command, only then set
+	the variable.
+	(speechd-process-name, speechd-send-string, speechd-send-command):
+	Be inlined.
+	(speechd-current-priority): New variable.
+	(speechd-set-priority): Call the command only if `priority' is
+	different of speechd-current-priority.
+	(speechd-open): Reset values of the state variables.
+
+2003-04-04  Milan Zamazal  <pdm@brailcom.org>
+
+	* dtk-interp.el (speechd-emacspeak-queued-text): Removed.
+	(dtk-interp-queue): Call `speechd-say' immediately.
+	(dtk-interp-speak): Call `speechd-send-data-end'.
+
+	* speechd.el (speechd-sending-data-p): New variable.
+	(speechd-send-data-end): New function.
+	(speechd-say): Call it.  New argument `finish'.  Let `priority' is
+	a keyword argument.
+	(speechd-send-command): Call it if sending data.
+	(speechd-send-data): Send the SPEAK command only if
+	speechd-sending-data-p is non-nil.  Don't send termination.  Send
+	EOL only if needed.
+
+2003-04-03  Milan Zamazal  <pdm@brailcom.org>
+
+	* install-debian.sh: Apply emacspeak.patch if needed.
+
+	* emacspeak.patch: New file.
+
+	* speechd-emacspeak.el (emacspeak-speak-char) 
+	(emacspeak-speak-this-char): New redefinitions.
+
+	* speechd.el (speechd-send-command): Don't call sit-for.
+
+2003-03-31  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-coding-system): Value set to 'utf-8-dos.
+	(speechd-send-data): Rewritten to be faster.
+
+2003-03-27  Milan Zamazal  <pdm@brailcom.org>
+
+	* install-debian.sh: Set owner of the copied files.  chmod only
+	the copied files.
+
+	* speechd.el (speechd-eol): Value changed to "\n".
+	(speechd-send-command): Don't handle \r at the end of line at all.
+	sit-for call added.
+	(speechd-open): Set process coding system.
+	(speechd-coding-system): New option.
+
+2003-03-26  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-default-letter-priority): Init value changed
+	to :low.
+	(speechd-el-version): New constant.
+	(speechd-bug-report): New command.
+	(speechd-maintainer-address): New constant.
+	(speechd-send-command, speechd-send-data, speechd-open) 
+	(speechd-close): Push more information onto speechd-debug-info.
+	(speechd-send-command): Don't message debugging information.
+	(speechd-eol): New constant.
+	(speechd-send-command, speechd-send-data): Use it.
+	(speechd-send-command): Handle correctly input with single `\n' as
+	line ending.
+
+	* install-debian.sh: New file.
+
+2003-03-25  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el: Speech Daemon protocol changes incorporated.
+
+2003-03-24  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-emacspeak.el (speechd-open): Call
+	process-kill-without-query only when `speechd-conneciton' is not
+	null.  Set dtk-speak-server-initialized to t unconditionally.
+	(dtk-speak): New advice.
+	(speechd-protect-against-dtk-process-errors): New macro, including
+	its invocations.
+
+	* speechd.el (speechd-connection-filter): New function.
+	(speechd-open): Set it as the process filter function.
+	(speechd-connection-output): New variable.
+	(speechd-send-string): New function.
+	(speechd-send-command, speechd-send-data): Use it.
+	(speechd-running-p): New function.
+	(speechd-connection-failure): New variable.
+	(speechd-open): Set it.  Be more careful about errors.  Return
+	speechd-connection.
+	(speechd-send-command): Rewritten to use the variable instead of
+	process buffer and to consider `speechd-connection-failure'.
+

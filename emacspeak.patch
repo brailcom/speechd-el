@@ -1,0 +1,53 @@
+*** dtk-speak.el~	Thu Apr  3 16:45:42 2003
+--- dtk-speak.el	Thu Apr  3 17:01:15 2003
+***************
+*** 168,173 ****
+--- 168,175 ----
+  ;;{{{ macros
+  
+  (defmacro tts-with-punctuations (setting &rest body)
++   ;; Changed by Milan Zamazal <pdm@brailcom.org>, March 2003, to allow use of
++   ;; speechd-el.
+    "Safely set punctuation mode for duration of body form."
+    (`
+     (progn
+***************
+*** 176,192 ****
+         (unwind-protect
+             (progn
+               (unless (string= (, setting) save-punctuation-mode)
+!                (process-send-string dtk-speaker-process
+!                                     (format "tts_set_punctuations %s  \n "
+!                                             (, setting)))
+                 (setq dtk-punctuation-mode (, setting)))
+               (,@ body)
+               (dtk-force))
+           (unless (string=  (, setting)  save-punctuation-mode)
+             (setq dtk-punctuation-mode save-punctuation-mode)
+!            (process-send-string dtk-speaker-process
+!                                 (format "tts_set_punctuations %s  \n "
+!                                         dtk-punctuation-mode ))
+             (dtk-force)))))))
+  
+  ;;}}}
+--- 178,190 ----
+         (unwind-protect
+             (progn
+               (unless (string= (, setting) save-punctuation-mode)
+!                (dtk-interp-set-punctuations (, setting))
+                 (setq dtk-punctuation-mode (, setting)))
+               (,@ body)
+               (dtk-force))
+           (unless (string=  (, setting)  save-punctuation-mode)
+             (setq dtk-punctuation-mode save-punctuation-mode)
+!            (dtk-interp-set-punctuations dtk-punctuation-mode)
+             (dtk-force)))))))
+  
+  ;;}}}
+***************
+*** 786,788 ****
+--- 784,787 ----
+  ;;; end:
+  
+  ;;}}}
++ 
