@@ -31,7 +31,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.22 2003-07-21 17:26:54 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.23 2003-07-22 06:59:06 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -734,7 +734,6 @@ FUNCTION is invoked interactively."
                           ""
                         (minibuffer-contents))))
     (when (not (string= old-content new-content))
-      (push (list old-content new-content) pokus)
       (setf (speechd-speak--command-info-struct-minibuffer-contents info)
             new-content)
       (speechd-speak--minibuffer-update-report
