@@ -1,3 +1,14 @@
+2003-06-25  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak--defadvice): New macro.
+	(speechd-speak--command-feedback, y-or-n-p, read-key-sequence)
+	(comint-output-filter): Use it.
+	(speechd-speak--current-message): New function.
+	(speechd-speak--post-command-hook): Use it.
+	(message): New advice.
+	(speechd-speak--last-spoken-message): New variable.
+	(speechd-speak--post-command-hook): Set it.
+
 2003-06-24  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-speak.el (speechd-speak--speak-new-message): Removed;
