@@ -70,11 +70,11 @@
   :group 'speechd)
 
 (defconst speechd--priority-tags
-  '(radio (const :tag "Important"    :value 'important)
-	  (const :tag "Message"      :value 'message)
-	  (const :tag "Text"         :value 'text)
-	  (const :tag "Notification" :value 'notification)
-	  (const :tag "Progress"     :value 'progress)))
+  '(radio (const :tag "Important"    :value important)
+	  (const :tag "Message"      :value message)
+	  (const :tag "Text"         :value text)
+	  (const :tag "Notification" :value notification)
+	  (const :tag "Progress"     :value progress)))
 
 (defcustom speechd-default-text-priority 'text
   "Default Speech Dispatcher priority of sent texts."
@@ -211,7 +211,7 @@ locally through `let'.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.49 2003-08-13 19:51:15 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.50 2003-08-19 14:29:50 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
