@@ -149,11 +149,14 @@ You must reopen the connections to apply the changes to this variable."
                   (mapcar
                    #'(lambda (item)
                        (cons (car item)
-                             (mapcan #'(lambda (ival)
-                                         (list (car ival) (cdr ival)))
-                                     (cdr item))))
+                             (nconc
+                              (mapcar #'(lambda (ival)
+                                          (list (car ival) (cdr ival)))
+                                      (cdr item)))))
                    value)))
-             (set-default name real-value)))
+             (set-default name real-value)
+             (when (fboundp 'speechd-reopen)
+               (speechd-reopen))))
   :type `(repeat
           (cons :tag "Connection"
                 (choice (string :tag "Connection name")
@@ -208,7 +211,7 @@ locally through `let'.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.44 2003-08-04 07:28:38 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.45 2003-08-06 11:44:56 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
