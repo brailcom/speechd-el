@@ -215,7 +215,7 @@ language.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.72 2003-10-22 14:25:10 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.73 2003-10-24 10:43:53 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -869,34 +869,24 @@ command is sent afterwards.
 PARAMETERS is a property list defining parameters to be set before sending the
 BLOCK BEGIN command.  The property-value pairs correspond to the arguments of
 the `speechd--set-parameter' function."
-  (let (($parameters (gensym))
-        ($p (gensym))
-        ($v (gensym)))
-    `(progn
-       (let ((,$parameters ,parameters))
-         (while ,$parameters
-           (let ((,$p (first ,$parameters))
-                 (,$v (second ,$parameters)))
-             (when (or ,$v (not (memq ,$p '(language))))
-               (speechd--set-parameter ,$p ,$v)))
-           (setq ,$parameters (nthcdr 2 ,$parameters))))
-       (speechd--with-current-connection
-        (if (and connection (speechd--connection-in-block connection))
-            (progn ,@body)
-          (let ((block-connection connection))
-            (speechd--send-command '("BLOCK BEGIN"))
-            (unwind-protect
-                (progn
-                  (speechd--with-current-connection
-                   (when connection
-                     (setf (speechd--connection-in-block connection) t)))
-                  ,@body)
-              (let ((connection block-connection))
-                (when connection
-                  (setf (speechd--connection-in-block connection) nil)
-                  (let ((speechd-client-name
-                         (speechd--connection-name connection)))
-                    (speechd--send-command '("BLOCK END"))))))))))))
+  `(speechd--with-current-connection
+     (speechd--with-connection-parameters ,parameters
+       (if (and connection (speechd--connection-in-block connection))
+           (progn ,@body)
+         (let ((block-connection connection))
+           (speechd--send-command '("BLOCK BEGIN"))
+           (unwind-protect
+               (progn
+                 (speechd--with-current-connection
+                  (when connection
+                    (setf (speechd--connection-in-block connection) t)))
+                 ,@body)
+             (let ((connection block-connection))
+               (when connection
+                 (setf (speechd--connection-in-block connection) nil)
+                 (let ((speechd-client-name
+                        (speechd--connection-name connection)))
+                   (speechd--send-command '("BLOCK END")))))))))))
 
 
 ;;; Speaking functions
