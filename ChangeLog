@@ -1,3 +1,9 @@
+2003-08-04  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak-report): Don't use string-match.
+	* speechd.el (speechd--process-request, speechd--send-data):
+	Enclose body in save-match-data.
+
 2003-07-31  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-speak.el (speechd-speak--post-command-hook):
