@@ -51,7 +51,7 @@ Documentation License.''
 * Introduction::                What is speechd-el and this manual about?
 * speechd-el User Manual::      Using Emacs speech output.
 * speechd-el Elisp Library::    Using speechd-el in Elisp programs.
-* Contact Information::         How to speak to us.
+* Contact Information::         Bug reporting etc.
 
 * Copying This Manual::         GNU Free Documentation License.
 * Index::                       Concept, function, variable and key index.
@@ -128,6 +128,7 @@ more information about Speech Dispatcher.
 * Customization::               Basic customization.
 * Advanced Customization::      Writing your own command feedbacks.
 * Problems::                    Strange behavior.
+* Bug Reporting::               speechd-el and Speech Dispatcher bugs.
 @end menu
 
 @node Installation, Starting Speech Output, speechd-el User Manual, speechd-el User Manual
@@ -589,7 +590,7 @@ running on a remote host or a non-default port.
 @item speechd-host
 @cindex host
 Name of the host running Speech Dispatcher to connect to, given as a
-string.  Default is localhost.
+string.  Default is @code{"localhost"}.
 
 @item speechd-port
 @cindex port
@@ -1138,7 +1139,7 @@ precautions.  If you do not use them, you should make those
 precautions yourself.
 @end itemize
 
-@node Problems,  , Advanced Customization, speechd-el User Manual
+@node Problems, Bug Reporting, Advanced Customization, speechd-el User Manual
 @section Problems You May Encounter
 @cindex problems
 
@@ -1170,6 +1171,64 @@ quite easily.  If that's a real problem to you, you can reduce your
 autorepeat rate or buy a faster computer.
 
 Certainly, any tips increasing speechd-el performance are welcome.
+@end itemize
+
+@node Bug Reporting,  , Problems, speechd-el User Manual
+@section How to Report speechd-el or Speech Dispatcher Bugs
+@cindex bug reporting
+
+When you encounter a speechd-el bug, you can report it to us using the
+following command.  Before doing it, please read the whole text of
+this section to allow handling your bug report in a more efficient way.
+
+@ftable @kbd
+@item M-x speechd-bug
+@findex speechd-bug
+Report a speechd-el or Speech Dispatcher bug.  The command asks you
+for some information and then asks you whether you can reproduce the
+bug.  If you can, answer @kbd{y} and start reproducing the bug
+immediately.  As soon as the bug is reproduced, type @kbd{C-e .}.
+Then you can (and should) further edit the generated mail and send it
+in the usual way.
+@end ftable
+
+When reporting the bugs, please always remember the following
+instructions:
+
+@itemize @bullet
+@item
+Write as much information about the problem as possible.  Describe
+what doesn't work, what's the expected behavior, what actions have
+triggered the bug, what's special about your Emacs environment or
+Speech Dispatcher configuration, etc.  Don't try to analyze too much
+which information is important and which is not --- everything may be
+important to the developers, so try not to forget to mention anything
+that might be important, better more than less.  Missing information
+may cause the developers won't be able to handle the bug at all.
+
+@item
+Be as much precise as possible.  Don't expect the developers to know
+the context or to know the way you typically use Emacs and speechd-el.
+Write in exact terms --- instead of just writing ``when I invoke foo''
+write better ``when I press the keys `M-x foo RET', thus invoking the
+`foo' command''; or instead of writing ``doesn't speak what I expect''
+write like ``speaks `blah blah' instead of `bleh bleh bleh' what is I
+expect, since `bleh bleh bleh' is the text of the whole line''.
+
+@item
+When reproducing the bug, try to have the Speech Dispatcher logging
+enabled to the highest level --- set the @code{LogLevel} option to
+@code{5} in your @file{speechd.conf} configuration file.
+
+@item
+When reproducing the bug, don't do any extra actions and invoke
+@kbd{C-e .} as soon as the bug is reproduce.  Thus you avoid losing
+the relevant information of the automatically extracted log files in
+an unnecessary garbage.
+
+@item
+You can also look at the Speech Dispatcher bug reporting instructions,
+see @ref{Reporting Bugs,,,speechd,Speech Dispatcher}.
 @end itemize
 
 @c ****************************************************************************
@@ -1228,6 +1287,11 @@ regarding the bug to the bug tracking address
 @email{speechd-el@@bugs.freebsoft.org}.  If you have a patch to
 speechd-el, you can send it to the same address.
 
+@emph{Please}, before sending us any bug report, read the bug
+reporting instructions, see @ref{Bug Reporting}.  Thus you allow us to
+process your bug report more efficiently, resulting in a better
+response to the report and faster resolving of the issue.
+
 If you have any questions, suggestions, or anything else to tell us,
 feel free to contact us at the e-mail address
 @email{speechd@@freebsoft.org}.
@@ -1255,4 +1319,5 @@ feel free to contact us at the e-mail address
 @c  LocalWords:  Brailcom dircategory direntry titlepage vskip pt filll dir url
 @c  LocalWords:  insertcopying ifnottex cindex Elib autoload kbd findex kindex
 @c  LocalWords:  pxref sexp SPC itemx var unspeak vtable xref asis alist ftable
-@c  LocalWords:  docstrings minibuffers emph vindex fdl texi printindex
+@c  LocalWords:  docstrings minibuffers emph vindex fdl texi printindex gc foo
+@c  LocalWords:  RET bleh LogLevel conf comint localhost
