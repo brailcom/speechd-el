@@ -1,0 +1,15 @@
+User-visible changes to speechd-el:
+
+* Changes in speechd-el 0.2
+
+** read-event prompts are spoken now.
+
+** Spelling support added.
+
+You can now use speechd-speak-spell-mode to enable spelling in buffer or the
+`C-e C-l' keys to spell the next command speech output.
+
+
+Local variables:
+mode: outline
+end:

@@ -1,3 +1,29 @@
+2003-11-13  Milan Zamazal  <pdm@brailcom.org>
+	
+	* speechd-speak.el (speechd-speak-mode-map): speechd-speak-spell
+	added.
+	(speechd-speak--current-message): Set speechd-spell to nil.
+
+	* speechd-speak.el (speechd-speak-mode-map): No longer present
+	table setting commands removed.
+	
+	* speechd-el.texi (Connection Parameters) 
+	(Parameter Setting Commands): References to the no longer present
+	commands and parameters removed.
+
+2003-11-12  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-el.texi (Spelling): New section.
+	* speechd.el (speechd--parameter-names)
+	(speechd--parameter-value-mappings): spelling-mode added.
+	(speechd-spell): New variable.
+	(speechd-say-text): Honor it.
+	* speechd-speak.el (speechd-speak-spell-mode): New minor mode.
+	(speechd-speak-spell-command): New variable.
+	(speechd-speak-spell): New command.
+	(speechd-speak--pre-command-hook) 
+	(speechd-speak--post-command-hook): Honor it.
+
 2003-11-10  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd.el (speechd-connection-parameters): Important
@@ -41,6 +67,10 @@
 2003-11-04  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-speak.el (read-event): New advice.
+
+2003-11-07  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-el 0.1 released.
 
 2003-11-04  Milan Zamazal  <pdm@brailcom.org>
 
