@@ -31,8 +31,17 @@
 (require 'speechd-speak)
 
 
-(defconst speechd-bug--version "$Id: speechd-bug.el,v 1.5 2003-10-29 10:33:43 pdm Exp $"
+(defconst speechd-bug--version "$Id: speechd-bug.el,v 1.6 2003-11-05 15:17:29 pdm Exp $"
   "Version of the speechd-bug.el file.")
+
+
+(defvar speechd-bug--finish-repro-key "\C-z")
+
+(defvar speechd-bug--repro-id nil)
+
+(defvar speechd-bug--marker nil)
+
+(defvar speechd-bug--dribble-file nil)
 
 
 ;;; Utility functions
@@ -76,7 +85,12 @@
 (defun speechd-bug--insert-config-file (file directories comment-start)
   (speechd-bug--ensure-empty-line)
   (speechd-bug--insert "===" file ":begin===")
-  (let ((file-name (speechd-bug--look-for-file file directories)))
+  (let ((file-name
+         (or (speechd-bug--look-for-file file directories)
+             (condition-case c
+                 (read-file-name
+                  (format "Configuration file `%s' not found, please type its location manually: " file))
+               (quit)))))
     (if file-name
         (let ((point (point)))
           (insert-file-contents file-name)
@@ -94,6 +108,14 @@
    "festival.conf" '("/etc/speechd/modules" "/etc/speech-dispatcher/modules")
    "#")
   (speechd-bug--insert-config-file "festival.scm" '("/etc") ";"))
+
+(defun speechd-bug--insert-dribble-file ()
+  (speechd-bug--ensure-empty-line)
+  (speechd-bug--insert "===dribble:begin===")
+  (insert-file-contents speechd-bug--dribble-file)
+  (speechd-bug--insert "===dribble:end===")
+  (delete-file speechd-bug--dribble-file)
+  (setq speechd-bug--dribble-file nil))
 
 
 ;;; Log insertion
@@ -179,12 +201,6 @@
 ;;; Reproducing bug
 
 
-(defvar speechd-bug--finish-repro-key ".")
-
-(defvar speechd-bug--repro-id nil)
-
-(defvar speechd-bug--marker nil)
-
 (defun speechd-bug--generate-repro-id ()
   (let ((time (current-time)))
     (format "speechd-el-%d-%d-%d" (first time) (second time) (third time))))
@@ -194,6 +210,8 @@
   (setq speechd-bug--repro-id (speechd-bug--generate-repro-id))
   (speechd-say-sound (concat "_debug_on" speechd-bug--repro-id)
                      :priority 'important)
+  (setq speechd-bug--dribble-file (make-temp-file "speechd-bug"))
+  (open-dribble-file speechd-bug--dribble-file)
   (define-key speechd-speak-mode-map speechd-bug--finish-repro-key
     'speechd-bug--finish-repro))
 
@@ -205,6 +223,7 @@
   (define-key speechd-speak-mode-map speechd-bug--finish-repro-key 'undefined)
   (sit-for 1)                           ; wait a little for flushing the logs
   (switch-to-buffer (marker-buffer speechd-bug--marker))
+  (speechd-bug--insert-dribble-file)
   (speechd-bug--insert-logs)
   (goto-char (marker-position speechd-bug--marker))
   (setq speechd-bug--marker nil)
@@ -255,8 +274,9 @@
         (speechd-bug--insert-general-info)))
     (if (y-or-n-p "Can you reproduce the bug now? ")
         (progn
-          (message "Reproduce the bug now and finish it with `%s .'"
-                   "C-e") ;speechd-speak-prefix)
+          (message "Reproduce the bug now and finish it with `%s %s'"
+                   (key-description speechd-speak-prefix)
+                   (key-description speechd-bug--finish-repro-key))
           (speechd-bug--start-repro))
       (save-excursion
         (speechd-bug--ensure-empty-line)
