@@ -1,3 +1,13 @@
+2003-07-02  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak--current-message): New optional
+	argument REPEATABLE.
+	(speechd-speak--post-command-hook): Consider the previous change.
+	(speechd-speak--uniform-text-around-point): Limit property change
+	searches.
+	(speechd-speak--current-message): The argument REPEATABLE changed
+	to RESET-LAST-SPOKEN.
+
 2003-07-01  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-speak.el (speechd-speak--post-command-hook): Typo in the
