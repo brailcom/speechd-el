@@ -206,7 +206,7 @@ current voice."
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.32 2003-07-16 17:51:29 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.33 2003-07-17 08:42:52 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -515,9 +515,9 @@ Return the opened connection on success, nil otherwise."
 		   (process (and connection
 				 (speechd--connection-process connection))))
 	      (if process
-                  (let ((connection (speechd--connection-process connection)))
+                  (progn
                     (setf (speechd--connection-failure-p connection) t)
-                    (process-send-string connection string))
+                    (process-send-string process string))
 		(speechd--permanent-connection-failure connection)))))))))
 
 (defvar speechd--in-recursion nil)
