@@ -89,6 +89,25 @@
   :type speechd-priority-tags
   :group 'speechd)
 
+(defun speechd--keyword->nonkeyword (symbol)
+  (intern (substring (symbol-name symbol) 1)))
+
+(defmacro speechd--generate-customization-options (var)
+  (let ((value (symbol-value var)))
+    `(quote (choice :value ,(speechd--keyword->nonkeyword (cdr (first value)))
+                    ,@(mapcar #'(lambda (o)
+                                  `(const :tag ,(car o)
+                                     ,(speechd--keyword->nonkeyword (cdr o))))
+                              value)))))
+
+(defconst speechd--punctuation-modes '(("none" . :none)
+                                       ("some" . :some)
+                                       ("all" .  :all)))
+
+(defconst speechd--capital-character-modes '(("none" .  :none)
+                                             ("spell" . :spell)
+                                             ("icon" .  :icon)))
+
 (defcustom speechd-connection-parameters '()
   "Alist of connection names and their parameters.
 
@@ -98,11 +117,64 @@ and PARAMETERS is a property list with the pairs of parameter identifiers and
 parameter values.  Valid parameter names are the following:
 :language, :message-priority, :punctuation-mode, :important-punctuation,
 :punctuation-table, :spelling-table, :text-table, :character-table, :key-table,
-:sound-table, :voice, :rate, :pitch, :output-module.  See the corresponding
-speechd-set-* functions for valid parameter values.
+:sound-table, :capital-character-table, :capital-character-mode, :voice, :rate,
+:pitch, :output-module.  See the corresponding speechd-set-* functions for
+valid parameter values.
 
 You must reopen the connections to apply the changes to this variable."
-  :type '(repeat (cons string (repeat sexp)))
+  :get #'(lambda (name)
+           (mapcar
+            #'(lambda (v)
+                (cons (car v)
+                      (let ((result '())
+                            (params (cdr v)))
+                        (while params
+                          (push (cons (speechd--keyword->nonkeyword
+                                       (first params))
+                                      (second params)) result)
+                          (setq params (nthcdr 2 params)))
+                        (nreverse result))))
+            (symbol-value name)))
+  :set #'(lambda (name value)
+           (let ((real-value
+                  (mapcar
+                   #'(lambda (item)
+                       (cons (car item)
+                             (mapcan
+                              #'(lambda (ival)
+                                  (list (intern
+                                         (concat ":" (symbol-name (car ival))))
+                                        (cdr ival)))
+                              (cdr item))))
+                   value)))
+             (set-default name real-value)
+             (speechd-reopen)))
+  :type `(repeat
+          (cons :tag "Connection" (string :tag "Name")
+           (set :tag "Parameters"
+            (cons :tag "Language" (const language) string)
+            (cons :tag "Messsage priority" (const message-priority)
+                  ,speechd-priority-tags)
+            (cons :tag "Punctuation mode" (const punctuation-mode)
+                  ,(speechd--generate-customization-options
+                    speechd--punctuation-modes))
+            (cons :tag "Important punctutation" (const important-punctuation)
+                  string)
+            (cons :tag "Punctuation table" (const punctuation-table) string)
+            (cons :tag "Spelling table" (const spelling-table) string)
+            (cons :tag "Text table" (const text-table) string)
+            (cons :tag "Character table" (const character-table) string)
+            (cons :tag "Key table" (const key-table) string)
+            (cons :tag "Sound table" (const sound-table) string)
+            (cons :tag "Capital character table"
+                  (const capital-character-table) string)
+            (cons :tag "Capital character mode" (const capital-character-mode)
+                  ,(speechd--generate-customization-options
+                    speechd--capital-character-modes))
+            (cons :tag "Voice" (const voice) string)
+            (cons :tag "Rate" (const rate) integer)
+            (cons :tag "Pitch" (const pitch) integer)
+            (cons :tag "Output module" (const output-module) string))))
   :group 'speechd)
 
 (defcustom speechd-default-voice "male1"
@@ -135,7 +207,7 @@ current voice."
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.29 2003-07-09 14:33:25 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.30 2003-07-15 17:35:59 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -238,6 +310,9 @@ wrapped by this macro."
      (prog1 (progn ,@body)
        (unless already-protected
 	 (speechd--process-queues)))))
+
+(defmacro* speechd--iterate-connections (&body body)
+  `(maphash #'(lambda (_ connection) ,@body) speechd--connections))
 
 (defmacro* speechd--with-current-connection (&body body)
   `(let ((connection (speechd--connection)))
@@ -689,17 +764,13 @@ Language must be an RFC 1766 language code, as a string."
                                "Capital character spelling table"
                                :capital-character-tables)
 (speechd--generate-set-command :capital-character-mode "Capital character mode"
-                               '(("none" . :none)
-                                 ("spell" . :spell)
-                                 ("icon" . :icon)))
+                               speechd--capital-character-modes)
 (speechd--generate-set-command :key-table "Key table" :key-tables)
 (speechd--generate-set-command :pitch "Pitch" 0)
 (speechd--generate-set-command :rate "Rate" 0)
 (speechd--generate-set-command :voice "Voice" :voices)
 (speechd--generate-set-command :punctuation-mode "Punctuation mode"
-                               '(("none" . :none)
-                                 ("some" . :some)
-                                 ("all" .  :all)))
+                               speechd--punctuation-modes)
 ;; TODO: Remove this one once proper output module setting is defined.
 (speechd--generate-set-command :output-module "Output module" nil)
 
@@ -773,7 +844,10 @@ of the symbols `:important', `:message', `:text', `:notification' or
 
 
 (defun speechd--control-command (command all)
-  (speechd--send-command (list command (if all "all" "self"))))
+  (if all
+      (speechd--send-command (list command "all"))
+    (speechd--iterate-connections
+      (speechd--send-command (list command "self")))))
 
 ;;;###autoload
 (defun speechd-cancel (&optional all)
