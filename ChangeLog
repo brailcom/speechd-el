@@ -1,3 +1,44 @@
+2003-10-07  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak--command-info-struct): `buffer'
+	and `point' replaced by `marker'.
+	(speechd-speak--set-command-start-info): Consider the previous
+	change.
+	(speechd-speak--command-info-struct-buffer) 
+	(speechd-speak--command-info-struct-point): New functions.
+	(speechd-speak-movement-on-insertions): New user option.
+	(speechd-speak--post-command-hook): Consider it.
+	* speechd-el.texi (Auto-Speaking Buffers): Document it.
+
+	* speechd-speak.el (speechd-speak-buffer-insertions):
+	`whole-buffer' value introduced.
+	(speechd-speak--post-command-hook): Consider the previous change.
+	* speechd-el.texi (Auto-Speaking Buffers): Document it.
+
+2003-10-05  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak-buffer-insertions): Extra quote
+	removed.
+	(speechd-speak-insertions-in-buffers)
+	(speechd-speak-auto-speak-buffers)
+	(speechd-speak-force-auto-speak-buffers)
+	(speechd-speak-priority-insertions-in-buffers)
+	(speechd-speak-by-properties-always)
+	(speechd-speak-by-properties-on-movement)
+	(speechd-speak-by-properties-never, speechd-speak-faces)
+	(speechd-speak-connections): Explicit prompts added.
+	(speechd-speak-by-properties-always)
+	(speechd-speak-by-properties-never): Customization type narrowed.
+	(speechd-speak-faces, speechd-speak-connections): Use the `alist'
+	customization type.
+
+	* speechd.el (speechd--generate-set-command): Table setting
+	commands, no longer present in SSIP, removed.
+	(speechd-connection-parameters): Consider previous change.
+	(speechd--parameter-names, speechd--list-parameter-names)
+	(speechd-connection-parameters): Likewise.
+	(speechd-face-voices): Explicit prompt added.
+
 2003-10-01  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd.el (speechd-port): Default port number changed to 6560.
