@@ -31,7 +31,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.10 2003-06-30 15:22:55 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.11 2003-07-01 09:52:32 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -601,7 +601,7 @@ Level 1 is the slowest, level 9 is the fastest."
 		(speechd-speak--text (buffer-name) :priority :message)
 	      (speechd-speak-read-line)))
 	   ;; Buffer modification
-	   (buffer-modifified
+	   (buffer-modified
 	    nil)
 	   ;; Special face hit
 	   ((and (not in-minibuffer)
