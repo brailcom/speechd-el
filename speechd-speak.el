@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.55 2003-10-21 16:42:46 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.56 2003-10-22 11:02:41 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -910,31 +910,32 @@ connections, otherwise create completely new connection."
 
 
 (defun speechd-speak--command-keys (&rest args)
-  (let* ((keys (this-command-keys-vector))
-         (i 0)
-         (len (length keys)))
-    (while (< i len)
-      (let ((key (aref keys i)))
-        (apply #'speechd-say-key key args)
-        (let ((m-x-chars (and (eql (event-basic-type key) ?x)
-                              (equal (event-modifiers key) '(meta))
-                              (let ((j (1+ i))
-                                    (chars '("")))
-                                (while (and chars (< j len))
-                                  (let* ((k (aref keys j))
-                                         (km (event-modifiers k))
-                                         (kb (event-basic-type k)))
-                                    (unless (or (not (numberp kb))
-                                                (< kb 32) (>= kb 128)
-                                                km)
-                                      (push (char-to-string kb) chars)))
-                                  (incf j))
-                                (nreverse chars)))))
-          (if m-x-chars
-              (progn
-                (apply #'speechd-speak--text (apply #'concat m-x-chars) args)
-                (setq i len))
-            (incf i)))))))
+  (speechd-speak--maybe-speak
+    (let* ((keys (this-command-keys-vector))
+           (i 0)
+           (len (length keys)))
+      (while (< i len)
+        (let ((key (aref keys i)))
+          (apply #'speechd-say-key key args)
+          (let ((m-x-chars (and (eql (event-basic-type key) ?x)
+                                (equal (event-modifiers key) '(meta))
+                                (let ((j (1+ i))
+                                      (chars '("")))
+                                  (while (and chars (< j len))
+                                    (let* ((k (aref keys j))
+                                           (km (event-modifiers k))
+                                           (kb (event-basic-type k)))
+                                      (unless (or (not (numberp kb))
+                                                  (< kb 32) (>= kb 128)
+                                                  km)
+                                        (push (char-to-string kb) chars)))
+                                    (incf j))
+                                  (nreverse chars)))))
+            (if m-x-chars
+                (progn
+                  (apply #'speechd-speak--text (apply #'concat m-x-chars) args)
+                  (setq i len))
+              (incf i))))))))
 
 (defun speechd-speak--add-command-text (info beg end)
   (let ((last (first (speechd-speak--cinfo changes)))
@@ -1050,11 +1051,10 @@ connections, otherwise create completely new connection."
 (speechd-speak--post-defun buffer-switch t t
   ;; Any buffer switch
   buffer-changed
-  (speechd-block '(message-priority text)
-    (when speechd-speak-buffer-name
-     (speechd-speak--text (buffer-name)))
-    (when (memq speechd-speak-buffer-name '(text nil))
-      (speechd-speak-read-line t))))
+  (when speechd-speak-buffer-name
+    (speechd-speak--text (buffer-name) :priority 'message))
+  (when (memq speechd-speak-buffer-name '(text nil))
+    (speechd-speak-read-line t)))
 
 (speechd-speak--post-defun command-keys t nil
   ;; Keys that invoked the command
