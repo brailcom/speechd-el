@@ -1122,7 +1122,7 @@ Mo¾ná vás je¹tì mù¾e zajímat @ref{Pokroèilá konfigurace}.
 
 Máte-li jakékoliv otázky, oznámení chyb, námìty, záplaty nebo cokoliv
 jiného, co nám chcete sdìlit, neváhejte se obrátit na adresu
-@email{speechd-devel@@freebsoft.org}.
+@email{speechd@@freebsoft.org}.
 
 @c ****************************************************************************
 
