@@ -1,3 +1,7 @@
+2003-05-25  Hynek Hanke  <hanke@localhost.localdomain>
+
+	* speechd.el (speechd-say-char): CHAR and KEY commands are sent without doublequotes.
+
 2003-05-21  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd.el (speechd-cancel, speechd-stop, speechd-pause) 
