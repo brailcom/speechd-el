@@ -166,9 +166,8 @@ Add the following line to your @file{~/.emacs}:
 @end lisp
 @end enumerate
 
-To run speechd-el, Speech Dispatcher must be installed and running.
-Speech Dispatcher 0.3 or higher is recommended to get all the
-speechd-el features working.
+To run speechd-el, Speech Dispatcher 0.5 or higher must be installed
+and running.
 
 @node Starting Speech Output, Commands, Installation, speechd-el User Manual
 @section Starting Speech Output
@@ -1400,18 +1399,6 @@ binding the @code{speechd-client-name} variable:
 
 Please note it's usually bad idea to open two concurrent Speech
 Dispatcher connections sharing the same client name.
-
-@item
-@findex speechd-blocked-p
-It is not allowed to call speech functions when another speech
-function is running.  If you write a speech output code, which is
-intended to be called asynchronously, such as in a process filter
-function or a timer, you should call the @code{speechd-blocked-p}
-function to check the speech output is not blocked by another speech
-output function.  If it is blocked, you must refrain from calling
-speech output functions there (due to Emacs architecture, it is no
-chance the blocking will be released until you finish the
-asynchronously called code).
 
 @item
 Otherwise there should be no special pitfalls and you should be safe

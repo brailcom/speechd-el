@@ -9,6 +9,11 @@ User-visible changes to speechd-el:
 
 See the command speechd-speak-read-mode-line bound to the `C-e RET' key.
 
+** spdsend is now used for communication with Speech Dispatcher.
+
+This avoids various problems experienced when using Emacs native asynchronous
+communication.
+
 ** speechd-connection-parameters removed.
 
 This obsolete variable is no longer available, use speechd-connection-voices

@@ -1,3 +1,55 @@
+2004-08-10  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd--call-spdsend): Ensure
+	last-coding-system-used is not updated by this operation.
+
+2004-08-09  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak--in-async)
+	(speechd-speak--async, speechd-speak--pending-speeches)
+	(speechd-speak--reading-pending-speeches)
+	(speechd-speak--read-pending-speeches): Removed.
+	(speechd-speak--pre-command-hook, speechd-speak--message)
+	(speechd-speak--after-change-hook): Honor the change above.
+
+	* speechd.el (speechd--blocked-p): Both the function and variable
+	removed.
+	(speechd--send-request): Honor the change above.
+
+2004-08-09  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd--request): ANSWER-TYPE removed.
+	(speechd--process-request): Honor the change above.
+
+2004-08-05  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd--call-spdsend): Set
+	process-coding-system-alist to nil before calling the process; set
+	input coding to speechd--coding-system.
+
+2004-08-05  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd--process-request): Extract the parts of the
+	answer only on success.
+
+2004-08-05  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd--process-name, speechd--connection-filter):
+	Removed.
+	(speechd--open-connection, speechd--close-connection)
+	(speechd--send-connection): New functions.
+	(speechd--spdsend): New variable.
+	(speechd--call-spdsend): New function.
+	(speechd--connection): Slot process-output removed.
+	(speechd-open, speechd-close)
+	(speechd--permanent-connection-failure): Use
+	speechd--close-connection instead of speechd--close-process.
+	(speechd--close-process): Removed.
+	(speechd--permanent-connection-failure): Don't set process-output.
+	(speechd-open): Updated.
+	(speechd--send-string, speechd--process-request): Rewritten.
+	(speechd-running-p): Removed.
+
 2004-07-29  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-speak.el (speechd-speak-quiet-functions): New variable;

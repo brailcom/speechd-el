@@ -15,7 +15,7 @@ Installation:
 
 - Install the `speechd-log-extractor' script somewhere to your shell PATH.
 
-- Start speechd.
+- Start speech-dispatcher.
 
 - Start Emacs and apply the commands
 

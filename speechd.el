@@ -244,7 +244,7 @@ language.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd-el-version "2004-07-24 06:45 pdm"
+(defconst speechd-el-version "2004-08-10 15:56 pdm"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -327,7 +327,6 @@ Useful only for diagnosing problems.")
   port
   (failure-p nil)
   process
-  (process-output nil)
   (paused-p nil)
   (in-block nil)
   (parameters ())
@@ -335,8 +334,7 @@ Useful only for diagnosing problems.")
   (last-command nil))
 
 (defstruct speechd--request
-  string
-  (answer-type 'required))
+  string)
 
 (defvar speechd--connections (make-hash-table :test 'equal)
   "Hash table mapping client names to `speechd-connection' instances.")
@@ -433,14 +431,6 @@ code."
 (defun speechd--current-language ()
   speechd-language)
 
-(defvar speechd--blocked-p nil)
-
-(defun speechd-blocked-p ()
-  "Return non-nil if speaking is currently blocked.
-Speaking is blocked when another speaking command is executed.  That can
-usually happen if your code is invoked asynchronously, typically in timers."
-  speechd--blocked-p)
-
 
 ;;; Process management functions
 
@@ -452,29 +442,39 @@ usually happen if your code is invoked asynchronously, typically in timers."
 	   (let ((speechd-client-name name))
 	     (speechd-open)))))
 
-(defun speechd--process-name ()
-  (process-name (speechd--connection-process (speechd--connection))))
+(defvar speechd--spdsend "spdsend")
 
-(defun speechd--connection-filter (process string)
-  (speechd--with-current-connection
-    (let ((c (if (eq process (speechd--connection-process connection))
-                 connection
-               (speechd--connection (substring
-                                     (buffer-name (process-buffer process))
-                                     (1+ (length speechd--buffer)))))))
-      (setf (speechd--connection-process-output c)
-            (concat (speechd--connection-process-output c) string)))))
+(defun speechd--call-spdsend (args &optional input)
+  (with-temp-buffer
+    (if input
+        (progn
+          (insert input)
+          (let ((default-process-coding-system
+                  (cons speechd--coding-system speechd--coding-system))
+                (process-coding-system-alist nil)
+                (last-coding-system-used nil))
+            (apply #'call-process-region (point-min) (point-max)
+                   speechd--spdsend t t nil args)))
+      (apply #'call-process speechd--spdsend nil t nil args))
+    (buffer-string)))
 
-(defun speechd--close-process (connection)
-  (let ((process (speechd--connection-process connection)))
-    (ignore-errors
-      (let ((buffer (process-buffer process)))
-	(when buffer
-	  (kill-buffer buffer))))
-    (ignore-errors
-      (when process
-	(delete-process process)))
-    (setf (speechd--connection-process connection) nil)))
+(defun speechd--open-connection (host port)
+  (let* ((answer (speechd--call-spdsend
+                  (list "--open" host (format "%d" port))))
+         (alen (and answer (length answer))))
+    (when (and alen (> alen 1))
+      (setq answer (substring answer 0 (1- alen))))
+    answer))
+
+(defun speechd--close-connection (connection)
+  (speechd--call-spdsend
+   (list "--close" (speechd--connection-process connection)))
+  (setf (speechd--connection-process connection) nil))
+
+(defun speechd--send-connection (connection command)
+  (speechd--call-spdsend
+   (list "--send" (speechd--connection-process connection))
+   command))
 
 ;;;###autoload
 (defun* speechd-open (&optional host port &key quiet force-reopen)
@@ -482,9 +482,9 @@ usually happen if your code is invoked asynchronously, typically in timers."
 If the connection corresponding to the current `speechd-client-name' value
 already exists, close it and reopen again, with the same connection parameters.
 
-The optional arguments HOST and PORT identify the speechd server location
-differing from the values of `speechd-host' and `speechd-port', see
-`open-network-stream' for closer description of those arguments.
+The optional arguments HOST and PORT identify the speechd server location.
+They can override default values stored in the varibales `speechd-host' and
+`speechd-port'.
 
 If the key argument QUIET is non-nil, don't report failures and quit silently.
 If the key argument FORCE-REOPEN is non-nil, try to reopen an existent
@@ -496,7 +496,7 @@ Return the opened connection on success, nil otherwise."
     (let ((host (or host speechd-host))
 	  (port (or port speechd-port)))
       (when connection
-	(speechd--close-process connection)
+	(speechd--close-connection connection)
 	(setq host (speechd--connection-host connection)
 	      port (speechd--connection-port connection)))
       (let* ((name speechd-client-name)
@@ -515,34 +515,21 @@ Return the opened connection on success, nil otherwise."
                             default-parameters))
                           (t
                            default-parameters)))
-	     (process (when (or
-                             (not connection)
-                             (not (speechd--connection-failure-p connection))
-                             force-reopen)
-                        (condition-case nil
-                            (open-network-stream
-                             "speechd-proc"
-                             (concat speechd--buffer "-" name)
-                             host port)
-                          (error nil)))))
-	(if process
+	     (id (when (or (not connection)
+                           (not (speechd--connection-failure-p connection))
+                           force-reopen)
+                   (condition-case nil
+                       (speechd--open-connection host port)))))
+	(if id
 	    (progn
-	      ;; The process input encoding is set to raw-text and the coding
-	      ;; conversion is performed by hand in `speechd--send-string'.
-	      ;; The reason is that Emacs 21.3 is buggy when performing the
-	      ;; automated conversion on longer strings.
-	      (set-process-coding-system process
-					 speechd--coding-system 'raw-text)
-	      (set-process-filter process 'speechd--connection-filter)
-	      (process-kill-without-query process)
               (setq connection (make-speechd--connection
                                 :name name :host host :port port
-                                :process process :failure-p (not process)))
+                                :process id :failure-p (not process)))
               (puthash name connection speechd--connections))
 	  (unless quiet
             (setq connection nil)
 	    (message "Connection to Speech Dispatcher failed")))
-	(when process
+	(when id
 	  (speechd--set-connection-name name)
           (setq parameters (append parameters
                                    (list 'language speechd--default-language)))
@@ -566,7 +553,7 @@ Return the opened connection on success, nil otherwise."
   (interactive)
   (let ((connection (speechd--connection name nil)))
     (when connection
-      (speechd--close-process connection)
+      (speechd--close-connection connection)
       (remhash name speechd--connections))))
 
 (defun speechd-reopen ()
@@ -583,12 +570,6 @@ Return the opened connection on success, nil otherwise."
     (message (format "%d connections successfully reopened, %d failures"
 		     number-of-connections number-of-failures))))
 
-(defun speechd-running-p ()
-  "Return non-nil, if the current speechd client name process is running."
-  (let* ((connection (speechd--connection))
-	 (process (and connection (speechd--connection-process connection))))
-    (and process (eq (process-status process) 'open))))
-
 
 ;;; Process communication functions
 
@@ -601,79 +582,37 @@ Return the opened connection on success, nil otherwise."
   (format "^[1-2][0-9][0-9] .*%s" speechd--eol))
 
 (defun speechd--permanent-connection-failure (connection)
-  (speechd--close-process connection)
+  (speechd--close-connection connection)
   (setf (speechd--connection-failure-p connection) t
-	(speechd--connection-process-output connection) nil
 	(speechd--connection-paused-p connection) nil
 	(speechd--connection-parameters connection) ()))
 
 (defun speechd--send-string (string)
   (speechd--with-current-connection
-    (let ((process (speechd--connection-process connection))
-	  (string (encode-coding-string string speechd--coding-system)))
-      (when process
-	(unwind-protect
-	    (process-send-string process string)
-	  (when (not (speechd-running-p))
-            (speechd--permanent-connection-failure connection)))))))
+    (speechd--send-connection connection string)))
 
 (defun speechd--process-request (request)
   (speechd--with-current-connection
    (save-match-data
-     (flet ((read-command-answer ()
-	     (while (let ((output (speechd--connection-process-output
-				   connection)))
-		      (and output
-			   (not (string-match speechd--end-regexp output))))
-	       (let ((output (speechd--connection-process-output connection)))
-		 ;; We have to be very careful with accept-process-output -- it
-		 ;; can invoke another speechd-el functions in various places.
-		 (let ((speechd--blocked-p t))
-                   (accept-process-output
-		     (speechd--connection-process connection)
-		     speechd-timeout))
-		 (when (string= (speechd--connection-process-output connection)
-				output)
-		   (speechd--permanent-connection-failure connection)
-		   (error "Timeout during communication with speechd."))))
-	     ;; Process the answer
-	     (let ((answer (speechd--connection-process-output connection))
-		   (data '())
-		   success
-		   result)
-               (while (and answer
-                           (string-match speechd--result-regexp answer))
-                 (push (match-string 1 answer) data)
-                 (setq answer (substring answer (match-end 0))))
-	       (setq success (and answer
-				  (string-match speechd--success-regexp
-						answer)))
-	       (unless success
-		 (setq data nil))
-	       (setf (speechd--connection-process-output connection) nil)
-	       (setq result (list success
-				  data
-				  (and answer (substring answer 0 3))
-				  (and answer (substring answer 4))))
-	       result)))
-      ;; Read pending answers
-      (speechd--iterate-connections
-        (when (speechd--connection-process-output connection)
-          (read-command-answer)))
-      ;; Send the request
-      (speechd--send-string (speechd--request-string request))
-      (let ((answer-type (speechd--request-answer-type request))
-            (answer nil))
-        (when (and answer-type
-                   (not (speechd--connection-failure-p connection)))
-          (setf (speechd--connection-process-output connection) "")
-          (when answer-type
-            (read-command-answer))))))))
+     (let ((answer (speechd--send-connection
+                    connection (speechd--request-string request))))
+       (let ((data '())
+             success)
+         (while (and answer
+                     (string-match speechd--result-regexp answer))
+           (push (match-string 1 answer) data)
+           (setq answer (substring answer (match-end 0))))
+         (setq success (and answer
+                            (string-match speechd--success-regexp answer)))
+         (unless success
+           (setq data nil))
+         (list success
+               data
+               (and success (substring answer 0 3))
+               (and success (substring answer 4))))))))
 
 (defun speechd--send-request (request)
   (speechd--with-current-connection
-    (when (speechd-blocked-p)
-      (error "Speech request within speech request processing"))
     (speechd--process-request request)))
 
 (defconst speechd--block-commands
