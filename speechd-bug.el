@@ -27,7 +27,7 @@
 (require 'speechd-speak)
 
 
-(defconst speechd-bug-version "2004-03-17 07:51 pdm"
+(defconst speechd-bug-version "2004-07-15 18:32 pdm"
   "Version of the speechd-bug.el file.")
 
 (defvar speechd-bug--log-extractor "speechd-log-extractor")
@@ -97,7 +97,7 @@
   (speechd-bug--insert "===" file ":end==="))
 
 (defun speechd-bug--insert-general-info ()
-  (dolist (p '("speechd" "festival"))
+  (dolist (p '("speech-dispatcher" "festival"))
     (speechd-bug--insert-program-version p))
   (speechd-bug--insert-config-file
    "speechd.conf" '("/etc/speechd" "/etc/speech-dispatcher") "#")
@@ -122,7 +122,7 @@
   (speechd-bug--ensure-empty-line)
   (speechd-bug--insert "===" file-name ":logbegin===")
   (shell-command
-   (format "%s %s %s --compress < %s | uuencode %s.compressed"
+   (format "%s on%s off%s --compress < %s | uuencode %s.compressed"
            speechd-bug--log-extractor speechd-bug--repro-id
            speechd-bug--repro-id file-name (file-name-nondirectory file-name))
    t)

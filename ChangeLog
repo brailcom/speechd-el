@@ -1,5 +1,20 @@
 2004-07-15  Milan Zamazal  <pdm@brailcom.org>
 
+	* speechd-bug.el (speechd-bug--insert-log-file): Make sure the
+	begin and end identifiers given to the log extractor are mutually
+	different.
+
+2004-07-15  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd--el-version): Renamed to speechd-el-version.
+
+2004-07-15  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-bug.el (speechd-bug--insert-general-info): `speechd'
+	binary renamed to `speech-dispatcher'.
+
+2004-07-15  Milan Zamazal  <pdm@brailcom.org>
+	
 	* speechd-speak.el (speechd-speak--message): Handle answers to
 	y/n questions in a special way.
 

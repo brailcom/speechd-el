@@ -244,7 +244,7 @@ language.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "2004-06-02 17:08 pdm"
+(defconst speechd-el-version "2004-07-15 15:05 pdm"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
