@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "2004-05-20 13:46 pdm"
+(defconst speechd-speak-version "2004-05-25 18:34 pdm"
   "Version of the speechd-speak file.")
 
 
@@ -361,7 +361,7 @@ Level 1 is the slowest, level 9 is the fastest."
     (when level
       (speechd-speak-set-predefined-rate level))))
 
-
+
 ;;; Supporting functions and options
 
 
@@ -437,6 +437,15 @@ Level 1 is the slowest, level 9 is the fastest."
                                  speechd-speak-input-method-languages)))
                 speechd-language)))
        ,@body)))
+
+(defvar speechd-speak--in-async nil)
+
+(defun speechd-speak--async (&rest args)
+  (if speechd-speak--in-async
+      (push args speechd-speak--pending-speeches)
+    (let ((speechd-speak--in-async t))
+      (speechd-speak--read-pending-speeches)
+      (apply (car args) (cdr args)))))
 
 (defmacro speechd-speak--interactive (&rest body)
   `(let ((speechd-speak-mode (or (interactive-p)
@@ -782,6 +791,22 @@ connections, otherwise create completely new connection."
     (set (make-local-variable 'speechd-client-name) name)
     (setq speechd-speak--client-name-set t)))
 
+(defvar speechd-speak--pending-speeches '())
+
+(defvar speechd-speak--reading-pending-speeches nil)
+
+(defun speechd-speak--read-pending-speeches ()
+  (unless (or (speechd-blocked-p)
+              speechd-speak--reading-pending-speeches)
+    (let ((speechd-speak--reading-pending-speeches t))
+      ;; Beware, speechd-speak--pending-speeches can change during the
+      ;; processing!
+      (while speechd-speak--pending-speeches
+        (let ((request (car speechd-speak--pending-speeches)))
+          (apply (car request) (cdr request)))
+        (setq speechd-speak--pending-speeches
+              (cdr speechd-speak--pending-speeches))))))
+
 
 ;;; Basic speaking
 
@@ -895,18 +920,24 @@ connections, otherwise create completely new connection."
          (speechd-language "en"))
      (speechd-speak--text speechd-speak--last-message))))
 
+(defun speechd-speak--read-message (message)
+  (let ((speechd-speak--special-area t)
+        (speechd-spell nil))
+    (speechd-speak--signal 'message :priority 'progress)
+    (speechd-speak--minibuffer-prompt message :priority 'progress)))
+
+(defun speechd-speak--message (message &optional reset-last-spoken)
+  (speechd-speak--maybe-speak
+   (when (and message
+              (not (string= message speechd-speak--last-spoken-message)))
+     (setq speechd-speak--last-message message
+           speechd-speak--last-spoken-message message)
+     (speechd-speak--async #'speechd-speak--read-message message))
+   (when reset-last-spoken
+     (setq speechd-speak--last-spoken-message ""))))
+
 (defun speechd-speak--current-message (&optional reset-last-spoken)
-  (let ((message (current-message)))
-    (when (and message
-	       (not (string= message speechd-speak--last-spoken-message)))
-      (setq speechd-speak--last-message message
-	    speechd-speak--last-spoken-message message)
-      (let ((speechd-speak--special-area t)
-            (speechd-spell nil))
-        (speechd-speak--signal 'message :priority 'progress)
-        (speechd-speak--minibuffer-prompt message :priority 'progress))))
-  (when reset-last-spoken
-    (setq speechd-speak--last-spoken-message "")))
+  (speechd-speak--message (current-message) reset-last-spoken))
 
 (speechd-speak--defadvice message after
   (speechd-speak--current-message))
@@ -1111,25 +1142,38 @@ Only single characters are allowed in the keymap.")
        (speechd-speak--minibuffer-update-report
         info old-content new-content)))))
 
+(defun speechd-speak--read-buffer-change (buffer-name text)
+  (with-current-buffer (or (get-buffer buffer-name)
+                           (get-buffer "*scratch*")
+                           (current-buffer))
+    (speechd-speak--text text :priority 'message)))
+
 (defun speechd-speak--after-change-hook (beg end len)
   (speechd-speak--enforce-speak-mode)
-  (speechd-speak--maybe-speak
-    (speechd-speak--with-command-start-info
-      (unless (= beg end)
-        (cond
-         ((member (buffer-name) speechd-speak-priority-insertions-in-buffers)
-          (speechd-speak--text (speechd-speak--buffer-substring beg end)
-                               :priority 'message))
-         ((member (buffer-name) speechd-speak-insertions-in-buffers)
-          (setf (speechd-speak--cinfo other-changes-buffer) (buffer-name))
-          (push (speechd-speak--buffer-substring beg end)
-                (speechd-speak--cinfo other-changes)))
-         ((eq (current-buffer) (speechd-speak--cinfo buffer))
-          (if (speechd-speak--in-minibuffer-p)
-              (progn
-                (speechd-speak--read-other-changes)
-                (speechd-speak--minibuffer-update beg end len))
-            (speechd-speak--add-command-text info beg end))))))))
+  (speechd-speak--with-command-start-info
+    (unless (= beg end)
+      (cond
+       ((or (member (buffer-name)
+                    speechd-speak-priority-insertions-in-buffers)
+            ;; Asynchronous buffer changes
+            (and (not this-command)
+                 (member (buffer-name) speechd-speak-insertions-in-buffers)))
+        (speechd-speak--async #'speechd-speak--read-buffer-change (buffer-name)
+                              (speechd-speak--buffer-substring beg end)))
+       ((not this-command)
+        ;; Asynchronous buffer change -- we are not interested in it by
+        ;; default
+        nil)
+       ((member (buffer-name) speechd-speak-insertions-in-buffers)
+        (setf (speechd-speak--cinfo other-changes-buffer) (buffer-name))
+        (push (speechd-speak--buffer-substring beg end)
+              (speechd-speak--cinfo other-changes)))
+       ((eq (current-buffer) (speechd-speak--cinfo buffer))
+        (if (speechd-speak--in-minibuffer-p)
+            (progn
+              (speechd-speak--read-other-changes)
+              (speechd-speak--minibuffer-update beg end len))
+          (speechd-speak--add-command-text info beg end)))))))
 
 (defconst speechd-speak--dont-cancel-on-commands
   '(speechd-speak speechd-unspeak speechd-cancel speechd-stop speechd-pause
@@ -1140,6 +1184,7 @@ Only single characters are allowed in the keymap.")
       (progn
         (unless (memq this-command speechd-speak--dont-cancel-on-commands)
           (speechd-cancel 1))
+        (speechd-speak--read-pending-speeches)
         (speechd-speak--set-command-start-info)
         (setq speechd-speak--last-report "")
         (when speechd-speak-spell-command

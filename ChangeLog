@@ -1,3 +1,51 @@
+2004-05-25  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak--message, speechd-speak--async):
+	New functions.
+	(speechd-speak--current-message)
+	(speechd-speak--after-change-hook): Use them.
+	(speechd-speak--reading-pending-speeches):
+	(speechd-speak--pending-speeches): New variables.
+	(speechd-speak--read-pending-speeches): New function.
+	(speechd-speak--pre-command-hook): Call it.
+	(speechd-speak--in-async): New variable.
+	(speechd-speak--maybe-speak): Don't check for blocked connections.
+	(speechd-speak--read-message, speechd-speak--read-buffer-change):
+	New functions.
+
+2004-05-25  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd--connection): Slot reading-answer-p removed.
+	(speechd--permanent-connection-failure): Honor the change above.
+	(speechd--blocked-p): New variable.
+	(speechd-blocked-p): Use it instead of connection checking.
+	(speechd--process-request): Set the new variable instead of the
+	removed slot.
+	(speechd--send-request): speechd-blocked-p call updated.
+
+2004-05-25  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak--after-change-hook): Reporting
+	of asynchronous changes fixed.
+
+2004-05-24  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak--maybe-speak): Protect against
+	blocked speech output calls.
+
+2004-05-24  Milan Zamazal  <pdm@brailcom.org>
+	
+	* speechd.el (speechd--connection): Slot request-queue removed.
+	(speechd--permanent-connection-failure): Honor the change above.
+	(speechd--protect, speechd-protect): Removed.
+	(speechd-blocked): New function.
+	(speechd--in-recursion, speechd--process-queues): Removed.
+	(speechd--process-request): No queues anymore.
+	(speechd--send-request): No queueing, signal error when invoked on
+	a blocked connection.
+	(speechd--maximum-queue-length, speechd--queue-too-long-p):
+	Removed.
+
 2004-05-20  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-speak.el (speechd-speak-last-message)

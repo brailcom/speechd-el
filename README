@@ -7,13 +7,7 @@ It consists of two parts:
 
 - The file speechd-speak.el that makes Emacs speak.
 
-Prerequisites:
-
-- The Elib Elisp library is required (available in Debian as `elib').
-
 Installation:
-
-- Do you have Elib installed?  speechd-el won't run without it!
 
 - Copy the *.el files somewhere to your Emacs load path.
 

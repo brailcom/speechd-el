@@ -44,7 +44,6 @@
 
 
 (eval-when-compile (require 'cl))
-(require 'queue-f)
 
 
 ;;; User variables
@@ -297,7 +296,7 @@ language.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "2004-05-20 13:44 pdm"
+(defconst speechd--el-version "2004-05-25 15:19 pdm"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -381,10 +380,8 @@ Useful only for diagnosing problems.")
   (failure-p nil)
   process
   (process-output nil)
-  (request-queue (queue-create))
   (paused-p nil)
   (in-block nil)
-  (reading-answer-p nil)
   (parameters ())
   (forced-priority nil)
   (last-command nil))
@@ -396,23 +393,9 @@ Useful only for diagnosing problems.")
 (defvar speechd--connections (make-hash-table :test 'equal)
   "Hash table mapping client names to `speechd-connection' instances.")
 
-(defvar speechd--protect nil
-  "If non-nil, don't call `access-process-output'.")
-
 
 ;;; Utilities
 
-
-(defmacro speechd-protect (&rest body)
-  "Ensure proper operation of an asynchronous code BODY.
-All asynchronously called code (i.e. code called invoked in process filters or
-timers, etc.) invoking any of the speechd-el functions must be wrapped by this
-macro."
-  `(let ((already-protected speechd--protect)
-	 (speechd--protect t))
-     (prog1 (progn ,@body)
-       (unless already-protected
-	 (speechd--process-queues)))))
 
 (defmacro speechd--iterate-connections (&rest body)
   `(maphash #'(lambda (_ connection) ,@body) speechd--connections))
@@ -493,10 +476,6 @@ macro."
   `(speechd--with-connection-parameters (speechd--voice-parameters ,voice)
      ,@body))
 
-(defconst speechd--maximum-queue-length 10)
-(defun speechd--queue-too-long-p (queue)
-  (>= (queue-length queue) speechd--maximum-queue-length))
-
 (defun speechd-language (string language)
   "Put language property LANGUAGE on whole STRING.
 Language should be a string recognizable by Speech Dispatcher as a language
@@ -506,6 +485,14 @@ code."
 
 (defun speechd--current-language ()
   speechd-language)
+
+(defvar speechd--blocked-p nil)
+
+(defun speechd-blocked-p ()
+  "Return non-nil if speaking is currently blocked.
+Speaking is blocked when another speaking command is executed.  That can
+usually happen if your code is invoked asynchronously, typically in timers."
+  speechd--blocked-p)
 
 
 ;;; Process management functions
@@ -674,9 +661,7 @@ Return the opened connection on success, nil otherwise."
   (speechd--close-process connection)
   (setf (speechd--connection-failure-p connection) t
 	(speechd--connection-process-output connection) nil
-	(speechd--connection-request-queue connection) (queue-create)
 	(speechd--connection-paused-p connection) nil
-	(speechd--connection-reading-answer-p connection) nil
 	(speechd--connection-parameters connection) ()))
 
 (defun speechd--send-string (string)
@@ -689,17 +674,6 @@ Return the opened connection on success, nil otherwise."
 	  (when (not (speechd-running-p))
             (speechd--permanent-connection-failure connection)))))))
 
-(defvar speechd--in-recursion nil)
-
-(defun speechd--process-queues ()
-  (unless speechd--in-recursion
-    (let ((speechd--in-recursion t))
-      (speechd--iterate-connections
-        (let ((queue (speechd--connection-request-queue connection)))
-          (while (not (queue-empty queue))
-            (let ((request (queue-dequeue queue)))
-              (speechd--process-request request))))))))
-
 (defun speechd--process-request (request)
   (speechd--with-current-connection
    (save-match-data
@@ -711,8 +685,8 @@ Return the opened connection on success, nil otherwise."
 	       (let ((output (speechd--connection-process-output connection)))
 		 ;; We have to be very careful with accept-process-output -- it
 		 ;; can invoke another speechd-el functions in various places.
-		 (speechd--with-connection-setting reading-answer-p t
-                                                   (accept-process-output
+		 (let ((speechd--blocked-p t))
+                   (accept-process-output
 		     (speechd--connection-process connection)
 		     speechd-timeout))
 		 (when (string= (speechd--connection-process-output connection)
@@ -750,24 +724,14 @@ Return the opened connection on success, nil otherwise."
         (when (and answer-type
                    (not (speechd--connection-failure-p connection)))
           (setf (speechd--connection-process-output connection) "")
-          (when (or answer-type
-                    speechd--in-recursion
-                    (not (queue-empty
-                          (speechd--connection-request-queue connection))))
-            (setq answer (read-command-answer))))
-        ;; Free the commands blocked by this speechd--command-answer
-        (speechd--process-queues)
-        answer)))))
+          (when answer-type
+            (read-command-answer))))))))
 
 (defun speechd--send-request (request)
   (speechd--with-current-connection
-    (if (or (speechd--connection-reading-answer-p connection)
-            speechd--protect)
-	(let ((queue (speechd--connection-request-queue connection)))
-	  (unless (speechd--queue-too-long-p queue)
-	    (queue-enqueue queue request))
-	  nil)
-      (speechd--process-request request))))
+    (when (speechd-blocked-p)
+      (error "Speech request within speech request processing"))
+    (speechd--process-request request)))
 
 (defconst speechd--block-commands
   '(("speak")
