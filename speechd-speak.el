@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "2004-02-19 10:35 pdm"
+(defconst speechd-speak-version "2004-02-19 18:47 pdm"
   "Version of the speechd-speak file.")
 
 

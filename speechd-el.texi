@@ -200,7 +200,7 @@ Speech Dispatcher gets restarted.
 
 With a prefix argument, all open connections are closed first.  This
 is useful when you need to reset parameters of all connections, see
-@ref{Connection Parameters}.
+@ref{Connection Voices}.
 
 After the first invocation, the command is available under the
 @kbd{C-e C-s} key.
@@ -408,7 +408,7 @@ the fastest rate.
 These commands set various properties of the speech output.  They all
 apply on the current Speech Dispatcher connection (for more
 information about Speech Dispatcher connections, @pxref{Connection
-Parameters}), unless there are invoked with a prefix argument.  With a
+Voices}), unless there are invoked with a prefix argument.  With a
 numeric prefix argument they apply on all speechd-el connections, with
 a universal prefix argument they apply on all Speech Dispatcher
 connections.
@@ -570,7 +570,8 @@ Prompt for a text and speak it.
 * Signalling::                  Signalling empty lines, etc.
 * Text Properties::             Handling faces and special pieces of text.
 * Languages::                   Using multiple languages.
-* Connection Parameters::       Setting Speech Dispatcher parameters.
+* Voices::                      Defining different voices.
+* Connection Voices::           Setting connection parameters.
 * Multiple Connections::        Different parameters for some modes & buffers.
 * Keys::                        Customizing command keys.
 * Modes::                       Minor mode hooks.
@@ -866,15 +867,16 @@ is a function, it is invoked, with no arguments.
 @item speechd-face-voices
 Mapping of faces to voices.  The variable value is an alist with
 elements of the form @code{(@var{face} . @var{voice})} where
-@var{face} is a face and @var{voice} is a voice name, a string.  Each
-face is spoken in the corresponding voice.  If there's no item for a
-given face in this variable, the face is spoken in the current voice.
+@var{face} is a face and @var{voice} is a voice identifier defined in
+@code{speechd-voices}, see @ref{Voices}.  Each face is spoken in the
+corresponding voice.  If there's no item for a given face in this
+variable, the face is spoken in the current voice.
 
 Note that the mapping takes the effect only if font lock mode is
 enabled.
 @end vtable
 
-@node Languages, Connection Parameters, Text Properties, Customization
+@node Languages, Voices, Text Properties, Customization
 @subsection Using multiple languages
 @cindex languages
 
@@ -908,46 +910,75 @@ function to put the property on a string in your Elisp programs.
 Another good way of using multiple languages is to use multiple
 connections for separating language dependent buffers or modes, see
 @ref{Multiple Connections}, and to set the @code{language} parameter
-for each such a connection, see @ref{Connection Parameters}.
+for each such a connection, see @ref{Connection Voices}.
 
-@node Connection Parameters, Multiple Connections, Languages, Customization
-@subsection Connection Parameters
+@node Voices, Connection Voices, Languages, Customization
+@subsection Defining voices
+@cindex voices
 @cindex parameters
+
+You can define special voices in speechd-el that can be used in
+different situations, e.g. to speak different faces in different
+voices (@pxref{Text Properties}) or to set different punctuation modes
+for different kinds of buffers (@pxref{Multiple Connections}).
+speechd-el voices define not only basic voice characteristics, but
+also speech characteristics like pitch or rate and special properties
+like punctuation reading or capital character signalization.
+
+Voice definition is contained in the following variable:
+
+@vtable @code
+@item speechd-voices
+Alist of voice identifiers and their parameters.
+
+Each element of the list is of the form @code{(@var{voice-id}
+. @var{parameters})}, where @var{voice-id} is a symbol under which the
+voice will be accessed and @var{parameters} is an alist of parameter
+identifiers and parameter values.  Valid parameter names are the
+following symbols: @code{language}, @code{gender}, @code{age},
+@code{style}, @code{name}, @code{rate}, @code{pitch}, @code{volume},
+@code{punctuation-mode}, @code{capital-character-mode},
+@code{message-priority}, @code{output-module}.
+
+@code{name} value is a string identifying Speech Dispatcher voice
+name.  If it is not given, the parameters @code{gender}, @code{age},
+and @code{style} are considered to select a Speech Dispatcher voice.
+@code{gender} value can be one of the symbols @code{male},
+@code{female}, @code{neutral}.  @code{age} can be one of the symbols
+@code{middle-adult}, @code{child}. @code{neutral}.  @code{style} can
+be one of the numbers @code{1}, @code{2}, @code{3} (@code{style}
+values are likely to be changed in future).
+
+The @code{message-priority} parameter sets priority of amy message of
+the voice.  Its value is any of the message priority symbols.
+
+See the corresponding @code{speechd-set-*} functions for valid values
+of other parameters.
+
+The voice named @code{nil} is special, it defines a default voice.
+Explicit definition of its parameters is optional.
+@end vtable
+
+@node Connection Voices, Multiple Connections, Voices, Customization
+@subsection Connection Voices
+@cindex voices
 
 With the help of the following variable you can let set various
 connection parameters, like speech rate, language, etc.,
 automatically.  speechd-el can open multiple connections according to
 various criteria (@pxref{Multiple Connections}), you can set different
-parameters to different connections, based on their names, and you can
-set default parameters common to all connections.
+parameters to different connections, based on their names.
 
 @vtable @code
 @item speechd-connection-parameters
-Alist of connection names and corresponding parameters.  Each list
-element is of the form @code{(@var{connection-name}
-. @var{parameters})}, where @var{connection-name} is a connection name
-given as a string and @var{parameters} is a property list with the
-pairs of parameter identifiers and parameter values.
+Alist of connection names and corresponding voices.  Each list element
+is of the form @code{(@var{connection-name} . @var{voice})}, where
+@var{connection-name} is a connection name given as a string and
+@var{voice} is a voice identifier defined in the variable
+@code{speechd-voices}.
 
-If you put the symbol @code{t} in the place of @var{connection-name}
-instead of a string, the corresponding element specifies default
-connection parameters common to all connections.  Each of the
-parameters present in such an element applies to all connections which
-don't have its value specified.  Only one element of the whole alist
-may have given the @code{t} symbol instead of connection name.
-
-Valid parameter identifiers are the following symbols:
-@code{language}, @code{message-priority}, @code{punctuation-mode},
-@code{important-punctuation}, @code{capital-character-mode},
-@code{voice}, @code{rate}, @code{pitch}, @code{volume},
-@code{output-module}.  See the corresponding @code{speechd-set-*}
-function docstrings for description of valid parameter values.
-
-The @code{message-priority} parameter has a special meaning: It
-overrides the priority of all messages sent through the connection.
-If you specify it for some connection, all the messages sent through
-the connection will get the same priority, even when a message sending
-function explicitly sets a different priority for messages it sends.
+The default voice (named @code{nil}) is used for connections that are
+not present in this variable.
 @end vtable
 
 So that changing the value of the variable could take the full effect,
@@ -955,20 +986,22 @@ the open connections must be reopened.  Unless you use the
 customization interface, you must invoke the @kbd{C-u M-x
 speechd-speak} command to ensure this.
 
-There is a command to help you with setting this variable a bit:
+There is a command to help you with setting connection voice and its
+parameters:
 
 @table @kbd
 @item C-e C-a
 @kindex C-e C-a
-@findex speechd-add-connection-parameters
-Add the name and parameters of the current connection to the
-@code{speechd-connection-parameters} variable
-(@code{speechd-add-connection-parameters}).  Please note you are still
-responsible to save the variable if you want to use it in future
-sessions.
+@findex speechd-add-connection-settings
+Store the current connection parameters to a specified voice in the
+@code{speechd-voices} variable and set that voice for the current
+connection in the @code{speechd-connection-voices} variable.
+
+Please note you are still responsible to save the variables if you
+want to use them in future sessions.
 @end table
 
-@node Multiple Connections, Keys, Connection Parameters, Customization
+@node Multiple Connections, Keys, Connection Voices, Customization
 @subsection Multiple Connections
 @cindex connections
 
@@ -976,7 +1009,7 @@ You can arrange speechd-el to use separate connections to Speech
 Dispatcher for certain buffers or major modes.  This is basically
 useful to allow independent parameter setting for those buffers and
 major modes, both by hand and through the configuration
-(@pxref{Connection Parameters}).
+(@pxref{Connection Voices}).
 
 Each Speech Dispatcher connection has its unique name.  By default,
 speechd-el uses a connection named @code{"default"}.  All you need to

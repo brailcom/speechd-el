@@ -1,3 +1,21 @@
+2004-02-20  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-voices): Voice tag label changed to "Voice".
+	(speechd--block-commands): `.' added.
+
+2004-02-19  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-add-connection-settings): Miscellaneous code
+	typos fixed.
+	(speechd--voice-name): Use style "1" if not given.
+	(speechd-voice-tag): Symbol label improved.
+	(speechd-open): Connection voice extraction fixed.
+	(speechd--block-commands): Missing parentheses in SET SELF
+	argument list added.
+	(speechd--default-connection-parameters): New variable.
+	(speechd-open): Use it; don't use speechd--default-voice.
+	(speechd--default-voice): Removed.
+
 2004-02-19  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-speak.el (command-keys): The command-key bug fix fixed.
@@ -21,6 +39,46 @@
 
 	* speechd.el (speechd--el-version): Renamed to
 	speechd-el-version.
+
+2004-02-18  Milan Zamazal  <pdm@brailcom.org>
+	
+	* speechd-el.texi (Text Properties): speechd-face-voices updated.
+	(Voices): New subsection.
+	(Connection Parameters): Renamed to `Connection Voices' and
+	updated.
+
+2004-02-17  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-face-voices): Value type changed to
+	speechd-voice-tag.
+	(speechd-say-text): Honor the previous change.
+
+2004-02-17  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-voice-tag): New widget.
+	(speechd-connection-voices, speechd-voices): Use it.
+
+2004-02-17  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd--voice-name): New function.
+	(speechd--voice-parameters): Handle voice definitions properly.
+
+2004-02-17  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-voices): `Style' parameter added.
+
+2004-02-17  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-connection-voices): New user option.
+	(speechd-connection-parameters): Obsoleted.
+	(speechd-open): Honor previous changes.
+	(speechd-add-connection-settings): Likewise; new argument VOICE.
+
+2004-02-14  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-voices): New user option.
+	(speechd--with-voice): New macro.
+	(speechd--voice-parameters): New function.
 
 2004-02-14  Milan Zamazal  <pdm@brailcom.org>
 

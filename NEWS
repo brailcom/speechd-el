@@ -3,6 +3,13 @@ User-visible changes to speechd-el:
 
 * Changes in speechd-el 0.3
 
+** Connection parameters are handled in a different way.
+
+Connection parameters are configured as voices in the speechd-voices variable
+now.  Each specific voice can then be assigned to a connection or face, see the
+variables speechd-connection-voices and speechd-face-voices.  The variable
+speechd-connection-parameters is obsoleted and shouldn't be used anymore.
+
 ** Bug reporting changes.
 
 Bug reproduction finishing key was changed from `C-e C-z' to `C-e C-f'.

@@ -80,6 +80,14 @@
 	  (const :tag "Notification" :value notification)
 	  (const :tag "Progress"     :value progress)))
 
+(define-widget 'speechd-voice-tag 'choice
+  "Voice selector."
+  :args '((const :tag "Default" nil)
+          (symbol :tag "Named" :value nil
+                  :match (lambda (w value)
+                           (or (eq value nil)
+                               (assoc value speechd-voices))))))
+
 (defcustom speechd-default-text-priority 'text
   "Default Speech Dispatcher priority of sent texts."
   :type 'speechd-priority-tag
@@ -116,25 +124,92 @@
                                              ("spell" . spell)
                                              ("icon" .  icon)))
 
-(defcustom speechd-connection-parameters '()
-  "Alist of connection names and their parameters.
+(defcustom speechd-voices '()
+  "Alist of voice identifiers and their parameters.
 
-Each element of the list is of the form (CONNECTION-NAME . PARAMETERS), where
-CONNECTION-NAME is a connection name as expected to be in `speechd-client-name'
-and PARAMETERS is a property list with the pairs of parameter identifiers and
-parameter values.  Valid parameter names are the following symbols: language,
-message-priority, punctuation-mode, capital-character-mode, voice, rate, pitch,
-volume, output-module.  See the corresponding speechd-set-* functions for valid
-parameter values.
+Each element of the list is of the form (VOICE-ID . PARAMETERS), where VOICE-ID
+is a symbol under which the voice will be accessed and PARAMETERS is an alist
+of parameter identifiers and parameter values.  Valid parameter names are the
+following symbols: language, gender, age, style, name, rate, pitch, volume,
+punctuation-mode, capital-character-mode, message-priority, output-module.
 
-If the symbol t is specified as the connection name, the element defines
-default connection parameters if no connection specification applies.  Only one
-such an element is allowed in the whole alist.
+Name is a string identifying Speech Dispatcher voice name.  If it is not given,
+the parameters gender, age, and style are considered to select a Speech
+Dispatcher voice.  Gender can be one of the symbols `male', `female',
+`neutral'.  Age can be one of the symbols `middle-adult', `child'. `neutral'.
+Style can be one of the numbers 1, 2, 3 (style values are likely to be changed
+in future).
 
-The message-priority parameter has a special meaning: It overrides priority of
-all messages sent through the connection.
+The message-priority parameter sets priority of amy message of the voice.  Its
+value is any of the message priority symbols.
+
+See the corresponding speechd-set-* functions for valid values of other
+parameters.
+
+The voice named nil is special, it defines a default voice.  Explicit
+definition of its parameters is optional."
+  :type `(repeat
+          (cons
+	   :tag "Voice"
+           (speechd-voice-tag :tag "Voice")
+	   (set
+	    :tag "Parameters"
+            ;;
+	    (cons :tag "Language" (const :format "" language)
+                  string)
+            (cons :tag "Gender" (const :format "" gender)
+                  (choice (const male) (const female) (const neutral)))
+            (cons :tag "Age" (const :format "" age)
+                  (choice (const middle-adult) (const child) (const neutral)))
+            (cons :tag "Style" (const :format "" style)
+                  (choice (const 1) (const 2) (const 3)))
+            (cons :tag "speechd name" (const :format "" name)
+                  (choice (const "male1") (const "male2") (const "male3")
+                          (const "female1") (const "female2") (const "female3")
+                          (const "child_male") (const "child_female")
+                          (string :tag "Other")))
+            ;;
+	    (cons :tag "Rate" (const :format "" rate)
+                  integer)
+	    (cons :tag "Pitch" (const :format "" pitch)
+                  integer)
+	    (cons :tag "Volume" (const :format "" volume)
+                  integer)
+            ;;
+	    (cons :tag "Punctuation mode" (const :format "" punctuation-mode)
+		  ,(speechd--generate-customization-options
+		    speechd--punctuation-modes))
+	    (cons :tag "Capital character mode"
+		  (const :format "" capital-character-mode)
+		  ,(speechd--generate-customization-options
+		    speechd--capital-character-modes))
+            ;;
+	    (cons :tag "Messsage priority" (const :format "" message-priority)
+		  (speechd-priority-tag :value text))
+	    (cons :tag "Output module" (const :format "" output-module)
+		  string))))
+  :group 'speechd)
+
+(defcustom speechd-connection-voices '()
+  "Alist of connection names and corresponding voices.
+
+Each element of the list is of the form (CONNECTION-NAME . VOICE-ID), where
+CONNECTION-NAME is a string naming a connection and VOICE-ID is a voice
+identifier defined in the variable `speechd-voices'.
+
+For connections that are not specified here, the voice named nil is used.
 
 You must reopen the connections to apply the changes to this variable."
+  :type '(alist :key-type (string :tag "Connection name")
+                :value-type (speechd-voice-tag :tag "Voice"))
+  :set #'(lambda (name value)
+           (set-default name value)
+           (when (fboundp 'speechd-reopen)
+             (speechd-reopen)))           
+  :group 'speechd)
+
+(defcustom speechd-connection-parameters '()
+  "This variable is obsolete.  Please use `speechd-connection-voices' instead."
   :get #'(lambda (name)
            (mapcar
             #'(lambda (v)
@@ -187,11 +262,12 @@ You must reopen the connections to apply the changes to this variable."
 
 (defcustom speechd-face-voices '()
   "Alist mapping faces to voices.
-Each of the alist element is of the form (FACE . STRING) where FACE is a face
-and string voice identifier.  Each face is spoken in the corresponding voice.
+Each of the alist element is of the form (FACE . VOICE) where FACE is a face
+and string is a voice identifier defined in `speechd-voices'.  Each face is
+spoken in the corresponding voice.
 If there's no item for a given face in this variable, the face is spoken in the
 current voice."
-  :type '(alist :key-type face :value-type (string :tag "Voice"))
+  :type '(alist :key-type face :value-type (speechd-voice-tag :tag "Voice"))
   :group 'speechd)
 
 
@@ -217,7 +293,7 @@ language.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd-el-version "2004-02-18 14:57 pdm"
+(defconst speechd--el-version "2004-02-20 13:13 pdm"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -233,10 +309,18 @@ Useful only for diagnosing problems.")
     ("french" . "fr")
     ("german" . "de")))
 
-(defvar speechd--default-voice "male1")
 (defvar speechd--default-language (or (cdr (assoc current-language-environment
                                                   speechd--language-codes))
                                       "en"))
+
+(defvar speechd--default-connection-parameters
+  '(punctuation-mode "some"
+    spelling-mode "off"
+    capital-character-mode "none"
+    voice "male1"
+    rate 0
+    pitch 0
+    volume 100))
 
 (defconst speechd--coding-system (if (featurep 'xemacs)
 				     'no-conversion-dos ;; No utf yet
@@ -385,6 +469,29 @@ macro."
          (dolist (,$pv ,$orig-parameters)
            (speechd--set-parameter (car ,$pv) (cdr ,$pv)))))))
 
+(defun speechd--voice-name (parameters)
+  (or (cdr (assoc 'name parameters))
+      (let ((gender (cdr (assoc 'gender parameters)))
+            (age (cdr (assoc 'age parameters)))
+            (style (cdr (assoc 'style parameters))))
+        (format "%s%s%s"
+                (if (eq age 'child) "CHILD_" "")
+                (if (eq gender 'female) "FEMALE" "MALE")
+                (or style "1")))))
+
+(defun speechd--voice-parameters (voice)
+  (let* ((parameters (cdr (assoc voice speechd-voices)))
+         (voice-name (speechd--voice-name parameters))
+         (result (if voice-name (list 'voice voice-name) '())))
+    (dolist (p parameters)
+      (unless (memq p '(voice gender age style))
+        (plist-put result (car p) (cdr p))))
+    result))
+
+(defmacro speechd--with-voice (voice &rest body)
+  `(speechd--with-connection-parameters (speechd--voice-parameters ,voice)
+     ,@body))
+
 (defconst speechd--maximum-queue-length 10)
 (defun speechd--queue-too-long-p (queue)
   (>= (queue-length queue) speechd--maximum-queue-length))
@@ -455,11 +562,14 @@ Return the opened connection on success, nil otherwise."
 	(setq host (speechd--connection-host connection)
 	      port (speechd--connection-port connection)))
       (let* ((name speechd-client-name)
+             (voice (cdr (assoc name speechd-connection-voices)))
              (default-parameters (append
+                                  (speechd--voice-parameters voice)
                                   (cdr (assoc speechd-client-name
                                               speechd-connection-parameters))
                                   (cdr (assoc t
-                                              speechd-connection-parameters))))
+                                              speechd-connection-parameters))
+                                  speechd--default-connection-parameters))
 	     (parameters (if connection
                              (append
                               (speechd--connection-parameters connection)
@@ -494,8 +604,7 @@ Return the opened connection on success, nil otherwise."
 	(when process
 	  (speechd--set-connection-name name)
           (setq parameters (append parameters
-                                   (list 'language speechd--default-language
-                                         'voice speechd--default-voice)))
+                                   (list 'language speechd--default-language)))
           (let ((already-set '(client-name)))
             (while parameters
               (destructuring-bind (parameter value . next) parameters
@@ -690,12 +799,13 @@ Return the opened connection on success, nil otherwise."
 
 (defconst speechd--block-commands
   '(("speak")
+    (".")
     ("sound_icon")
     ("char")
     ("key")
     ("quit")
     ("block" ("end"))
-    ("set" ("self" ("rate" "pitch" "volume" "voice" "language")))))
+    ("set" ("self" ("rate") ("pitch") ("volume") ("voice") ("language")))))
 
 (defun speechd--block-command-p (command &optional allowed)
   (unless allowed
@@ -889,25 +999,38 @@ If called with a prefix argument, set it for al connections."
 ;; TODO: Remove this one once proper output module setting is defined.
 (speechd--generate-set-command output-module "Output module" nil)
 
-(defun speechd-add-connection-settings ()
-  "Add current connection and its settings to `speechd-connection-parameters'."
-  (interactive)
-  (setq speechd-connection-parameters
-        (cons
-         (speechd--with-current-connection
-          (cons (speechd--connection-name connection)
-                (let ((parameters ())
-                      (orig-parameters
-                       (speechd--connection-parameters connection)))
-                  (while orig-parameters
-                    (unless (memq (first orig-parameters)
-                                  '(client-name message-priority))
-                      (push (first orig-parameters) parameters)
-                      (push (second orig-parameters) parameters))
-                    (setq orig-parameters (nthcdr 2 orig-parameters)))
-                  (nreverse parameters))))
-         (remove (assoc speechd-client-name speechd-connection-parameters)
-                 speechd-connection-parameters))))
+(defun speechd-add-connection-settings (voice)
+  "Add current connection and its settings to `speechd-connection-voices'."
+  (interactive "SNew voice name: ")
+  (if (or (not (assoc voice speechd-voices))
+          (y-or-n-p "Voice already exists, replace it? "))
+      (setq ;; the voice
+            speechd-voices
+            (cons
+             (speechd--with-current-connection
+              (cons voice
+                    (let ((voice-parameters ())
+                          (connection-parameters
+                           (speechd--connection-parameters connection)))
+                      (while connection-parameters
+                        (unless (memq (first connection-parameters)
+                                      '(client-name message-priority))
+                          (push (cons (first connection-parameters)
+                                      (second connection-parameters))
+                                voice-parameters))
+                        (setq connection-parameters
+                              (nthcdr 2 connection-parameters)))
+                      (nreverse voice-parameters))))
+             (remove (assoc speechd-client-name speechd-connection-parameters)
+                     speechd-connection-parameters))
+            ;; the connection
+            speechd-connection-voices
+            (cons (cons speechd-client-name voice)
+                  (remove
+                   (assoc speechd-client-name speechd-connection-voices)
+                   speechd-connection-voices)))
+    (message "Settings NOT added")))
+
 
 ;;; Blocks
 
@@ -961,8 +1084,10 @@ initiates sending text data to speechd immediately."
              (let ((voice (cdr (assq (get-text-property point 'face text)
                                      speechd-face-voices)))
                    (language (get-text-property point 'language text)))
-               (append (when voice (list 'voice voice))
-                       (when language (list 'language language))))))
+               (append (when (stringp voice) (list 'voice voice))
+                       (when language (list 'language language))
+                       (when (and voice (symbolp voice))
+                         (speechd--voice-parameters voice))))))
       (speechd-block `(language ,speechd-language
                        spelling-mode ,speechd-spell)
         (let* ((beg 0)
