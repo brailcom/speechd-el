@@ -31,7 +31,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.7 2003-06-27 13:21:05 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.8 2003-06-28 14:34:12 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -414,12 +414,6 @@ Level 1 is the slowest, level 9 is the fastest."
     (speechd-speak--maybe-speak
      (message "Killed region containing %s lines" nlines))))
 
-(speechd-speak--command-feedback (kill-ring-save) around
-  (let ((nlines (count-lines (region-beginning) (region-end))))
-    ad-do-it
-    (speechd-speak--maybe-speak
-     (message "Region containing %s lines copied to kill ring" nlines))))
-
 
 ;;; Messages
 
@@ -500,7 +494,6 @@ Level 1 is the slowest, level 9 is the fastest."
   (speechd-speak--set-command-start-info)
   ;; Some parameters of interactive commands don't set up the minibuffer, so we
   ;; have to speak the prompt in an extra way.
-  (push 'ok pokus)
   (let ((interactive (cadr (interactive-form this-command))))
     (save-match-data
       (when (and (stringp interactive)
