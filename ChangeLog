@@ -1,5 +1,10 @@
 2003-10-29  Milan Zamazal  <pdm@brailcom.org>
 
+	* speechd.el (speechd--with-connection-parameters): Don't reset
+	previously unset parameters.
+	(speechd--set-parameter): If correct answer is not received, don't
+	set the connection parameter in the connection structure at all.
+
 	* speechd-speak.el (speechd-speak-read-line): Make the optional
 	argument prefix argument.
 	* speechd-el.texi (Reading Commands): The change documented.
@@ -8,6 +13,7 @@
 	commands documented.
 
 	* speechd.el (speechd-cancel): Numeric prefix argument supported.
+
 	* speechd-speak.el (speechd-speak--dont-cancel-on-commands): New
 	constant.
 	(speechd-speak--pre-command-hook): Cancel messages of all
