@@ -1,3 +1,8 @@
+2003-12-11  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (widget-choose): The old advice replaced by a
+	completely new one, just setting widget-menu-minibuffer-flag to t.
+
 2003-12-10  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-speak.el (speaking-commands): New post reading function.

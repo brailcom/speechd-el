@@ -9,6 +9,12 @@ User-visible changes to speechd-el:
 You can now use speechd-speak-spell-mode to enable spelling in a buffer or the
 `C-e C-l' keys to cause the next command to spell the text it reads.
 
+** Choosing widget values improved.
+
+The variable widget-menu-minibuffer-flag is now automatically set to t when
+speechd-speak-mode is enabled, thus the widget value is chosen using usual
+minibuffer completions.
+
 
 Local variables:
 mode: outline
