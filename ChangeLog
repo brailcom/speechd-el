@@ -1,5 +1,7 @@
 2003-11-05  Milan Zamazal  <pdm@brailcom.org>
 
+	* speechd-el.texi (Problems): Buffer modification reading added.
+
 	* speechd-speak.el (special-face-movement): Don't set finished
 	state if the action is string.  Read string message with priority
 	MESSAGE.
