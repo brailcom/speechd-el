@@ -163,7 +163,7 @@ definition of its parameters is optional."
                   (choice (const middle-adult) (const child) (const neutral)))
             (cons :tag "Style" (const :format "" style)
                   (choice (const 1) (const 2) (const 3)))
-            (cons :tag "speechd name" (const :format "" name)
+            (cons :tag "SSIP voice identifier" (const :format "" name)
                   (choice (const "male1") (const "male2") (const "male3")
                           (const "female1") (const "female2") (const "female3")
                           (const "child_male") (const "child_female")
@@ -188,6 +188,10 @@ definition of its parameters is optional."
 		  (speechd-priority-tag :value text))
 	    (cons :tag "Output module" (const :format "" output-module)
 		  string))))
+  :set #'(lambda (name value)
+           (set-default name value)
+           (when (fboundp 'speechd-reopen)
+             (speechd-reopen)))           
   :group 'speechd)
 
 (defcustom speechd-connection-voices '()
@@ -293,7 +297,7 @@ language.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "2004-05-12 12:48 pdm"
+(defconst speechd--el-version "2004-05-14 10:59 pdm"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -567,11 +571,17 @@ Return the opened connection on success, nil otherwise."
                                   (cdr (assoc t
                                               speechd-connection-parameters))
                                   speechd--default-connection-parameters))
-	     (parameters (if connection
-                             (append
-                              (speechd--connection-parameters connection)
-                              default-parameters)
-                           default-parameters))
+	     (parameters (cond
+                          ((and connection force-reopen)
+                           (append
+                            default-parameters
+                            (speechd--connection-parameters connection)))
+                          (connection
+                           (append
+                            (speechd--connection-parameters connection)
+                            default-parameters))
+                          (t
+                           default-parameters)))
 	     (process (when (or
                              (not connection)
                              (not (speechd--connection-failure-p connection))

@@ -1,5 +1,15 @@
 2004-05-14  Milan Zamazal  <pdm@brailcom.org>
 
+	* speechd.el (speechd-open): If FORCE-REOPEN is non-nil, prefer
+	default parameters over current connection parameters.
+	(speechd-voices): Call speechd-reopen in the set method.
+
+2004-05-14  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-voices): `name' tag clarified.
+
+2004-05-14  Milan Zamazal  <pdm@brailcom.org>
+	
 	* speechd-speak.el (speechd-speak--read-changes): New function.
 	(speechd-speak--last-other-changes)
 	(speechd-speak--last-other-changes-buffer): New variables.
