@@ -1,5 +1,7 @@
 2003-10-17  Milan Zamazal  <pdm@brailcom.org>
 
+	* Makefile: speechd-bug added.
+
 	* speechd.el (speechd-say-key): Don't crash on symbolic key names.
 	
 	* speechd-speak.el (speechd-speak--shutdown): sit-for increased to
