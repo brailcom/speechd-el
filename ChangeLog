@@ -1,3 +1,23 @@
+2003-10-20  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-el.texi: Previous changes documented.
+
+	* speechd-speak.el (beginning-of-buffer): Advice removed.
+	(speechd-speak-read-rectangle): New command.
+	(speechd-speak-mode-map): Change speechd-repeat to "z".  Bind
+	speechd-speak-read-rectangle to "\C-r".
+	(speechd-speak--emulate-minibuffer): New variable.
+	(speechd-speak--connection-name): Consider it.
+	(y-or-n-p, read-key-sequence): Set it.
+	(speechd-speak-read-command-keys): `modification' added to the
+	default value.
+	(speechd-speak--command-keys): Read M-x command keys compactly.
+	(speechd-speak--interactive): On interactive call, set
+	speechd-default-text-priority to `message'.
+
+	* speechd.el (speechd--send-data): Insert escaping dot before the
+	dotted line, not the whole string.
+
 2003-10-17  Milan Zamazal  <pdm@brailcom.org>
 
 	* Makefile: speechd-bug added.
