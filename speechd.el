@@ -91,7 +91,7 @@ Nil if no connection is currently open.")
   :group 'speechd)
 
 
-(defconst speechd-el-version "speechd-el $Id: speechd.el,v 1.6 2003-04-16 19:40:15 pdm Exp $"
+(defconst speechd-el-version "speechd-el $Id: speechd.el,v 1.7 2003-04-17 15:24:59 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -295,8 +295,9 @@ for closer description of those arguments."
 
 ;;;public
 (defun speechd-set-connection-name (name)
-  (speechd-send-command "SET" "CLIENT_NAME"
-			(format "%s:%s" speechd-client-name name))
+  (speechd-send-command
+   "SET" "CLIENT_NAME"
+   (format "%s:%s:%s" (user-login-name) speechd-client-name name))
   (speechd-reset-connection-parameters))
 
 ;;;public
