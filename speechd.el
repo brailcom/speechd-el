@@ -38,6 +38,8 @@
 ;; *Note*: If you call any of the speechd-el functions asynchronously
 ;; (typically within a process filter function), you must wrap the whole
 ;; asynchronous code by the `speechd-protect' macro.
+;;
+;; See docstrings and the Texinfo manual for full details.
 
 ;;; Code:
 
@@ -67,51 +69,48 @@
   :type 'integer
   :group 'speechd)
 
-(defconst speechd-priority-tags
-  '(radio (const :tag "Important"    :value :important)
-	  (const :tag "Message"      :value :message)
-	  (const :tag "Text"         :value :text)
-	  (const :tag "Notification" :value :notification)
-	  (const :tag "Progress"     :value :progress)))
+(defconst speechd--priority-tags
+  '(radio (const :tag "Important"    :value 'important)
+	  (const :tag "Message"      :value 'message)
+	  (const :tag "Text"         :value 'text)
+	  (const :tag "Notification" :value 'notification)
+	  (const :tag "Progress"     :value 'progress)))
 
-(defcustom speechd-default-text-priority :text
+(defcustom speechd-default-text-priority 'text
   "Default Speech Dispatcher priority of sent texts."
-  :type speechd-priority-tags
+  :type speechd--priority-tags
   :group 'speechd)
 
-(defcustom speechd-default-sound-priority :message
+(defcustom speechd-default-sound-priority 'message
   "Default Speech Dispatcher priority of sent sound icons."
-  :type speechd-priority-tags
+  :type speechd--priority-tags
   :group 'speechd)
 
-(defcustom speechd-default-char-priority :notification
+(defcustom speechd-default-char-priority 'notification
   "Default Speech Dispatcher priority of sent single letters."
-  :type speechd-priority-tags
+  :type speechd--priority-tags
   :group 'speechd)
 
-(defcustom speechd-default-key-priority :notification
+(defcustom speechd-default-key-priority 'notification
   "Default Speech Dispatcher priority of sent symbols of keys."
-  :type speechd-priority-tags
+  :type speechd--priority-tags
   :group 'speechd)
 
-(defun speechd--keyword->nonkeyword (symbol)
-  (intern (substring (symbol-name symbol) 1)))
 
 (defmacro speechd--generate-customization-options (var)
   (let ((value (symbol-value var)))
-    `(quote (choice :value ,(speechd--keyword->nonkeyword (cdr (first value)))
+    `(quote (choice :value ,(cdr (first value))
                     ,@(mapcar #'(lambda (o)
-                                  `(const :tag ,(car o)
-                                     ,(speechd--keyword->nonkeyword (cdr o))))
+                                  `(const :tag ,(car o) ,(cdr o)))
                               value)))))
 
-(defconst speechd--punctuation-modes '(("none" . :none)
-                                       ("some" . :some)
-                                       ("all" .  :all)))
+(defconst speechd--punctuation-modes '(("none" . none)
+                                       ("some" . some)
+                                       ("all" .  all)))
 
-(defconst speechd--capital-character-modes '(("none" .  :none)
-                                             ("spell" . :spell)
-                                             ("icon" .  :icon)))
+(defconst speechd--capital-character-modes '(("none" .  none)
+                                             ("spell" . spell)
+                                             ("icon" .  icon)))
 
 (defcustom speechd-connection-parameters '()
   "Alist of connection names and their parameters.
@@ -119,14 +118,14 @@
 Each element of the list is of the form (CONNECTION-NAME . PARAMETERS), where
 CONNECTION-NAME is a connection name as expected to be in `speechd-client-name'
 and PARAMETERS is a property list with the pairs of parameter identifiers and
-parameter values.  Valid parameter names are the following:
-:language, :message-priority, :punctuation-mode, :important-punctuation,
-:punctuation-table, :spelling-table, :text-table, :character-table, :key-table,
-:sound-table, :capital-character-table, :capital-character-mode, :voice, :rate,
-:pitch, :output-module.  See the corresponding speechd-set-* functions for
+parameter values.  Valid parameter names are the following symbols:
+language, message-priority, punctuation-mode, important-punctuation,
+punctuation-table, spelling-table, text-table, character-table, key-table,
+sound-table, capital-character-table, capital-character-mode, voice, rate,
+pitch, output-module.  See the corresponding speechd-set-* functions for
 valid parameter values.
 
-The :message-priority parameter has a special meaning: It overrides priority of
+The message-priority parameter has a special meaning: It overrides priority of
 all messages sent through the connection.
 
 You must reopen the connections to apply the changes to this variable."
@@ -137,9 +136,7 @@ You must reopen the connections to apply the changes to this variable."
                       (let ((result '())
                             (params (cdr v)))
                         (while params
-                          (push (cons (speechd--keyword->nonkeyword
-                                       (first params))
-                                      (second params)) result)
+                          (push (cons (first params) (second params)) result)
                           (setq params (nthcdr 2 params)))
                         (nreverse result))))
             (symbol-value name)))
@@ -148,12 +145,9 @@ You must reopen the connections to apply the changes to this variable."
                   (mapcar
                    #'(lambda (item)
                        (cons (car item)
-                             (mapcan
-                              #'(lambda (ival)
-                                  (list (intern
-                                         (concat ":" (symbol-name (car ival))))
-                                        (cdr ival)))
-                              (cdr item))))
+                             (mapcan #'(lambda (ival)
+                                         (list (car ival) (cdr ival)))
+                                     (cdr item))))
                    value)))
              (set-default name real-value)))
   :type `(repeat
@@ -161,7 +155,7 @@ You must reopen the connections to apply the changes to this variable."
            (set :tag "Parameters"
             (cons :tag "Language" (const language) string)
             (cons :tag "Messsage priority" (const message-priority)
-                  ,speechd-priority-tags)
+                  ,speechd--priority-tags)
             (cons :tag "Punctuation mode" (const punctuation-mode)
                   ,(speechd--generate-customization-options
                     speechd--punctuation-modes))
@@ -210,14 +204,16 @@ current voice."
 
 (defvar speechd-client-name "default"
   "String defining current client name.
-Changing this variable generally does not change the name of the connection,
-but may create a new connection.")
+This variable's value defines which connection is used when communicating with
+Speech Dispatcher, each connection has its own client name.  Usually, you
+select the proper client (connection) by assigning a value to this variable
+locally through `let'.")
 
 
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.39 2003-07-28 13:17:40 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.40 2003-07-30 11:02:26 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -230,51 +226,51 @@ Useful only for diagnosing problems.")
 (defconst speechd--coding-system 'utf-8-dos)
 
 (defconst speechd--parameter-names
-  '((:client-name . "CLIENT_NAME")
-    (:language . "LANGUAGE")
-    (:message-priority . "PRIORITY")
-    (:punctuation-mode . "PUNCTUATION")
-    (:important-punctuation . "IMPORTANT_PUNCTUATION")
-    (:punctuation-table . "PUNCTUATION_TABLE")
-    (:spelling-table . "SPELLING_TABLE")
-    (:capital-character-table . "CAP_LET_RECOGN_TABLE")
-    (:capital-character-mode . "CAP_LET_RECOGN")
-    (:text-table . "TEXT_TABLE")
-    (:character-table . "CHARACTER_TABLE")
-    (:key-table . "KEY_TABLE")
-    (:sound-table . "SOUND_TABLE")
-    (:voice . "VOICE")
-    (:rate . "RATE")
-    (:pitch . "PITCH")
-    (:output-module . "OUTPUT_MODULE")	; TODO: to be removed sometimes
+  '((client-name . "CLIENT_NAME")
+    (language . "LANGUAGE")
+    (message-priority . "PRIORITY")
+    (punctuation-mode . "PUNCTUATION")
+    (important-punctuation . "IMPORTANT_PUNCTUATION")
+    (punctuation-table . "PUNCTUATION_TABLE")
+    (spelling-table . "SPELLING_TABLE")
+    (capital-character-table . "CAP_LET_RECOGN_TABLE")
+    (capital-character-mode . "CAP_LET_RECOGN")
+    (text-table . "TEXT_TABLE")
+    (character-table . "CHARACTER_TABLE")
+    (key-table . "KEY_TABLE")
+    (sound-table . "SOUND_TABLE")
+    (voice . "VOICE")
+    (rate . "RATE")
+    (pitch . "PITCH")
+    (output-module . "OUTPUT_MODULE")	; TODO: to be removed sometimes
     ))
 
 (defconst speechd--list-parameter-names
-  '((:spelling-tables . "SPELLING_TABLES")
-    (:punctuation-tables . "PUNCTUATION_TABLES")
-    (:text-tables . "TEXT_TABLES")
-    (:sound-tables . "SOUND_TABLES")
-    (:character-tables . "CHARACTER_TABLES")
-    (:key-tables . "KEY_TABLES")
-    (:capital-character-tables . "CAP_LET_RECOGN_TABLES")
-    (:voices . "VOICES")))
+  '((spelling-tables . "SPELLING_TABLES")
+    (punctuation-tables . "PUNCTUATION_TABLES")
+    (text-tables . "TEXT_TABLES")
+    (sound-tables . "SOUND_TABLES")
+    (character-tables . "CHARACTER_TABLES")
+    (key-tables . "KEY_TABLES")
+    (capital-character-tables . "CAP_LET_RECOGN_TABLES")
+    (voices . "VOICES")))
 
 (defconst speechd--parameter-value-mappings
-  '((:message-priority
-     (:important .    "IMPORTANT")
-     (:message .      "MESSAGE")
-     (:text .         "TEXT")
-     (:notification . "NOTIFICATION")
-     (:progress .     "PROGRESS")
+  '((message-priority
+     (important .    "IMPORTANT")
+     (message .      "MESSAGE")
+     (text .         "TEXT")
+     (notification . "NOTIFICATION")
+     (progress .     "PROGRESS")
      )
-    (:punctuation-mode
-     (:none . "none")
-     (:some . "some")
-     (:all .  "all"))
-    (:capital-character-mode
-     (:none . "none")
-     (:spell . "spell")
-     (:icon . "icon"))))
+    (punctuation-mode
+     (none . "none")
+     (some . "some")
+     (all .  "all"))
+    (capital-character-mode
+     (none . "none")
+     (spell . "spell")
+     (icon . "icon"))))
 
 
 ;;; Internal variables
@@ -311,7 +307,7 @@ Useful only for diagnosing problems.")
 ;;; Utilities
 
 
-(defmacro* speechd-protect (&body body)
+(defmacro speechd-protect (&rest body)
   "Ensure proper operation of an asynchronous code BODY.
 All asynchronously called code (i.e. code called invoked in process filters or
 timers, etc.) invoking any of the speechd-el functions must be wrapped by this
@@ -322,14 +318,14 @@ macro."
        (unless already-protected
 	 (speechd--process-queues)))))
 
-(defmacro* speechd--iterate-connections (&body body)
+(defmacro speechd--iterate-connections (&rest body)
   `(maphash #'(lambda (_ connection) ,@body) speechd--connections))
 
-(defmacro* speechd--with-current-connection (&body body)
+(defmacro speechd--with-current-connection (&rest body)
   `(let ((connection (speechd--connection)))
      ,@body))
 
-(defmacro* speechd--with-connection-setting ((var value) &body body)
+(defmacro* speechd--with-connection-setting (var value &rest body)
   (let ((accessor (intern (concat "speechd--connection-" (symbol-name var))))
 	(orig-value (gensym)))
     `(let ((,orig-value (,accessor connection)))
@@ -339,7 +335,7 @@ macro."
 	     ,@body)
 	 (setf (,accessor connection) ,orig-value)))))
 
-(defmacro* speechd--with-connection-parameters (parameters &body body)
+(defmacro speechd--with-connection-parameters (parameters &rest body)
   (let (($parameters (gensym))
         ($orig-parameters (gensym))
         ($p (gensym))
@@ -439,7 +435,7 @@ Return the opened connection on success, nil otherwise."
 	     (parameters (if connection
                              (speechd--connection-parameters connection)
                            default-parameters))
-             (forced-priority (plist-get default-parameters :message-priority))
+             (forced-priority (plist-get default-parameters 'message-priority))
 	     (process (when (or
                              (not connection)
                              (not (speechd--connection-failure-p connection))
@@ -473,14 +469,14 @@ Return the opened connection on success, nil otherwise."
             (speechd-set-language speechd-default-language))
 	  (while parameters
 	    (destructuring-bind (parameter value . next) parameters
-	      (when (not (eq parameter :client-name))
+	      (when (not (eq parameter 'client-name))
 		(speechd--set-parameter parameter value))
 	      (setq parameters next))))
         (let ((priority (and
                          connection
-                         (plist-get default-parameters :message-priority))))
+                         (plist-get default-parameters 'message-priority))))
           (when priority
-            (speechd--set-parameter :message-priority priority)
+            (speechd--set-parameter 'message-priority priority)
             (setf (speechd--connection-forced-priority connection) t)))))
     connection))
 
@@ -568,7 +564,7 @@ Return the opened connection on success, nil otherwise."
 	       (let ((output (speechd--connection-process-output connection)))
 		 ;; We have to be very careful with accept-process-output -- it
 		 ;; can invoke another speechd-el functions in various places.
-		 (speechd--with-connection-setting (reading-answer-p t)
+		 (speechd--with-connection-setting reading-answer-p t
 		   (accept-process-output
 		     (speechd--connection-process connection)
 		     speechd-timeout))
@@ -730,7 +726,7 @@ Return the opened connection on success, nil otherwise."
 			   (plist-get plist parameter)
 			 'unknown)))
       (unless (or (equal orig-value value)
-                  (and (eq parameter :message-priority)
+                  (and (eq parameter 'message-priority)
                        (speechd--connection-forced-priority connection)))
 	(let ((answer
 	       (speechd--send-command
@@ -752,14 +748,14 @@ Return the opened connection on success, nil otherwise."
 
 (defun speechd--set-connection-name (name)
   (speechd--set-parameter
-   :client-name
+   'client-name
    (format "%s:%s:%s" (user-login-name) speechd--application-name name)))
 
 (defun speechd-set-language (language)
   "Set language of the current client connection to LANGUAGE.
 Language must be an RFC 1766 language code, as a string."
   (interactive (list (read-string "Language: ")))
-  (speechd--set-parameter :language language))
+  (speechd--set-parameter 'language language))
 
 (defmacro speechd--generate-set-command (parameter prompt argdesc)
   (let* ((prompt* (concat prompt ": "))
@@ -780,8 +776,7 @@ VALUE must be %s."
                    (t
                     (concat "one of the strings allowed by your "
                             "Speech Dispatcher\ninstallation"))))))
-    `(defun ,(intern (concat "speechd-set-"
-			     (substring (symbol-name parameter) 1)))
+    `(defun ,(intern (concat "speechd-set-" (symbol-name parameter)))
             (value)
        ,docstring
        (interactive
@@ -798,35 +793,35 @@ VALUE must be %s."
 	   `(list
 	     (completing-read ,prompt*
 			      (mapcar #'list (speechd--list ,argdesc*)))))))
-       (speechd--set-parameter ,parameter value))))
+       (speechd--set-parameter (quote ,parameter) value))))
 
-(speechd--generate-set-command :punctuation-table "Punctuation table"
-			       :punctuation-tables)
-(speechd--generate-set-command :spelling-table "Spelling table"
-			       :spelling-tables)
-(speechd--generate-set-command :text-table "Text table" :text-tables)
-(speechd--generate-set-command :sound-table "Sound table" :sound-tables)
-(speechd--generate-set-command :character-table "Character table"
-			       :character-tables)
-(speechd--generate-set-command :capital-character-table
+(speechd--generate-set-command punctuation-table "Punctuation table"
+			       'punctuation-tables)
+(speechd--generate-set-command spelling-table "Spelling table"
+			       'spelling-tables)
+(speechd--generate-set-command text-table "Text table" 'text-tables)
+(speechd--generate-set-command sound-table "Sound table" 'sound-tables)
+(speechd--generate-set-command character-table "Character table"
+			       'character-tables)
+(speechd--generate-set-command capital-character-table
                                "Capital character spelling table"
-                               :capital-character-tables)
-(speechd--generate-set-command :capital-character-mode "Capital character mode"
+                               'capital-character-tables)
+(speechd--generate-set-command capital-character-mode "Capital character mode"
                                speechd--capital-character-modes)
-(speechd--generate-set-command :key-table "Key table" :key-tables)
-(speechd--generate-set-command :pitch "Pitch" 0)
-(speechd--generate-set-command :rate "Rate" 0)
-(speechd--generate-set-command :voice "Voice" :voices)
-(speechd--generate-set-command :punctuation-mode "Punctuation mode"
+(speechd--generate-set-command key-table "Key table" 'key-tables)
+(speechd--generate-set-command pitch "Pitch" 0)
+(speechd--generate-set-command rate "Rate" 0)
+(speechd--generate-set-command voice "Voice" 'voices)
+(speechd--generate-set-command punctuation-mode "Punctuation mode"
                                speechd--punctuation-modes)
 ;; TODO: Remove this one once proper output module setting is defined.
-(speechd--generate-set-command :output-module "Output module" nil)
+(speechd--generate-set-command output-module "Output module" nil)
 
 
 ;;; Blocks
 
 
-(defmacro* speechd-block (parameters &body body)
+(defmacro speechd-block (parameters &rest body)
   "Set PARAMETERS and enclose BODY by an SSIP block.
 Before invoking BODY, the BLOCK BEGIN command is sent, and the BLOCK END
 command is sent afterwards.
@@ -865,22 +860,22 @@ the `speechd--set-parameter' function."
 			            (finish t))
   "Speak the given TEXT, represented by a string.
 The key argument `priority' defines the priority of the message and must be one
-of the symbols `:important', `:message', `:text', `:notification' or
-`:progress'.
+of the symbols `important', `message', `text', `notification' or
+`progress'.
 If the key argument `finish' is t, TEXT completes the message -- the next
 invocation of this function will start a new text message to speechd.
 Otherwise the message leaves open and the next invocation this function will
 append the next text to it.  Regardless of the FINISH value, the function
 initiates sending text data to speechd immediately."
   (interactive "sText: ")
-  (speechd--set-parameter :message-priority priority)
+  (speechd--set-parameter 'message-priority priority)
   (unless (string= text "")
     (flet ((properties (point)
              (let ((voice (cdr (assq (get-text-property point 'face text)
                                      speechd-face-voices)))
                    (language (get-text-property point 'language text)))
-               (append (when voice (list :voice voice))
-                       (when language (list :language language))))))
+               (append (when voice (list 'voice voice))
+                       (when language (list 'language language))))))
       (speechd-block ()
         (let* ((beg 0)
                (new-properties (properties beg)))
@@ -909,17 +904,17 @@ initiates sending text data to speechd immediately."
   "Ask speechd to play an auditory icon.
 NAME is the name of the icon, any string acceptable by speechd.
 The key argument `priority' defines the priority of the message and must be one
-of the symbols `:important', `:message', `:text', `:notification' or
-`:progress'."
-  (speechd--set-parameter :message-priority priority)
+of the symbols `important', `message', `text', `notification' or
+`progress'."
+  (speechd--set-parameter 'message-priority priority)
   (speechd--send-command (list "SOUND_ICON" name)))
 
 (defun* speechd-say-char (char &key (priority speechd-default-char-priority))
   "Speak the given CHAR, any UTF-8 character.
 The key argument `priority' defines the priority of the message and must be one
-of the symbols `:important', `:message', `:text', `:notification' or
-`:progress'."
-  (speechd--set-parameter :message-priority priority)
+of the symbols `important', `message', `text', `notification' or
+`progress'."
+  (speechd--set-parameter 'message-priority priority)
   (speechd--send-command
    (list "CHAR" (format "%s" (case char
 			       (?  "space")
@@ -930,9 +925,9 @@ of the symbols `:important', `:message', `:text', `:notification' or
   "Speak the given KEY.
 The exact value and meaning of KEY is undefined now.
 The key argument `priority' defines the priority of the message and must be one
-of the symbols `:important', `:message', `:text', `:notification' or
-`:progress'."
-  (speechd--set-parameter :message-priority priority)
+of the symbols `important', `message', `text', `notification' or
+`progress'."
+  (speechd--set-parameter 'message-priority priority)
   ;; TODO: Implement real key handling
   (speechd--send-command (list "KEY" (format "%s" key))))
 

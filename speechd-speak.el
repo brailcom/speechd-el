@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.31 2003-07-28 13:18:31 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.32 2003-07-30 11:02:26 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -294,12 +294,12 @@ Level 1 is the slowest, level 9 is the fastest."
         (set (make-local-variable 'speechd-client-name)
              speechd-speak--last-connection-name)))))
 
-(defmacro* speechd-speak--maybe-speak (&body body)
+(defmacro speechd-speak--maybe-speak (&rest body)
   `(when speechd-speak-mode
      (let ((speechd-client-name (speechd-speak--connection-name)))
        ,@body)))
 
-(defmacro* speechd-speak--interactive (&body body)
+(defmacro speechd-speak--interactive (&rest body)
   `(let ((speechd-speak-mode (or (interactive-p) speechd-speak-mode)))
      ,@body))
 
@@ -466,7 +466,7 @@ If BUFFER is nil, read current buffer."
 
 (defvar speechd-speak--command-start-info (make-vector 5 nil))
 
-(defmacro* speechd-speak--with-minibuffer-depth (&body body)
+(defmacro speechd-speak--with-minibuffer-depth (&rest body)
   `(let ((depth (minibuffer-depth)))
      (when (>= depth (length speechd-speak--command-start-info))
        (setq speechd-speak--command-start-info
@@ -506,12 +506,12 @@ If BUFFER is nil, read current buffer."
 (defun speechd-speak--reset-command-start-info ()
   (speechd-speak--set-command-start-info t))
 
-(defmacro* speechd-speak--with-command-start-info (&body body)
+(defmacro speechd-speak--with-command-start-info (&rest body)
   `(let ((info (speechd-speak--command-start-info)))
      (when info
        ,@body)))
 
-(defmacro* speechd-speak--defadvice (function class &body body)
+(defmacro speechd-speak--defadvice (function class &rest body)
   (let* ((function* function)
          (fname (if (listp function*) (first function*) function*))
          (aname (if (listp function*) 'speechd-speak-user 'speechd-speak)))
@@ -527,7 +527,7 @@ invoked.
 FEEDBACK is a string to be given as the argument of the `speechd-speak-report'
 function."
   `(speechd-speak--defadvice ,(list function) ,position
-     (speechd-speak-report ,feedback :priority :message)))
+     (speechd-speak-report ,feedback :priority 'message)))
 
 (defmacro speechd-speak-command-feedback (function position feedback)
   "Report FEEDBACK on each invocation of FUNCTION.
@@ -536,9 +536,9 @@ Unlike `speechd-speak-function-feedback', the feedback is reported only when
 FUNCTION is invoked interactively."
   `(speechd-speak--defadvice ,(list function) ,position
      (when (interactive-p)
-       (speechd-speak-report ,feedback :priority :message))))
+       (speechd-speak-report ,feedback :priority 'message))))
 
-(defmacro* speechd-speak--command-feedback (commands position &body body)
+(defmacro speechd-speak--command-feedback (commands position &rest body)
   (let ((commands* (if (listp commands) commands (list commands)))
 	(position* position)
 	(body* `(progn (speechd-speak--reset-command-start-info) ,@body)))
@@ -553,9 +553,9 @@ FUNCTION is invoked interactively."
 			      ,body*))))
 		 commands*))))
 
-(defmacro* speechd-speak--command-feedback-region (commands &key (move nil))
+(defmacro speechd-speak--command-feedback-region (commands)
   `(speechd-speak--command-feedback ,commands around
-     (let ((start (save-excursion ,move (point))))
+     (let ((start (point)))
        ad-do-it
        (speechd-speak--speak-piece start))))
 
@@ -692,7 +692,7 @@ FUNCTION is invoked interactively."
       (setq speechd-speak--last-message message
 	    speechd-speak--last-spoken-message message)
       (let ((speechd-speak--special-area t))
-        (speechd-speak--text message :priority :progress))))
+        (speechd-speak--text message :priority 'progress))))
   (when reset-last-spoken
     (setq speechd-speak--last-spoken-message "")))
 
@@ -704,7 +704,7 @@ FUNCTION is invoked interactively."
 
 
 (defun speechd-speak--prompt (prompt)
-  (speechd-speak--text prompt :priority :message))
+  (speechd-speak--text prompt :priority 'message))
 
 (defun speechd-speak--speak-minibuffer-prompt ()
   (speechd-speak--prompt (minibuffer-prompt))
@@ -726,15 +726,15 @@ FUNCTION is invoked interactively."
   (speechd-speak--text (minibuffer-contents)))
 
 (speechd-speak--command-feedback minibuffer-message after
-  (speechd-speak--text (ad-get-arg 0) :priority :notification))
+  (speechd-speak--text (ad-get-arg 0) :priority 'notification))
 
 ;; The following functions don't invoke `minibuffer-setup-hook'
 (speechd-speak--defadvice y-or-n-p before
-  (speechd-speak--text (concat (ad-get-arg 0) "(y or n)") :priority :message))
+  (speechd-speak--text (concat (ad-get-arg 0) "(y or n)") :priority 'message))
 (speechd-speak--defadvice read-key-sequence before
   (let ((prompt (ad-get-arg 0)))
     (when prompt
-      (speechd-speak--text prompt :priority :message))))
+      (speechd-speak--text prompt :priority 'message))))
 
 
 ;;; Commands
@@ -804,7 +804,7 @@ FUNCTION is invoked interactively."
          ((member (buffer-name (current-buffer))
                   speechd-speak-insertions-in-buffers)
           (speechd-speak--text (speechd-speak--buffer-substring beg end)
-                               :priority :message)))))))
+                               :priority 'message)))))))
 
 (defun speechd-speak--pre-command-hook ()
   (speechd-speak--set-command-start-info)
@@ -855,7 +855,7 @@ FUNCTION is invoked interactively."
             (cond
              ;; Speak commands that can't speak in a regular way
              ((memq this-command '(forward-char backward-char))
-              (speechd-block (:priority speechd-default-char-priority)
+              (speechd-block ('priority speechd-default-char-priority)
                (cond
                 ((looking-at "^")
                  (when speechd-speak-signal-beginning-of-line
@@ -871,7 +871,7 @@ FUNCTION is invoked interactively."
              ;; Buffer switch
              (buffer-changed
               (if speechd-speak-buffer-name
-                  (speechd-speak--text (buffer-name) :priority :message)
+                  (speechd-speak--text (buffer-name) :priority 'message)
                 (speechd-speak-read-line)))
              ;; Buffer modification
              (buffer-modified
@@ -1033,9 +1033,10 @@ FUNCTION is invoked interactively."
 (define-key speechd-speak-mode-map "w" 'speechd-speak-read-word)
 (define-key speechd-speak-mode-map "{" 'speechd-speak-read-paragraph)
 (define-key speechd-speak-mode-map " " 'speechd-resume)
-(define-key speechd-speak-mode-map "'" 'speechd-speak-speak-sexp)
+(define-key speechd-speak-mode-map "'" 'speechd-speak-read-sexp)
 (define-key speechd-speak-mode-map "[" 'speechd-speak-read-page)
 (define-key speechd-speak-mode-map "\C-n" 'speechd-speak-read-other-window)
+(define-key speechd-speak-mode-map "\C-r" 'speechd-repeat)
 (define-key speechd-speak-mode-map "\C-s" 'speechd-reopen)
 (define-key speechd-speak-mode-map [down] 'speechd-speak-read-next-line)
 (define-key speechd-speak-mode-map [up] 'speechd-speak-read-previous-line)
