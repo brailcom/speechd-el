@@ -2,6 +2,17 @@
 
 	* speechd-speak.el (speechd-speak--pre-command-hook): Put
 	speechd-speak--after-change-hook into after-change-functions.
+	(speechd-speak--after-change-hook)
+	(speechd-speak--pre-command-hook)
+	(speechd-speak--post-command-hook): Don't perform most actions
+	when speaking is disabled.
+	(speechd-speak): Put speechd-speak--after-change-hook into
+	after-change-functions.
+	(speechd-speak--pre-command-hook): Don't put
+	speechd-speak--after-change-hook into after-change-functions.
+	(speechd-speak--minibuffer-update): Update
+	speechd-speak--command-info-struct-minibuffer-contents.
+	(speechd-speak--minibuffer-update): Handle M-x in a special way.
 
 2003-07-19  Milan Zamazal  <pdm@brailcom.org>
 
