@@ -215,7 +215,7 @@ language.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.69 2003-10-21 16:42:37 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.70 2003-10-22 08:29:23 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -697,24 +697,24 @@ Return the opened connection on success, nil otherwise."
   (speechd--send-command "SPEAK" nil '(nil in-data) :now now))
 
 (defun speechd--send-data (text)
-  (flet ((send (string)
-           (speechd--send-request (make-speechd--request
-				   :string string :answer-type nil
-				   :transaction-state '(in-data in-data)))))
-    (save-match-data
-      (while (and (> (length text) 0)
-                  (string-match
-                   "\\(\\`\\|.*\n\\)\\(\\..*\\)\\(\n\\|\\'\\)"
-                   text))
-        (let ((start (match-end 1))
-              (end (match-end 0)))
-          (send (substring text 0 start))
-          (send (concat "." (substring text start end)))
-          (setq text (substring text end))))
-      (send text)
-      (unless (or (string= text "")
-                  (eql (aref text (1- (length text))) ?\n))
-        (send speechd--eol)))))
+  (let ((text* text))
+    (flet ((send (string)
+             (speechd--send-request
+              (make-speechd--request :string string :answer-type nil
+                                     :transaction-state '(in-data in-data)))))
+      (save-match-data
+        (while (and (> (length text*) 0)
+                    (string-match
+                     "\\(\\`\\|.*\n\\)\\(\\..*\\)\\(\n\\|\\'\\)"
+                     text*))
+          (let ((start (match-end 1))
+                (end (match-end 0)))
+            (send (substring text* 0 start))
+            (send (concat "." (substring text* start end)))
+            (setq text* (substring text* end))))
+        (send text*)
+        (unless (string= text "")
+          (send speechd--eol))))))
 
 (defun speechd--send-data-end (&optional now)
   (speechd--send-command "." t '(in-data nil) :now now))
