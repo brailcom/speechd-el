@@ -211,7 +211,7 @@ locally through `let'.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.47 2003-08-07 18:58:43 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.48 2003-08-08 09:49:23 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -883,8 +883,6 @@ the `speechd--set-parameter' function."
          (while ,$parameters
            (speechd--set-parameter (first ,$parameters) (second ,$parameters))
            (setq ,$parameters (nthcdr 2 ,$parameters))))
-       ,(if t
-            `(progn ,@body)
        (speechd--with-current-connection
         (if (and connection (speechd--connection-in-block connection))
             (progn ,@body)
@@ -898,7 +896,7 @@ the `speechd--set-parameter' function."
             (speechd--with-current-connection
              (when connection
                (setf (speechd--connection-in-block connection) nil)
-               (speechd--send-command '("BLOCK END")))))))))))
+               (speechd--send-command '("BLOCK END"))))))))))
 
 
 ;;; Speaking functions
