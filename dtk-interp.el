@@ -51,17 +51,20 @@
   ;; unsupported in speechd
   )
 
+(defun dtk-interp-current-priority ()
+  (if dtk-stop-immediately :text :message))
+
 (defun dtk-interp-queue (text)
-  (speechd-say-text text :finish nil :priority :low))
+  (speechd-say-text text :finish nil :priority (dtk-interp-current-priority)))
 
 (defun dtk-interp-queue-set-rate (rate)
   (dtk-interp-set-rate rate))
 
 (defun dtk-interp-speak ()
-  (speechd-say-text "" :priority :low))
+  (speechd-say-text "" :priority (dtk-interp-current-priority)))
 
 (defun dtk-interp-say (string)
-  (speechd-say-text string :priority (if dtk-stop-immediately :low :medium)))
+  (speechd-say-text string :priority :important))
 (defalias 'dtk-interp-dispatch 'dtk-interp-say)
 
 (defun dtk-interp-stop ()

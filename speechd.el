@@ -63,26 +63,28 @@
   :group 'speechd)
 
 (defconst speechd-priority-tags
-  '(radio (const :tag "High"   :value :high)
-	  (const :tag "Medium" :value :medium)
-	  (const :tag "Low"    :value :low)))
+  '(radio (const :tag "Important"    :value :important)
+	  (const :tag "Message"      :value :message)
+	  (const :tag "Text"         :value :text)
+	  (const :tag "Notification" :value :notification)
+	  (const :tag "Progress"     :value :progress)))
 
-(defcustom speechd-default-text-priority :medium
+(defcustom speechd-default-text-priority :text
   "*Default Speech Daemon priority of sent texts."
   :type speechd-priority-tags
   :group 'speechd)
 
-(defcustom speechd-default-sound-priority :medium
+(defcustom speechd-default-sound-priority :message
   "*Default Speech Daemon priority of sent sound icons."
   :type speechd-priority-tags
   :group 'speechd)
 
-(defcustom speechd-default-char-priority :low
+(defcustom speechd-default-char-priority :notification
   "*Default Speech Daemon priority of sent single letters."
   :type speechd-priority-tags
   :group 'speechd)
 
-(defcustom speechd-default-key-priority :low
+(defcustom speechd-default-key-priority :notification
   "*Default Speech Daemon priority of sent symbols of keys."
   :type speechd-priority-tags
   :group 'speechd)
@@ -103,7 +105,7 @@
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.21 2003-06-03 15:30:35 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.22 2003-06-09 11:24:15 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -144,9 +146,12 @@ Useful only for diagnosing problems.")
 
 (defconst speechd--parameter-value-mappings
   '((:message-priority
-     (:high .   "1")
-     (:medium . "2")
-     (:low .    "3"))
+     (:important .    "IMPORTANT")
+     (:message .      "MESSAGE")
+     (:text .         "TEXT")
+     (:notification . "NOTIFICATION")
+     (:progress .     "PROGRESS")
+     )
     (:punctuation-mode
      (:none . "none")
      (:some . "some")
@@ -638,7 +643,8 @@ Mode must be one of the symbols `:none' (don't read any punctuation), `:some'
 			            (finish t))
   "Speak the given TEXT, represented by a string.
 The key argument `priority' defines the priority of the message and must be one
-of the symbols `:high', `:medium', and `:low'.
+of the symbols `:important', `:message', `:text', `:notification' or
+`:progress'.
 If the key argument `finish' is t, TEXT completes the message -- the next
 invocation of this function will start a new text message to speechd.
 Otherwise the message leaves open and the next invocation this function will
@@ -655,14 +661,16 @@ initiates sending text data to speechd immediately."
   "Ask speechd to play an auditory icon.
 NAME is the name of the icon, any string acceptable by speechd.
 The key argument `priority' defines the priority of the message and must be one
-of the symbols `:high', `:medium', and `:low'."
+of the symbols `:important', `:message', `:text', `:notification' or
+`:progress'."
   (speechd--set-parameter :message-priority priority)
   (speechd--send-command (list "SOUND_ICON" name)))
 
 (defun* speechd-say-char (char &key (priority speechd-default-char-priority))
   "Speak the given CHAR, any UTF-8 character.
 The key argument `priority' defines the priority of the message and must be one
-of the symbols `:high', `:medium', and `:low'."
+of the symbols `:important', `:message', `:text', `:notification' or
+`:progress'."
   (speechd--set-parameter :message-priority priority)
   (speechd--send-command
    (list "CHAR" (format "%s" (case char
@@ -674,7 +682,8 @@ of the symbols `:high', `:medium', and `:low'."
   "Speak the given KEY.
 The exact value and meaning of KEY is undefined now.
 The key argument `priority' defines the priority of the message and must be one
-of the symbols `:high', `:medium', and `:low'."
+of the symbols `:important', `:message', `:text', `:notification' or
+`:progress'."
   (speechd--set-parameter :message-priority priority)
   ;; TODO: Implement real key handling
   (speechd--send-command (list "KEY" (format "%s" key))))
