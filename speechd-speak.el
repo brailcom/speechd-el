@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.59 2003-10-23 09:21:26 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.60 2003-10-28 15:28:53 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -925,33 +925,34 @@ connections, otherwise create completely new connection."
 ;;; Commands
 
 
-(defun speechd-speak--command-keys (&rest args)
+(defun speechd-speak--command-keys (&optional priority)
   (speechd-speak--maybe-speak
-    (let* ((keys (this-command-keys-vector))
-           (i 0)
-           (len (length keys)))
-      (while (< i len)
-        (let ((key (aref keys i)))
-          (apply #'speechd-say-key key args)
-          (let ((m-x-chars (and (eql (event-basic-type key) ?x)
-                                (equal (event-modifiers key) '(meta))
-                                (let ((j (1+ i))
-                                      (chars '("")))
-                                  (while (and chars (< j len))
-                                    (let* ((k (aref keys j))
-                                           (km (event-modifiers k))
-                                           (kb (event-basic-type k)))
-                                      (unless (or (not (numberp kb))
-                                                  (< kb 32) (>= kb 128)
-                                                  km)
-                                        (push (char-to-string kb) chars)))
-                                    (incf j))
-                                  (nreverse chars)))))
-            (if m-x-chars
-                (progn
-                  (apply #'speechd-speak--text (apply #'concat m-x-chars) args)
-                  (setq i len))
-              (incf i))))))))
+    (speechd-block (if priority `(message-priority ,priority) ())
+      (let* ((keys (this-command-keys-vector))
+             (i 0)
+             (len (length keys)))
+        (while (< i len)
+          (let ((key (aref keys i)))
+            (speechd-say-key key)
+            (let ((m-x-chars (and (eql (event-basic-type key) ?x)
+                                  (equal (event-modifiers key) '(meta))
+                                  (let ((j (1+ i))
+                                        (chars '("")))
+                                    (while (and chars (< j len))
+                                      (let* ((k (aref keys j))
+                                             (km (event-modifiers k))
+                                             (kb (event-basic-type k)))
+                                        (unless (or (not (numberp kb))
+                                                    (< kb 32) (>= kb 128)
+                                                    km)
+                                          (push (char-to-string kb) chars)))
+                                      (incf j))
+                                    (nreverse chars)))))
+              (if m-x-chars
+                  (progn
+                    (speechd-speak--text (apply #'concat m-x-chars))
+                    (setq i len))
+                (incf i)))))))))
 
 (defun speechd-speak--add-command-text (info beg end)
   (let ((last (first (speechd-speak--cinfo changes)))
@@ -1027,10 +1028,9 @@ connections, otherwise create completely new connection."
   (when speechd-speak-mode
     (when (and (eq speechd-speak-read-command-keys t)
                (not (memq this-command speechd-speak-ignore-command-keys)))
-      (speechd-speak--command-keys
-       :priority (if (eq this-command 'self-insert-command)
-                     'notification
-                   'message)))
+      (speechd-speak--command-keys (if (eq this-command 'self-insert-command)
+                                       'notification
+                                     'message)))
     ;; Some parameters of interactive commands don't set up the minibuffer, so
     ;; we have to speak the prompt in a special way.
     (let ((interactive (cadr (interactive-form this-command))))
@@ -1092,7 +1092,7 @@ connections, otherwise create completely new connection."
                 (memq 'movement speechd-speak-read-command-keys))))
   (if speechd-speak-read-command-name
       (speechd-speak--text (symbol-name this-command) :priority 'message)
-    (speechd-speak--command-keys :priority 'message)))
+    (speechd-speak--command-keys 'message)))
 
 (speechd-speak--post-defun buffer-modifications t
     (cond
