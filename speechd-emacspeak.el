@@ -121,6 +121,33 @@ The icon is played when no corresponding entry is found in
   (interactive)
   (speechd-reopen))
 
+(defadvice comint-output-filter (around emacspeak activate)
+  "Make comint speak its output."
+  (save-excursion
+    (speechd-protect
+     (set-buffer (process-buffer (ad-get-arg 0)))
+     (let ((prior (point))
+	   (monitor emacspeak-comint-output-monitor)
+	   (dtk-stop-immediately nil))
+       ad-do-it
+       (when (and (boundp 'comint-last-prompt-overlay)
+		  comint-last-prompt-overlay)
+	 (put-text-property (overlay-start comint-last-prompt-overlay)
+			    (overlay-end comint-last-prompt-overlay)
+			    'personality emacspeak-comint-prompt-personality))
+       (when (and emacspeak-comint-autospeak
+		  (or monitor 
+		      (eq (selected-window)
+			  (get-buffer-window
+			   (process-buffer (ad-get-arg 0))))))
+	 (when emacspeak-comint-split-speech-on-newline
+	   (modify-syntax-entry 10 ">"))
+	 (condition-case nil
+	     (emacspeak-speak-region prior (point ))
+	   (error (emacspeak-auditory-icon 'scroll)
+		  (dtk-stop ))))
+       ad-return-value))))
+
 ;; Avoid transformation of characters (unfortunately, `dtk-char-to-speech' is
 ;; an inline function).
 (defun emacspeak-speak-char (&optional prefix)

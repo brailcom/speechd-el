@@ -29,6 +29,10 @@
 ;;   (speechd-say-text "Hello, world!")
 ;;   ...
 ;;   (speechd-close)
+;;
+;; *Note*: If you call any of the speechd-el functions asynchronously
+;; (typically within a process filter function), you must wrap the whole
+;; asynchronous code by the `speechd-protect' macro.
 
 ;;; Code:
 
@@ -99,7 +103,7 @@
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.17 2003-05-28 10:07:01 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.18 2003-05-28 14:55:41 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -126,7 +130,7 @@ Useful only for diagnosing problems.")
     (:voice . "VOICE")
     (:rate . "RATE")
     (:pitch . "PITCH")
-    (:output-module . "OUTPUT_MODULE")	; TODO: to be removed once
+    (:output-module . "OUTPUT_MODULE")	; TODO: to be removed sometimes
     ))
 
 (defconst speechd--list-parameter-names
@@ -174,11 +178,24 @@ Useful only for diagnosing problems.")
 (defvar speechd--connections (make-hash-table :test 'equal)
   "Hash table mapping client names to `speechd-connection' instances.")
 
+(defvar speechd--protect nil
+  "If non-nil, don't call `access-process-output'.")
+
 (defvar speechd--debug-info '())
 
 
 ;;; Utilities
 
+
+(defmacro* speechd-protect (&body body)
+  "Ensure proper operation of an asynchronous code BODY.
+All asynchronously called code invoking any of the speechd-el functions must be
+wrapped by this macro."
+  `(let ((already-protected speechd--protect)
+	 (speechd--protect t))
+     (prog1 (progn ,@body)
+       (unless already-protected
+	 (speechd--process-queues)))))
 
 (defmacro* speechd--with-current-connection (&body body)
   `(let ((connection (speechd--connection)))
@@ -356,6 +373,18 @@ Return the opened connection on success, nil otherwise."
 				       string)
 		(speechd--permanent-connection-failure connection)))))))))
 
+(defun speechd--process-queues ()
+  (unless speechd--in-recursion
+    (let ((speechd--in-recursion t))
+      (maphash
+       #'(lambda (speechd-client-name connection)
+	   (let ((queue (speechd--connection-request-queue connection)))
+	     (while (not (queue-empty queue))
+	       (let* ((request (queue-dequeue queue))
+		      (answer-type (speechd--request-answer-type request)))
+		 (speechd--process-request request)))))
+       speechd--connections))))
+
 (defvar speechd--in-recursion nil)
 (defun speechd--process-request (request)
   (speechd--with-current-connection
@@ -412,9 +441,9 @@ Return the opened connection on success, nil otherwise."
 		     (cond
 		      ((and (eq required-state 'in-data)
 			    (not (eq new-state nil)))
-		       (speechd--send-data-begin))
+		       (speechd--send-data-begin t))
 		      ((eq required-state nil)
-		       (speechd--send-data-end)))))
+		       (speechd--send-data-end t)))))
 		 (eq (speechd--connection-transaction-state connection)
 		     required-state)))
 	  (unless (check-state)
@@ -439,17 +468,13 @@ Return the opened connection on success, nil otherwise."
 				     connection))))
 		      (read-command-answer)))))
 	    ;; Free the commands blocked by this speechd--command-answer
-	    (unless speechd--in-recursion
-	      (let ((speechd--in-recursion t)
-		    (queue (speechd--connection-request-queue connection)))
-		(while (not (queue-empty queue))
-		  (let* ((request (queue-dequeue queue))
-			 (answer-type (speechd--request-answer-type request)))
-		    (speechd--process-request request)))))))))))
+	    (speechd--process-queues)))))))
 
-(defun speechd--send-request (request)
+(defun speechd--send-request (request &optional now)
   (speechd--with-current-connection
-    (if (speechd--connection-reading-answer-p connection)
+    (if (and (not now)
+	     (or (speechd--connection-reading-answer-p connection)
+		 speechd--protect))
 	(let ((queue (speechd--connection-request-queue connection)))
 	  (when (or (not (speechd--queue-too-long-p queue))
 		    (first (speechd--request-transaction-state request)))
@@ -458,17 +483,19 @@ Return the opened connection on success, nil otherwise."
       (speechd--process-request request))))
 
 (defun* speechd--send-command (command &optional delay-answer
-				       (transaction-state '(nil nil)))
+				       (transaction-state '(nil nil))
+				       &key now)
   (unless (listp command)
     (setq command (list command)))
   (speechd--send-request
    (make-speechd--request :string (concat (mapconcat #'identity command " ")
 					  speechd--eol)
 			  :answer-type (if delay-answer 'delayed 'required)
-			  :transaction-state transaction-state)))
+			  :transaction-state transaction-state)
+   now))
 
-(defun speechd--send-data-begin ()
-  (speechd--send-command "SPEAK" nil '(nil in-data)))
+(defun speechd--send-data-begin (&optional now)
+  (speechd--send-command "SPEAK" nil '(nil in-data) :now now))
 
 (defun speechd--send-data (text)
   (flet ((send (string)
@@ -487,8 +514,8 @@ Return the opened connection on success, nil otherwise."
 		(eql (aref text (1- (length text))) ?\n))
       (send speechd--eol))))
 
-(defun speechd--send-data-end ()
-  (speechd--send-command "." t '(in-data nil)))
+(defun speechd--send-data-end (&optional now)
+  (speechd--send-command "." t '(in-data nil) :now now))
 
 
 ;;; Value retrieval functions
