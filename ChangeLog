@@ -1,3 +1,9 @@
+2003-09-24  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd--generate-set-command): Don't set the
+	parameter if no input is given.  Report setting the value to the
+	user.
+
 2003-09-22  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd.el (speechd--generate-set-command): Quote ARGDESC*.
