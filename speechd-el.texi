@@ -949,6 +949,19 @@ connections for separating language dependent buffers or modes, see
 @ref{Multiple Connections}, and to set the @code{language} parameter
 for each such a connection, see @ref{Connection Voices}.
 
+If nothing helps better, you can select languages according to the
+current input method:
+
+@vtable @code
+@item speechd-input-method-languages
+Alist mapping input methods to languages.  Each of the alist element
+is of the form @code{(@var{input-method-name} . @var{language})},
+where @var{input-method-name} is a string naming the input method and
+@var{language} is an ISO language code accepted by SSIP.  If the
+current input method is present in the alist, the corresponding
+language is selected unless overridden by another setting.
+@end vtable
+
 @node Voices, Connection Voices, Languages, Customization
 @subsection Defining voices
 @cindex voices

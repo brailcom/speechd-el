@@ -274,6 +274,17 @@ current voice."
   :type '(alist :key-type face :value-type (speechd-voice-tag :tag "Voice"))
   :group 'speechd)
 
+(defcustom speechd-input-method-languages '()
+  "Alist mapping input methods to languages.
+Each of the alist element is of the form (INPUT-METHOD-NAME . LANGUAGE), where
+INPUT-METHOD-NAME is a string naming the input method and LANGUAGE is an ISO
+language code accepted by SSIP.
+If the current input method is present in the alist, the corresponding language
+is selected unless overridden by another setting."
+  :type '(alist :key-type (string :tag "Input method")
+                :value-type (string :tag "Language code"))
+  :group 'speechd)
+
 
 ;;; External variables
 
@@ -297,7 +308,7 @@ language.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "2004-05-14 10:59 pdm"
+(defconst speechd--el-version "2004-05-18 14:42 pdm"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -503,6 +514,12 @@ Language should be a string recognizable by Speech Dispatcher as a language
 code."
   (put-text-property 0 (length string) 'language language string)
   string)
+
+(defun speechd--current-language ()
+  (or (and speechd-input-method-languages
+           current-input-method
+           (cdr (assoc current-input-method speechd-input-method-languages)))
+      speechd-language))
 
 
 ;;; Process management functions
@@ -1045,7 +1062,7 @@ is empty."
                        (when language (list 'language language))
                        (when (and voice (symbolp voice))
                          (speechd--voice-parameters voice))))))
-      (speechd-block `(language ,speechd-language
+      (speechd-block `(language ,(speechd--current-language)
                        spelling-mode ,speechd-spell)
         (let* ((beg 0)
                (new-properties (properties beg)))
@@ -1084,7 +1101,8 @@ of the symbols `important', `message', `text', `notification' or
 `progress'."
   (speechd--set-parameter 'message-priority priority)
   (speechd--with-current-connection
-    (speechd--with-connection-parameters `(language ,speechd-language)
+    (speechd--with-connection-parameters
+        `(language ,(speechd--current-language))
       (speechd--send-command
        (list "CHAR" (format "%s" (case char
                                    (?  "space")
@@ -1113,7 +1131,8 @@ of the symbols `important', `message', `text', `notification' or
       (setq string (concat (symbol-name m) "_" string)))
     (speechd--set-parameter 'message-priority priority)
     (speechd--with-current-connection
-      (speechd--with-connection-parameters `(language ,speechd-language)
+      (speechd--with-connection-parameters
+          `(language ,(speechd--current-language))
         (speechd--send-command (list "KEY" (format "%s" string)))))))
 
 
