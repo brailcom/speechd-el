@@ -33,7 +33,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.3 2003-06-24 17:51:13 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.4 2003-06-25 13:18:38 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -230,6 +230,10 @@ Level 1 is the slowest, level 9 is the fastest."
 (defun speechd-speak--reset-command-start-info ()
   (speechd-speak--set-command-start-info t))
 
+(defmacro* speechd-speak--defadvice (function class &body body)
+  `(defadvice ,function (,class speechd-speak activate preactivate compile)
+     ,@body))
+
 (defmacro* speechd-speak--command-feedback (commands position &body body)
   (let ((commands* (if (listp commands) commands (list commands)))
 	(position* position)
@@ -237,8 +241,7 @@ Level 1 is the slowest, level 9 is the fastest."
 	(c (gensym)))
     `(progn
        ,@(mapcar #'(lambda (command)
-		     `(defadvice ,command (,position* speechd-speak
-					   activate preactivate compile)
+		     `(speechd-speak--defadvice ,command ,position*
 			,(if (eq position* 'around)
 			     `(if (interactive-p)
 				  ,body*
@@ -367,10 +370,22 @@ Level 1 is the slowest, level 9 is the fastest."
 
 
 (defvar speechd-speak--last-message "")
+(defvar speechd-speak--last-spoken-message "")
 
 (defun speechd-speak-last-message ()
   (interactive)
   (speechd-speak--text speechd-speak--last-message))
+
+(defun speechd-speak--current-message ()
+  (let ((message (current-message)))
+    (when (and message
+	       (not (string= message speechd-speak--last-spoken-message)))
+      (setq speechd-speak--last-message message
+	    speechd-speak--last-spoken-message message)
+      (speechd-speak--text message :priority :progress))))
+
+(speechd-speak--defadvice message after
+  (speechd-speak--current-message))
 
 
 ;;; Minibuffer
@@ -395,10 +410,9 @@ Level 1 is the slowest, level 9 is the fastest."
   (speechd-speak--text (ad-get-arg 0) :priority :notification))
 
 ;; The following functions don't invoke `minibuffer-setup-hook'
-(defadvice y-or-n-p (before speechd-speak activate preactivate compile)
+(speechd-speak--defadvice y-or-n-p before
   (speechd-speak--text (concat (ad-get-arg 0) "(y or n)") :priority :message))
-(defadvice read-key-sequence (before speechd-speak
-			      activate preactivate compile)
+(speechd-speak--defadvice read-key-sequence before
   (speechd-speak--text (ad-get-arg 0) :priority :message))
 
 
@@ -414,10 +428,8 @@ Level 1 is the slowest, level 9 is the fastest."
   ;; Emacs 21 after change functions in the *Messages* buffer don't work in
   ;; many situations.  This is a property of the Emacs implementation, so the
   ;; mechanism can't be used.
-  (let ((message (current-message)))
-    (when message
-      (setq speechd-speak--last-message message)
-      (speechd-speak--text message :priority :progress)))
+  (speechd-speak--current-message)
+  (setq speechd-speak--last-spoken-message "")
   (let ((command-info (speechd-speak--command-start-info)))
     (when command-info
       ;(speechd-speak--text (symbol-name this-command) :priority :notice)
@@ -454,8 +466,7 @@ Level 1 is the slowest, level 9 is the fastest."
   
 (speechd-speak--command-feedback-region comint-dynamic-complete)
 
-(defadvice comint-output-filter (around speechd-speak
-				 activate preactivate compile)
+(speechd-speak--defadvice comint-output-filter around
   ;; TODO:
   ad-do-it)
 
