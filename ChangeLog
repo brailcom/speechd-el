@@ -1,14 +1,24 @@
+2003-07-21  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak--pre-command-hook): Put
+	speechd-speak--after-change-hook into after-change-functions.
+
 2003-07-19  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-speak.el (speechd-speak-empty-message)
 	(speechd-speak-beginning-of-line-message)
 	(speechd-speak-end-of-line-message): Changed to internal
 	variables, naming standard speechd icons.
-	(speechd-speak-signal-empty) 
-	(speechd-speak-signal-beginning-of-line) 
+	(speechd-speak-signal-empty)
+	(speechd-speak-signal-beginning-of-line)
 	(speechd-speak-signal-end-of-line): New user options.
 	(speechd-speak--post-command-hook, speechd-speak-read-region):
 	Consider the previous changes.
+	(speechd-speak--command-info-struct): New attribute
+	MINIBUFFER-CONTENTS.
+	(speechd-speak--set-command-start-info): Initialize it.
+	(speechd-speak--minibuffer-update-report): New function.
+	(speechd-speak--add-command-text): New function.
 
 2003-07-18  Milan Zamazal  <pdm@brailcom.org>
 
@@ -16,8 +26,21 @@
 	SILENTLY.
 	(speechd-speak--shutdown): New function.
 	(speechd-speak): Add it to kill-emacs-hook.
+	(expand-abbrev, complete-symbol, lisp-complete-symbol)
+	(dabbrev-expand, comint-dynamic-complete): Feedbacks removed.
+	Comint and minibuffer history handling commands removed.
+	(speechd-speak--speak-minibuffer-completion): Removed.
+	(speechd-speak--minibuffer-update): New function.
 
 2003-07-17  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak--command-info-struct): New slot
+	CHANGE.
+	(speechd-speak--set-command-start-info): Initialize it.
+	(speechd-speak-buffer-insertions): New user option.
+	(speechd-speak--after-change-hook): New function.  Put it into
+	after-change-functions.
+	(speechd-speak--post-command-hook): Read buffer modifications.
 
 	* speechd.el (speechd--send-string): Don't assign CONNECTION
 	redundantly.  Call process-send-string with PROCESS, not
