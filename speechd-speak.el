@@ -1079,11 +1079,11 @@ This command applies to buffers defined in
         (speechd-speak--minibuffer-prompt prompt :priority 'message)))))
 
 
-;;; Repitition in character reading commands
+;;; Repetition in character reading commands
 
 
 (defvar speechd-speak-read-char-keymap (make-sparse-keymap)
-  "Keymap used by speechd-el for repititions during reading characters.
+  "Keymap used by speechd-el for repetitions during reading characters.
 Only single characters are allowed in the keymap.")
 (define-key speechd-speak-read-char-keymap
   "\C-a" 'speechd-speak-last-insertions)
@@ -1911,7 +1911,7 @@ Null prefix argument turns off the mode."
 
 (defun speechd-speak--shutdown ()
   ;; We don't have to call CANCEL here, since Emacs exit is usually called
-  ;; interactivelly, so it is preceeded by the pre-command CANCEL.  Moreover,
+  ;; interactively, so it is preceded by the pre-command CANCEL.  Moreover,
   ;; calling CANCEL here means trouble with stopping the final exit messages.
   (speechd-speak--signal 'finish :priority 'important))
 

@@ -143,7 +143,7 @@ Dispatcher voice.  Gender can be one of the symbols `male', `female',
 Style can be one of the numbers 1, 2, 3 (style values are likely to be changed
 in future).
 
-The message-priority parameter sets priority of amy message of the voice.  Its
+The message-priority parameter sets priority of any message of the voice.  Its
 value is any of the message priority symbols.
 
 See the corresponding speechd-set-* functions for valid values of other
@@ -187,7 +187,7 @@ definition of its parameters is optional."
 		  ,(speechd--generate-customization-options
 		    speechd--capital-character-modes))
             ;;
-	    (cons :tag "Messsage priority" (const :format "" message-priority)
+	    (cons :tag "Message priority" (const :format "" message-priority)
 		  (speechd-priority-tag :value text))
 	    (cons :tag "Output module" (const :format "" output-module)
 		  string))))
@@ -697,7 +697,7 @@ Return the opened connection on success, nil otherwise."
   (when (first (or (speechd--send-command "SPEAK") '(t)))
     ;; We must be careful here.  There is no answer from SSIP until all data
     ;; including the terminator is sent.  Thus, if we send the data in pieces,
-    ;; there may be noticable delays when waiting for TCP packet
+    ;; there may be noticeable delays when waiting for TCP packet
     ;; acknowledgments.  So we send all data, including the final dot
     ;; terminator, in a single piece.
     (save-match-data
@@ -809,7 +809,7 @@ Language must be an RFC 1766 language code, as a string."
          (docstring
           (format "Set %s of the current connection.
 VALUE must be %s.
-If called with a prefix argument, set it for al connections."
+If called with a prefix argument, set it for all connections."
                   (downcase prompt)
                   (cond
                    ((integerp argdesc*)
