@@ -1,5 +1,24 @@
 2003-10-13  Milan Zamazal  <pdm@brailcom.org>
-	
+
+	* speechd-el.texi (Signalling): speechd-speak.el user option
+	changes documented.
+
+	* speechd-speak.el (speechd-signal-events): New user option.
+	(speechd-speak-signal-empty)
+	(speechd-speak-signal-beginning-of-line)
+	(speechd-speak-signal-end-of-line): Removed.
+	(speechd-speak--event-mapping): New variable.
+	(speechd-speak--empty-message) 
+	(speechd-speak--beginning-of-line-message) 
+	(speechd-speak--end-of-line-message) 
+	(speechd-speak--start-message, speechd-speak--finish-message) 
+	(speechd-speak--minibuffer-message) 
+	(speechd-speak--message-message): Removed.
+	(speechd-speak--signal): New function.
+	(speechd-speak-read-region, speechd-speak--post-command-hook)
+	(speechd-speak--minibuffer-setup-hook)
+	(speechd-speak--current-message): Consider the previous changes.
+
 	* speechd-speak.el (speechd-speak--current-message) 
 	(speechd-speak--minibuffer-setup-hook): Don't enclose new sound
 	icon in blocks, use normal priorities instead.
