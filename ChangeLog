@@ -1,3 +1,27 @@
+2003-12-30  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd--connection): New slot last-command.
+	(speechd--send-command): Set it.
+	(speechd--iterate-clients): New macro.
+	(speechd--iterate-connections-collect): Removed.
+	(speechd-connection-names): Rewritten.
+	(speechd--control-command): Rewritten; numeric ALL argument value
+	honored.
+	(speechd-cancel, speechd-cancel): Utilize the previous change.
+	(speechd--control-command): New optional argument REPEATABLE.
+	(speechd-stop): Honor the previous change.
+	(speechd-pause, speechd-resume): When ALL is non-nil, handle all
+	connections correctly; ensure proper ALL value for
+	speechd--control-command.
+	(speechd--block-commands): New constant.
+	(speechd--block-command): New function.
+	(speechd--send-command): Check for block commands inside a block.
+
+2003-12-29  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-bug.el (speechd-bug--insert-log-file): Use awk instead
+	of sed.
+
 2003-12-16  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd.el (speechd--send-data): Regular expression fixed, to
