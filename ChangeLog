@@ -1,8 +1,14 @@
 2003-08-06  Milan Zamazal  <pdm@brailcom.org>
 
+	* speechd-speak.el (speechd-speak--report): New macro.
+	(speechd-speak-function-feedback, speechd-speak-command-feedback):
+	Use it.
+
 	* speechd.el (speechd-connection-parameters): Call speechd-reopen
 	in :set, :initialize added.
 	(speechd-connection-parameters): Don't use mapcan in :set.
+	(speechd-connection-parameters): In :set, parameter transfer for
+	nconc fixed.
 
 2003-08-05  Milan Zamazal  <pdm@brailcom.org>
 
