@@ -1,3 +1,23 @@
+2003-08-07  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-add-connection-settings): New command.
+	* speechd-speak.el (speechd-speak-mode-map): Added.
+	* speechd-el.texi (Connection Parameters):
+	speechd-add-connection-parameters documented.
+
+	* speechd-el.texi (Parameter Setting Commands):
+	speechd-speak-new-connection documented.
+	* speechd.el (speechd--iterate-connections-collect)
+	(speechd-connection-names): New functions.
+	* speechd-speak.el (speechd-speak-new-connection): New command.
+	(speechd-speak-mode-map): Added here.
+	(speechd-speak-new-connection): New command.
+	(speechd-speak--new-connection-name): New function.
+	(speechd-speak--client-name-set): New variable.
+	(speechd-speak--connection-name): Use it.
+	(speechd-speak--last-connection-name): Make the variable buffer
+	local.
+
 2003-08-06  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-speak.el (speechd-speak--report): New macro.
