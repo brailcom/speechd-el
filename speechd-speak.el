@@ -31,7 +31,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.26 2003-07-24 19:06:39 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.27 2003-07-25 11:49:40 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -41,11 +41,6 @@
 (defgroup speechd-speak nil
   "Speechd-el user client customization."
   :group 'speechd-el)
-
-(defcustom speechd-speak-startup-hook nil
-  "Hook to run after starting speechd-speak."
-  :type 'sexp
-  :group 'speechd-speak)
 
 (defcustom speechd-speak-deleted-char t
   "If non-nil, speak the deleted char, otherwise speak the adjacent char."
@@ -196,7 +191,8 @@ processed in a different way by speechd-speak or user definitions."
   "Default prefix key used for speechd-speak commands."
   :set #'(lambda (name value)
 	   (set-default name value)
-	   (global-set-key value 'speechd-speak-prefix-command))
+           (speechd-speak--build-mode-map))
+  :initialize 'custom-initialize-default
   :type 'sexp
   :group 'speechd-speak)
 
@@ -211,47 +207,6 @@ processed in a different way by speechd-speak or user definitions."
 
 ;;; Control functions
 
-
-(defvar speechd-speak-quiet t
-  "If non-nil in the current buffer, no speech output is produced.")
-
-(defun speechd-speak-toggle-quiet (&optional prefix speak silently)
-  "Turn speaking on or off.
-Without the PREFIX argument, toggle speaking globally, except for the buffers
-with previously explicitly toggled speaking.
-With the universal PREFIX argument, toggle speaking in all buffers.
-With the PREFIX argument 1, toggle speaking in the current buffer only.
-
-If the optional argument SPEAK is a positive number, turn speaking on; if it
-is a non-positive number, turn speaking off.
-
-If the optional argument SILENTLY is non-nil, don't report switching the mode."
-  (interactive "P")
-  (let ((new-state (if (numberp speak) (<= speak 0) (not speechd-speak-quiet)))
-	prompt)
-    (cond
-     ((not prefix)
-      (setq-default speechd-speak-quiet new-state)
-      (setq speechd-speak-quiet new-state
-	    prompt "globally"))
-     ((listp prefix)
-      (save-excursion
-	(mapc #'(lambda (buffer)
-		  (when (local-variable-p 'speechd-speak-quiet buffer)
-		    (set-buffer buffer)
-		    (kill-local-variable 'speechd-speak-quiet)))
-	      (buffer-list)))
-      (setq speechd-speak-quiet new-state
-	    prompt "everywhere"))
-     (t
-      (make-local-variable 'speechd-speak-quiet)
-      (setq speechd-speak-quiet new-state
-	    prompt "in the current buffer")))
-    (when speechd-speak-quiet
-      (speechd-cancel))
-    (unless silently
-      (let ((speechd-speak-quiet nil))
-        (message "Speaking turned %s %s" (if new-state "off" "on") prompt)))))
 
 (defvar speechd-speak--predefined-rates
   '((1 . -100)
@@ -286,6 +241,8 @@ Level 1 is the slowest, level 9 is the fastest."
 
 ;;; Supporting functions and options
 
+
+(defvar speechd-speak-mode nil)   ; forward definition to make everything happy
 
 (defvar speechd-speak--last-buffer-mode t)
 (defvar speechd-speak--last-connection-name nil)
@@ -330,9 +287,13 @@ Level 1 is the slowest, level 9 is the fastest."
              speechd-speak--last-connection-name)))))
 
 (defmacro* speechd-speak--maybe-speak (&body body)
-  `(unless speechd-speak-quiet
+  `(when speechd-speak-mode
      (let ((speechd-client-name (speechd-speak--connection-name)))
        ,@body)))
+
+(defmacro* speechd-speak--interactive (&body body)
+  `(let ((speechd-speak-mode (or (interactive-p) speechd-speak-mode)))
+     ,@body))
 
 (defun speechd-speak--text (text &rest args)
   (speechd-speak--maybe-speak
@@ -372,7 +333,8 @@ message argument."
   "Read character CHAR.
 If CHAR is nil, speak the character just after current point."
   (interactive)
-  (speechd-speak--char (or char (following-char))))
+  (speechd-speak--interactive
+   (speechd-speak--char (or char (following-char)))))
 
 (defun speechd-speak-read-region (&optional beg end empty-text)
   "Read region of the current buffer between BEG and END.
@@ -381,60 +343,67 @@ If END is nil, current point is used instead.
 EMPTY-TEXT is a text to say if the region is empty; if nil, empty text icon is
 played."
   (interactive "r")
-  (let ((text (buffer-substring (or beg (mark)) (or end (point)))))
-    (if (string= text "")
-        (speechd-speak-report (or empty-text
-                                  (if speechd-speak-signal-empty
-                                      speechd-speak--empty-message
-                                    ""))
-                              :priority :message)
-      (speechd-speak--text text))))
+  (speechd-speak--interactive
+   (let ((text (buffer-substring (or beg (mark)) (or end (point)))))
+     (if (string= text "")
+         (speechd-speak-report (or empty-text
+                                   (if speechd-speak-signal-empty
+                                       speechd-speak--empty-message
+                                     ""))
+                               :priority :message)
+       (speechd-speak--text text)))))
 
 (defun speechd-speak-read-line (&optional rest-only)
   "Speak current line.
 If REST-ONLY is non-nil, read only the part of the line from the current point
 to the end of the line."
   (interactive)
-  (speechd-speak-read-region (if rest-only (point) (line-beginning-position))
-			     (line-end-position)
-			     (when (speechd-speak--in-minibuffer-p) "")))
+  (speechd-speak--interactive
+   (speechd-speak-read-region (if rest-only (point) (line-beginning-position))
+                              (line-end-position)
+                              (when (speechd-speak--in-minibuffer-p) ""))))
 
 (defun speechd-speak-read-next-line ()
   "Speak the next line after the current line.
 If there is no such line, play the empty text icon."
   (interactive)
-  (save-excursion
-    (if (= (forward-line 1) 0)
-        (speechd-speak-read-line)
-      (speechd-speak-report speechd-speak--empty-message))))
+  (speechd-speak--interactive
+   (save-excursion
+     (if (= (forward-line 1) 0)
+         (speechd-speak-read-line)
+       (speechd-speak-report speechd-speak--empty-message)))))
 
 (defun speechd-speak-read-previous-line ()
   "Speak the previous line before the current line.
 If there is no such line, play the empty text icon."
   (interactive)
-  (save-excursion
-    (if (= (forward-line -1) 0)
-        (speechd-speak-read-line)
-      (speechd-speak-report speechd-speak--empty-message))))
+  (speechd-speak--interactive
+   (save-excursion
+     (if (= (forward-line -1) 0)
+         (speechd-speak-read-line)
+       (speechd-speak-report speechd-speak--empty-message)))))
 
 (defun speechd-speak-read-buffer (&optional buffer)
   "Read BUFFER.
 If BUFFER is nil, read current buffer."
   (interactive)
-  (save-excursion
-    (when buffer
-      (set-buffer buffer))
-    (speechd-speak-read-region (point-min) (point-max))))
+  (speechd-speak--interactive
+   (save-excursion
+     (when buffer
+       (set-buffer buffer))
+     (speechd-speak-read-region (point-min) (point-max)))))
 
 (defun speechd-speak-read-rest-of-buffer ()
   "Read current buffer from the current point to the end of the buffer."
   (interactive)
-  (speechd-speak-read-region (point) (point-max)))
+  (speechd-speak--interactive
+   (speechd-speak-read-region (point) (point-max))))
 
 (defun speechd-speak-read-other-window ()
   "Read buffer of the last recently used window."
   (interactive)
-  (speechd-speak-read-buffer (window-buffer (get-lru-window))))
+  (speechd-speak--interactive
+   (speechd-speak-read-buffer (window-buffer (get-lru-window)))))
 
 (defun speechd-speak--window-contents ()
   (sit-for 0)                           ; to update window start and end
@@ -461,13 +430,14 @@ If BUFFER is nil, read current buffer."
 	 (forward-function (intern (format "forward-%s" name))))
     `(defun ,function-name ()
        (interactive)
-       (save-excursion
-	 (let* ((point (point))
-                (end (progn (,forward-function 1) (point)))
-                (beg (progn (,backward-function 1) (point))))
-           (when (<= (progn (,forward-function 1) (point)) point)
-             (setq beg end))
-	   (speechd-speak-read-region beg end))))))
+       (speechd-speak--interactive
+        (save-excursion
+          (let* ((point (point))
+                 (end (progn (,forward-function 1) (point)))
+                 (beg (progn (,backward-function 1) (point))))
+            (when (<= (progn (,forward-function 1) (point)) point)
+              (setq beg end))
+            (speechd-speak-read-region beg end)))))))
 
 (speechd-speak--def-speak-object word)
 (speechd-speak--def-speak-object sentence)
@@ -702,7 +672,8 @@ FUNCTION is invoked interactively."
 
 (defun speechd-speak-last-message ()
   (interactive)
-  (speechd-speak--text speechd-speak--last-message))
+  (speechd-speak--interactive
+   (speechd-speak--text speechd-speak--last-message)))
 
 (defun speechd-speak--current-message (&optional reset-last-spoken)
   (let ((message (current-message)))
@@ -799,7 +770,7 @@ FUNCTION is invoked interactively."
         info old-content new-content)))))
 
 (defun speechd-speak--after-change-hook (beg end len)
-  (unless speechd-speak-quiet
+  (when speechd-speak-mode
     (speechd-speak--with-command-start-info
       (when (and (eq (current-buffer)
                      (speechd-speak--command-info-struct-buffer info))
@@ -812,7 +783,7 @@ FUNCTION is invoked interactively."
 
 (defun speechd-speak--pre-command-hook ()
   (speechd-speak--set-command-start-info)
-  (unless speechd-speak-quiet
+  (when speechd-speak-mode
     ;; Some parameters of interactive commands don't set up the minibuffer, so
     ;; we have to speak the prompt in a special way.
     (let ((interactive (cadr (interactive-form this-command))))
@@ -824,7 +795,7 @@ FUNCTION is invoked interactively."
   (add-hook 'pre-command-hook 'speechd-speak--pre-command-hook))
 
 (defun speechd-speak--post-command-hook ()
-  (unless speechd-speak-quiet
+  (when speechd-speak-mode
     ;; Messages should be handled by an after change function.  Unfortunately,
     ;; in Emacs 21 after change functions in the *Messages* buffer don't work
     ;; in many situations.  This is a property of the Emacs implementation, so
@@ -1015,64 +986,110 @@ FUNCTION is invoked interactively."
 
 
 
-;;; The startup and shutdown functions
+;;; Mode definition
 
+
+(defvar speechd-speak-mode-map nil
+  "Keymap used by speechd-speak-mode.")
+
+(define-prefix-command 'speechd-speak-prefix-command 'speechd-speak-mode-map)
+
+(define-key speechd-speak-mode-map "a" 'speechd-speak-last-message)
+(define-key speechd-speak-mode-map "b" 'speechd-speak-read-buffer)
+(define-key speechd-speak-mode-map "c" 'speechd-speak-read-char)
+(define-key speechd-speak-mode-map "l" 'speechd-speak-read-line)
+(define-key speechd-speak-mode-map "n" 'speechd-speak-read-rest-of-buffer)
+(define-key speechd-speak-mode-map "p" 'speechd-pause)
+(define-key speechd-speak-mode-map "q" 'speechd-speak-toggle)
+(define-key speechd-speak-mode-map "r" 'speechd-speak-read-region)
+(define-key speechd-speak-mode-map "s" 'speechd-stop)
+(define-key speechd-speak-mode-map "w" 'speechd-speak-read-word)
+(define-key speechd-speak-mode-map "{" 'speechd-speak-read-paragraph)
+(define-key speechd-speak-mode-map " " 'speechd-resume)
+(define-key speechd-speak-mode-map "'" 'speechd-speak-speak-sexp)
+(define-key speechd-speak-mode-map "[" 'speechd-speak-read-page)
+(define-key speechd-speak-mode-map "\C-n" 'speechd-speak-read-other-window)
+(define-key speechd-speak-mode-map "\C-s" 'speechd-reopen)
+(define-key speechd-speak-mode-map [down] 'speechd-speak-read-next-line)
+(define-key speechd-speak-mode-map [up] 'speechd-speak-read-previous-line)
+(dotimes (i 9)
+  (define-key speechd-speak-mode-map (format "%s" (1+ i))
+              'speechd-speak-key-set-predefined-rate))
+
+(defvar speechd-speak--mode-map (make-sparse-keymap))
+(defvar speechd-speak--prefix nil)
+
+(defun speechd-speak--build-mode-map ()
+  (let ((map speechd-speak--mode-map))
+    (when speechd-speak--prefix
+      (define-key map speechd-speak--prefix nil))
+    (setq speechd-speak--prefix speechd-speak-prefix)
+    (define-key map speechd-speak-prefix 'speechd-speak-prefix-command)
+    (unless (lookup-key speechd-speak-mode-map speechd-speak-prefix)
+      (define-key map (concat speechd-speak-prefix speechd-speak-prefix)
+        (lookup-key global-map speechd-speak-prefix)))))
+(speechd-speak--build-mode-map)
 
 (defun speechd-speak--shutdown ()
-  (speechd-speak-toggle-quiet '(4) 0 t))
+  (global-speechd-speak-mode -1))
+
+;;;###autoload
+(define-minor-mode speechd-speak-mode
+  "Toggle speaking, the speechd-speak mode.
+With no argument, this command toggles the mode.
+Non-null prefix argument turns on the mode.
+Null prefix argument turns off the mode.
+     
+When speechd-speak mode is enabled, speech output is provided to Speech
+Dispatcher on many actions.
+
+The following key bindings are offered by speechd-speak mode, prefixed with
+the value of the `speechd-speak-prefix' variable:
+
+\\{speechd-speak-mode-map}
+"
+  nil " S" speechd-speak--mode-map
+  (if speechd-speak-mode
+      (progn
+        (add-hook 'pre-command-hook 'speechd-speak--pre-command-hook)
+        (add-hook 'post-command-hook 'speechd-speak--post-command-hook)
+        (add-hook 'after-change-functions 'speechd-speak--after-change-hook)
+        (add-hook 'minibuffer-setup-hook 'speechd-speak--minibuffer-setup-hook)
+        (add-hook 'minibuffer-exit-hook 'speechd-speak--minibuffer-exit-hook)
+        (add-hook 'kill-emacs-hook 'speechd-speak--shutdown))
+    (speechd-cancel))
+  (when (interactive-p)
+    (let ((state (if speechd-speak-mode "on" "off"))
+          (speechd-speak-mode t))
+      (message "Speaking turned %s" state))))
+
+;;;###autoload
+(easy-mmode-define-global-mode
+ global-speechd-speak-mode speechd-speak-mode speechd-speak-mode
+ :group 'speechd-speak)
+
+(defun speechd-speak-toggle (arg)
+  "Toggle speaking.
+When prefix ARG is non-nil, toggle it locally, otherwise toggle it globally."
+  (interactive "P")
+  (if arg
+      (speechd-speak-mode)
+    (global-speechd-speak-mode))
+  (when (interactive-p)
+    (let ((state (if speechd-speak-mode "on" "off"))
+          (speechd-speak-mode t))
+      (message "Speaking turned %s %s" state (if arg "locally" "globally")))))
 
 (defvar speechd-speak--started nil)
+;;;###autoload
 (defun speechd-speak ()
   "Start or restart speaking."
   (interactive)
   (speechd-reopen)
-  (add-hook 'pre-command-hook 'speechd-speak--pre-command-hook)
-  (add-hook 'post-command-hook 'speechd-speak--post-command-hook)
-  (add-hook 'after-change-functions 'speechd-speak--after-change-hook)
-  (add-hook 'minibuffer-setup-hook 'speechd-speak--minibuffer-setup-hook)
-  (add-hook 'minibuffer-exit-hook 'speechd-speak--minibuffer-exit-hook)
-  (add-hook 'kill-emacs-hook 'speechd-speak--shutdown)
-  (speechd-speak-toggle-quiet nil 1)
-  (run-hooks 'speechd-speak-startup-hook)
+  (global-speechd-speak-mode 1)
   (message "Speechd-speak %s"
 	   (if speechd-speak--started "restarted" "started"))
   (setq speechd-speak--started t))
-
-
-;;; Keymap
-
-
-(defvar speechd-speak-keymap nil
-  "Keymap used by speechd-speak.")
-
-(define-prefix-command 'speechd-speak-prefix-command 'speechd-speak-keymap)
-(global-set-key speechd-speak-prefix 'speechd-speak-prefix-command)
-
-(define-key speechd-speak-keymap "e" 'end-of-line)
-(define-key speechd-speak-keymap "\C-e" 'end-of-line)
-
-(define-key speechd-speak-keymap "a" 'speechd-speak-last-message)
-(define-key speechd-speak-keymap "b" 'speechd-speak-read-buffer)
-(define-key speechd-speak-keymap "c" 'speechd-speak-read-char)
-(define-key speechd-speak-keymap "l" 'speechd-speak-read-line)
-(define-key speechd-speak-keymap "n" 'speechd-speak-read-rest-of-buffer)
-(define-key speechd-speak-keymap "p" 'speechd-pause)
-(define-key speechd-speak-keymap "q" 'speechd-speak-toggle-quiet)
-(define-key speechd-speak-keymap "r" 'speechd-speak-read-region)
-(define-key speechd-speak-keymap "s" 'speechd-stop)
-(define-key speechd-speak-keymap "w" 'speechd-speak-read-word)
-(define-key speechd-speak-keymap "{" 'speechd-speak-read-paragraph)
-(define-key speechd-speak-keymap " " 'speechd-resume)
-(define-key speechd-speak-keymap "'" 'speechd-speak-speak-sexp)
-(define-key speechd-speak-keymap "[" 'speechd-speak-read-page)
-(define-key speechd-speak-keymap "\C-n" 'speechd-speak-read-other-window)
-(define-key speechd-speak-keymap "\C-s" 'speechd-reopen)
-(define-key speechd-speak-keymap "\M-\C-k" 'kill-emacs)
-(define-key speechd-speak-keymap [down] 'speechd-speak-read-next-line)
-(define-key speechd-speak-keymap [up] 'speechd-speak-read-previous-line)
-(dotimes (i 9)
-  (define-key speechd-speak-keymap (format "%s" (1+ i))
-              'speechd-speak-key-set-predefined-rate))
 
 
 ;;; Announce
