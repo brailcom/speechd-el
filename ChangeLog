@@ -1,3 +1,29 @@
+2003-10-24  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-block): Use
+	speechd--with-connection-settings instead of own parameter
+	setting.
+
+	* speechd-bug.el (speechd-bug--insert-config-file): New argument
+	COMMENT-START.
+	(speechd-bug--insert-general-info): Honor the previous change.
+	(speechd-bug--insert-program-version): Missing `format' call
+	added.
+	(speechd-bug--insert): Insert introducing new line if necessary.
+	(speechd-bug--ensure-empty-line): New function.
+	(speechd-bug--insert-program-version)
+	(speechd-bug--insert-config-file, speechd-bug--insert-log-file):
+	Use it.
+	(speechd-bug--insert-logs): Insert Festival logs.
+	(speechd-bug): Insert into the mail information about not
+	reproducing the bug.
+	(speechd-bug--insert-log-file): Add _debug_on/off to the sed
+	string.
+	(speechd-bug--finish-repro): Wait a second before inserting the
+	logs.
+	(speechd-bug--start-repro, speechd-bug--finish-repro): Send the
+	_debug icons with the priority IMPORTANT.
+
 2003-10-23  Milan Zamazal  <pdm@brailcom.org>
 	
 	* speechd-speak.el (speechd-speak--pre-command-hook): Speak
