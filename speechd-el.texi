@@ -10,7 +10,7 @@
 @copying
 This manual is for speechd-el, @value{VERSION}.
 
-Copyright @copyright{} 2003 Brailcom, o.p.s.
+Copyright @copyright{} 2003, 2004 Brailcom, o.p.s.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1184,11 +1184,11 @@ in the usual way.
 
 @item M-x speechd-bug-reproduce
 @findex speechd-bug-reproduce
-@kindex C-e C-z
+@kindex C-e C-f
 Start reproducing a speechd-el or Speech Dispatcher bug.  All user and
 speechd actions are watched from this moment.
 
-Bug reproduction is finished by pressing the @kbd{C-e C-z} keys.
+Bug reproduction is finished by pressing the @kbd{C-e C-f} keys.
 After the bug reproduction is finished, information about it is
 inserted into the buffer where the @code{speechd-bug-reproduce}
 command was invoked.

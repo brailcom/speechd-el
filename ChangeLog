@@ -1,3 +1,13 @@
+2004-01-19  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-open): Unused forced-priority variable
+	removed.
+
+	* speechd-bug.el (speechd-bug--finish-repro-key): Value changed to
+	"\C-f".
+	* speechd-el.texi (Bug Reporting): Document it.
+	* NEWS: Likewise.
+
 2003-12-31  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-el.texi (Bug Reporting): speechd-bug-reproduce

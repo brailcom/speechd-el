@@ -1,6 +1,6 @@
 ;;; speechd-bug.el --- reporting of speechd-el and speechd bugs
 
-;; Copyright (C) 2003 Brailcom, o.p.s.
+;; Copyright (C) 2003, 2004 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -31,11 +31,11 @@
 (require 'speechd-speak)
 
 
-(defconst speechd-bug--version "$Id: speechd-bug.el,v 1.9 2003-12-31 11:52:07 pdm Exp $"
+(defconst speechd-bug--version "$Id: speechd-bug.el,v 1.10 2004-01-19 22:20:00 pdm Exp $"
   "Version of the speechd-bug.el file.")
 
 
-(defvar speechd-bug--finish-repro-key "\C-z")
+(defvar speechd-bug--finish-repro-key "\C-f")
 
 (defvar speechd-bug--repro-id nil)
 
