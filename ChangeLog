@@ -1,3 +1,19 @@
+2004-05-14  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak--read-changes): New function.
+	(speechd-speak--last-other-changes)
+	(speechd-speak--last-other-changes-buffer): New variables.
+	(speechd-speak--read-other-changes): Set them; use
+	speechd-speak--read-changes.
+	(speechd-speak-last-insertions): New command.
+	(speechd-speak-mode-map, speechd-speak-read-char-keymap): Its
+	keybinding added.
+
+2004-05-13  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak-read-char-keymap): New keymap.
+	(read-char-exclusive): New advice.
+
 2004-05-12  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd.el (speechd-say-text): New argument SAY-IF-EMPTY.

@@ -1,7 +1,7 @@
 \input texinfo    @c -*-texinfo-*-
 @comment %**start of header
 @setfilename speechd-el.info
-@set VERSION 0.3
+@set VERSION 0.4
 @settitle speechd-el @value{VERSION}
 @syncodeindex fn cp
 @syncodeindex ky cp
@@ -330,6 +330,30 @@ Read the previous line (@code{speechd-speak-read-previous-line}).
 @kindex C-e m
 @findex speechd-speak-last-message
 Read last seen Emacs message (@code{speechd-speak-last-message}).
+
+@item C-e i
+@kindex C-e i
+@findex speechd-speak-last-insertions
+Read last spoken buffer insertions
+(@code{speechd-speak-last-insertions}).  That is the text spoken in
+auto-speaking buffers, see @xref{Auto-Speaking Buffers}.
+@end table
+
+A few Emacs commands get you stuck in a character reading prompt, a
+typical example is @code{ispell-word}.  If you miss what was spoken
+before you are prompted for action, you can use the following
+keystrokes at the prompt to repeat the spoken texts:
+
+@table @kbd
+@item C-e
+@findex speechd-speak-last-message
+The same as the @kbd{C-e m} command above
+(@code{speechd-speak-last-message}).
+
+@item C-a
+@findex speechd-speak-last-insertions
+The same as the @kbd{C-e i} command above
+(@code{speechd-speak-last-insertions}).
 @end table
 
 @node Control Commands, Parameter Setting Commands, Reading Commands, Commands

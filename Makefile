@@ -4,7 +4,7 @@
 EMACS = emacs
 
 NAME = speechd-el
-VERSION = 0.3
+VERSION = 0.4
 DISTDIR = $(NAME)-$(VERSION)
 TARFILE = $(NAME)-$(VERSION).tar
 

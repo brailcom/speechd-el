@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "2004-05-12 12:42 pdm"
+(defconst speechd-speak-version "2004-05-14 08:10 pdm"
   "Version of the speechd-speak file.")
 
 
@@ -923,17 +923,36 @@ connections, otherwise create completely new connection."
 (defun speechd-speak--speak-minibuffer ()
   (speechd-speak--text (minibuffer-contents)))
 
+(defvar speechd-speak--last-other-changes "")
+(defvar speechd-speak--last-other-changes-buffer nil)
+
+(defun speechd-speak--read-changes (text buffer &rest speak-args)
+  (with-current-buffer (or (get-buffer buffer) (current-buffer))
+    (apply #'speechd-speak--text text speak-args)))
+
 (defun speechd-speak--read-other-changes ()
   (speechd-speak--with-command-start-info
    (when (speechd-speak--cinfo other-changes)
      (let ((speechd-speak--special-area nil)
-           (buffer (get-buffer (speechd-speak--cinfo other-changes-buffer))))
-       (with-current-buffer (or buffer (current-buffer))
-         (speechd-speak--text
-          (mapconcat #'identity
-                     (nreverse (speechd-speak--cinfo other-changes)) "")
-          :priority 'message)))
+           (buffer (get-buffer (speechd-speak--cinfo other-changes-buffer)))
+           (text (mapconcat
+                  #'identity
+                  (nreverse (speechd-speak--cinfo other-changes)) "")))
+       (setq speechd-speak--last-other-changes text
+             speechd-speak--last-other-changes-buffer buffer)
+       (speechd-speak--read-changes text buffer :priority 'message))
      (setf (speechd-speak--cinfo other-changes) '()))))
+
+(defun speechd-speak-last-insertions ()
+  "Speak last insertions read in buffers with automatic insertion speaking.
+This command applies to buffers defined in
+`speechd-speak-insertions-in-buffers' and
+`speechd-speak-priority-insertions-in-buffers'."
+  (interactive)
+  (speechd-speak--interactive
+   (let ((speechd-speak--special-area nil))
+     (speechd-speak--read-changes speechd-speak--last-other-changes
+                                  speechd-speak--last-other-changes-buffer))))
 
 (defun speechd-speak--minibuffer-prompt (prompt &rest args)
   (speechd-speak--read-other-changes)
@@ -959,6 +978,29 @@ connections, otherwise create completely new connection."
       (let ((speechd-speak--emulate-minibuffer t)
             (speechd-language (if (ad-get-arg 1) speechd-language "en")))
         (speechd-speak--minibuffer-prompt prompt :priority 'message)))))
+
+
+;;; Repitition in character reading commands
+
+
+(defvar speechd-speak-read-char-keymap (make-sparse-keymap)
+  "Keymap used by speechd-el for repititions during reading characters.
+Only single characters are allowed in the keymap.")
+(define-key speechd-speak-read-char-keymap
+  "\C-a" 'speechd-speak-last-insertions)
+(define-key speechd-speak-read-char-keymap
+  "\C-e" 'speechd-speak-last-message)
+
+(speechd-speak--defadvice read-char-exclusive around
+  (let ((char nil))
+    (while (not char)
+      (setq char ad-do-it)
+      (let ((command (lookup-key speechd-speak-read-char-keymap
+                                 (vector char))))
+        (when command
+          (setq char nil)
+          (call-interactively command))))
+    char))
 
 
 ;;; Commands
@@ -1446,6 +1488,7 @@ When the mode is enabled, all spoken text is spelled."
 
 (define-key speechd-speak-mode-map "b" 'speechd-speak-read-buffer)
 (define-key speechd-speak-mode-map "c" 'speechd-speak-read-char)
+(define-key speechd-speak-mode-map "i" 'speechd-speak-last-insertions)
 (define-key speechd-speak-mode-map "l" 'speechd-speak-read-line)
 (define-key speechd-speak-mode-map "m" 'speechd-speak-last-message)
 (define-key speechd-speak-mode-map "o" 'speechd-speak-read-other-window)

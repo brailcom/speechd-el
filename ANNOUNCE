@@ -1,7 +1,7 @@
-speechd-el 0.3 released
+speechd-el 0.4 released
 =======================
 
-The Free(b)soft project is pleased to announce speechd-el 0.3.
+The Free(b)soft project is pleased to announce speechd-el 0.4.
 
 * What is speechd-el?
 
@@ -35,27 +35,18 @@ The Free(b)soft project is pleased to announce speechd-el 0.3.
   with Speech Dispatcher, allowing you to write your own Emacs speech
   output extensions and your own Emacs interfaces to Speech Dispatcher.
 
-* What is new in the 0.3 version?
+* What is new in the 0.4 version?
 
-  - Connection parameters and voice handling configuration was
-    simplified and made more flexible.
+  - Responsiveness improved.
 
-  - The *Completion* buffer is spoken now.
-
-  - Volume setting added.
-
-  - You can shut up speechd-el in Elisp debuggers.
-
-  - Bug reporting improvements.
-
-  - Bug fixes.
-
+  - Whitespace signalization.
+  
   See the NEWS file for more details.
 
 * Where to get it?
   
   You can get the distribution tarball of the released version from
-  http://www.freebsoft.org/pub/projects/speechd-el/speechd-el-0.3.tar.gz .
+  http://www.freebsoft.org/pub/projects/speechd-el/speechd-el-0.4.tar.gz .
 
   The home page of the project is http://www.freebsoft.org/speechd-el .
 

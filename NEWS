@@ -5,6 +5,17 @@ User-visible changes to speechd-el:
 
 ** Whitespace signalization added.
 
+It allows you, among others, to distinguish between empty lines and lines
+containing only whitespace.
+
+** Repetition of last speakings possible in character reading prompts.
+
+For instance, it is possible to repeat Ispell choices in ispell-word now.
+
+** Performance improvement.
+
+speechd-el is now much more responsive when speaking many small pieces of text.
+
 
 * Changes in speechd-el 0.3
 
