@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.52 2003-10-20 15:31:51 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.53 2003-10-20 15:47:48 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -930,7 +930,7 @@ connections, otherwise create completely new connection."
               (progn
                 (apply #'speechd-speak--text (apply #'concat m-x-chars) args)
                 (setq i len))
-            (incf i)))))))a
+            (incf i)))))))
 
 (defun speechd-speak--add-command-text (info beg end)
   (let ((last (first (speechd-speak--cinfo changes)))
