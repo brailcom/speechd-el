@@ -1,3 +1,11 @@
+2003-12-31  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-el.texi (Bug Reporting): speechd-bug-reproduce
+	documented.
+	* speechd-bug.el (speechd-bug--start-repro): Renamed to
+	speechd-bug-reproduce.  Made interactive.
+	(speechd-bug): Honor the previous change.
+
 2003-12-30  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd.el (speechd--connection): New slot last-command.
