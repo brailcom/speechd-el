@@ -1,0 +1,48 @@
+speechd-el 0.1 released
+=======================
+
+The Free(b)soft project is pleased to announce speechd-el 0.1.
+
+* What is speechd-el?
+
+  speechd-el is an Emacs client to Speech Dispatcher, providing a
+  complex speech interface to Emacs, focused especially on (but not
+  limited to) the blind and visually impaired users.  It allows the user
+  to work with Emacs without looking on the screen, using the speech
+  output produced by the synthesizers supported in Speech Dispatcher.
+
+  Key speechd-el features are:
+  
+  - Automated speaking of most Emacs messages and actions, without
+    necessity to customize each particular Emacs function to make it
+    speak.
+
+  - Most built-in and external Emacs packages can produce speech output
+    immediately, without any special support.
+    
+  - Almost no change of the standard Emacs behavior, no interference
+    with user settings.
+  
+  - Highly configurable.
+
+  - Full cooperation with Speech Dispatcher.
+
+  - Small code size.
+
+  - Free software, distributed under the GPL.
+
+  Part of the speechd-el package is an Elisp library for communication
+  with Speech Dispatcher, allowing you to write your own Emacs speech
+  output extensions and your own Emacs interfaces to Speech Dispatcher.
+  
+* Where to get it?
+  
+  You can get the distribution tarball of the released version from
+  http://www.freebsoft.org/pub/projects/speechd-el/speechd-el-0.1.tar.gz .
+
+  The home page of the project is http://www.freebsoft.org/speechd-el .
+
+
+Local Variables:
+fill-column: 72
+End:
