@@ -1837,9 +1837,10 @@ Null prefix argument turns off the mode."
  :group 'speechd-speak)
 
 (defun speechd-speak--shutdown ()
-  (when (speechd-speak--signal 'finish :priority 'important)
-    (sit-for 3))                        ; not to CANCEL prematurely
-  (global-speechd-speak-mode -1))
+  ;; We don't have to call CANCEL here, since Emacs exit is usually called
+  ;; interactivelly, so it is preceeded by the pre-command CANCEL.  Moreover,
+  ;; calling CANCEL here means trouble with stopping the final exit messages.
+  (speechd-speak--signal 'finish :priority 'important))
 
 ;;;###autoload
 (define-minor-mode speechd-speak-mode

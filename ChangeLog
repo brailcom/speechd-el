@@ -1,5 +1,10 @@
 2004-09-22  Milan Zamazal  <pdm@brailcom.org>
 
+	* speechd-speak.el (speechd-speak--shutdown): Just signal the
+	FINISH icon, don't do anything else.
+
+2004-09-22  Milan Zamazal  <pdm@brailcom.org>
+
 	* speechd-speak.el (buffer-identification, frame-identification):
 	New watchers.
 	(speechd-speak-buffer-info): Report buffer identification.
