@@ -57,7 +57,7 @@ Documentation License.''
 * Index::                       Concept index.
 @end menu
 
-TEST2
+TEST3
 
 @c ****************************************************************************
 
