@@ -2,6 +2,25 @@
 
 	* speechd-speak.el (speechd-speak--minibuffer-update): Forgotten
 	debugging variable removed.
+	(speechd-speak--set-command-start-info): If not in minibuffer, set
+	minibuffer-contents to 'unset.
+	(speechd-speak--minibuffer-setup-hook): Set minibuffer-contents to
+	minibuffer contents.
+	(speechd-speak--minibuffer-update): Do nothing if
+	minibuffer-contents is 'unset.  Don't handle M-x in a special way.
+	(speechd-speak): Add minibuffer-setup-hook here.  Add
+	minibuffer-exit-hook.
+	(speechd-speak--minibuffer-exit-hook): New function.
+	(speechd-speak--with-command-start-info): New macro.
+	(speechd-speak--minibuffer-setup-hook)
+	(speechd-speak--minibuffer-update)
+	(speechd-speak--after-change-hook)
+	(speechd-speak--post-command-hook): Use it.
+	(speechd-speak--add-command-text): Insert text into changes only
+	if it is not equal to the first changes string.
+	(speechd-speak--post-command-hook): Concatenate buffer insertions
+	before checking them against speechd-speak-buffer-insertions;
+	concatenate them with spaces.
 
 2003-07-21  Milan Zamazal  <pdm@brailcom.org>
 
