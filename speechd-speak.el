@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.33 2003-07-30 19:38:39 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.34 2003-07-31 08:55:09 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -859,7 +859,7 @@ FUNCTION is invoked interactively."
             (cond
              ;; Speak commands that can't speak in a regular way
              ((memq this-command '(forward-char backward-char))
-              (speechd-block ('priority speechd-default-char-priority)
+              (speechd-block ('message-priority speechd-default-char-priority)
                (cond
                 ((looking-at "^")
                  (when speechd-speak-signal-beginning-of-line
