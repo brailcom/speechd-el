@@ -31,7 +31,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.16 2003-07-07 06:48:57 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.17 2003-07-15 08:53:32 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -137,6 +137,7 @@ lowest:
 
 - buffer name
 - major mode symbol
+- the symbol `:minibuffer', representing minibuffers
 - nil, representing non-buffer areas, e.g. echo area
 - t, representing the default value if nothing else matches
 
@@ -250,19 +251,25 @@ Level 1 is the slowest, level 9 is the fastest."
 
 (defvar speechd-speak--last-buffer-mode t)
 (defvar speechd-speak--last-connection-name nil)
+(defvar speechd-speak--last-connections nil)
 (defvar speechd-speak--default-connection-name "default")
 (defvar speechd-speak--special-area nil)
 (defun speechd-speak--connection-name ()
   (let ((buffer-mode (if speechd-speak--special-area
                          nil
                        (cons major-mode (buffer-name)))))
-    (if (equal buffer-mode speechd-speak--last-buffer-mode)
+    (if (and (eq speechd-speak-connections speechd-speak--last-connections)
+             (equal buffer-mode speechd-speak--last-buffer-mode))
         speechd-speak--last-connection-name
       (progn
         (setq speechd-speak--last-buffer-mode buffer-mode
+              speechd-speak--last-connections speechd-speak-connections
               speechd-speak--last-connection-name
               (if buffer-mode
                   (or (cdr (or (assoc (buffer-name) speechd-speak-connections)
+                               (and (speechd-speak--in-minibuffer-p)
+                                    (assoc :minibuffer
+                                           speechd-speak-connections))
                                (assq major-mode speechd-speak-connections)
                                (assq t speechd-speak-connections)))
                       speechd-speak--default-connection-name)
