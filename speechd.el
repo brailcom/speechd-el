@@ -215,7 +215,7 @@ language.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.70 2003-10-22 08:29:23 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.71 2003-10-22 11:02:37 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -883,17 +883,20 @@ the `speechd--set-parameter' function."
        (speechd--with-current-connection
         (if (and connection (speechd--connection-in-block connection))
             (progn ,@body)
-          (speechd--send-command '("BLOCK BEGIN"))
-          (unwind-protect
-              (progn
-                (speechd--with-current-connection
-                 (when connection
-                   (setf (speechd--connection-in-block connection) t)))
-                ,@body)
-            (speechd--with-current-connection
-             (when connection
-               (setf (speechd--connection-in-block connection) nil)
-               (speechd--send-command '("BLOCK END"))))))))))
+          (let ((block-connection connection))
+            (speechd--send-command '("BLOCK BEGIN"))
+            (unwind-protect
+                (progn
+                  (speechd--with-current-connection
+                   (when connection
+                     (setf (speechd--connection-in-block connection) t)))
+                  ,@body)
+              (let ((connection block-connection))
+                (when connection
+                  (setf (speechd--connection-in-block connection) nil)
+                  (let ((speechd-client-name
+                         (speechd--connection-name connection)))
+                    (speechd--send-command '("BLOCK END"))))))))))))
 
 
 ;;; Speaking functions
