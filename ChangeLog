@@ -12,6 +12,11 @@
 	(speechd-default-language): New user option.
 	(speechd-open): Set the default language.
 	(speechd-block): Block support temporarily disabled.
+	(speechd-debug, speechd--debug-info, speechd-submit-bug-report)
+	(speechd-maintainer-address): Removed.
+	(speechd--connection-filter): Debugging support removed.
+	(speechd--generate-set-command): Generate docstrings; list
+	argument handling fixed.
 
 	* speechd-speak.el (speechd-speak-align-buffer-insertions): New
 	user option.
@@ -20,6 +25,12 @@
 	(speechd-speak--minibuffer-update-report): Use it.
 	(speechd-speak--post-command-hook): Don't read linefeed if sound
 	icon is used to signal end of line.
+	(speechd-speak-read-line): Argument IN-MINIBUFFER removed.
+	(speechd-speak--post-command-hook): Don't call
+	speechd-speak-read-line with the removed argument.
+	(speechd-speak-read-next-line, speechd-speak-read-previous-line):
+	Don't read any line if there's no such one; read empty text icon
+	instead.
 
 2003-07-23  Milan Zamazal  <pdm@brailcom.org>
 
