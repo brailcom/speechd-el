@@ -651,6 +651,7 @@ Prompt for a text and speak it.
 * Default Priorities::          Priorities of various kinds of messages.
 * Basic Speaking::              Simple options.
 * Auto-Speaking Buffers::       Making certain buffers speak automatically.
+* Auto-Speaking State::         Speaking Emacs state changes.
 * Signalling::                  Signalling empty lines, etc.
 * Text Properties::             Handling faces and special pieces of text.
 * Languages::                   Using multiple languages.
@@ -804,7 +805,7 @@ If the message is the same as the last one, it is not spoken unless the number
 of seconds defined here has passed from the last spoken message.
 @end vtable
 
-@node Auto-Speaking Buffers, Signalling, Basic Speaking, Customization
+@node Auto-Speaking Buffers, Auto-Speaking State, Basic Speaking, Customization
 @subsection Auto-Speaking Buffers
 @cindex buffers
 @cindex inserted text
@@ -881,7 +882,45 @@ the current buffer was modified.  If @code{read-only}, speak it only
 in read-only buffers.  If @code{nil}, don't speak it.
 @end vtable
 
-@node Signalling, Text Properties, Auto-Speaking Buffers, Customization
+@node Auto-Speaking State, Signalling, Auto-Speaking Buffers, Customization
+@subsection Auto-Speaking State Changes
+
+speechd-el can automatically speak certain changes of Emacs state,
+like changes of major and minor modes or other buffer attributes.  The
+following variable defines, which of the state changes should be
+reported:
+
+@vtable @code
+@item speechd-speak-state-changes
+List of identifiers of the Emacs state changes to be automatically
+reported.  The following symbols are recognized as state change
+identifiers:
+
+@table @code
+@item buffer-name
+@item buffer-identification
+(only in Emacs 21.4 or higher)
+@item buffer-modified
+@item buffer-read-only
+@item frame-name
+@item frame-identification
+(only in Emacs 21.4 or higher)
+@item header-line
+(only in Emacs 21.4 or higher)
+@item major-mode
+@item minor-modes
+@item buffer-file-coding
+@item terminal-coding
+@item input-method
+@item process
+@end table
+@end vtable
+
+Among the automated state change speaking, the current state
+information can be spoken any time using user commands, see
+@xref{Informatory Commands}.
+
+@node Signalling, Text Properties, Auto-Speaking State, Customization
 @subsection Signalling
 
 Certain situations may be signalled by sound icons.  The following

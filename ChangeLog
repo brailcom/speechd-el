@@ -1,3 +1,17 @@
+2004-09-23  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak-state-changes): New user
+	option.
+	(buffer-name): Message shortened.
+	(info-change): New post-defun.
+	(speechd-speak--current-info): New function.
+	(speechd-speak--watch): Invoke on change function with the
+	priority MESSAGE.
+	(speechd-speak--post-command-speaking-defaults): INFO-CHANGE
+	added.
+	(speechd-speak--command-info-struct): New slot INFO.
+	(speechd-speak--set-command-start-info): Initialize it.
+
 2004-09-22  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-speak.el (speechd-speak--shutdown): Just signal the

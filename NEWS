@@ -17,6 +17,10 @@ See the command speechd-speak-read-mode-line bound to the `C-e RET' key.
 
 Type `C-e C-i C-h' to see the list of those commands.
 
+** Some state changes can be automatically reported now.
+
+See the variable `speechd-speak-state-changes'.
+
 ** The SPEECHD_HOST environment variable is honored now.
 
 ** Changes in communication with Speech Dispatcher.

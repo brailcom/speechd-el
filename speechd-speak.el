@@ -648,7 +648,8 @@ This function works only in Emacs 21.4 or higher."
   other-window
   other-buffer-modified
   completion-buffer-modified
-  minibuffer-contents)
+  minibuffer-contents
+  info)
 
 (defmacro speechd-speak--cinfo (slot)
   `(,(speechd-speak--name 'speechd-speak--command-info-struct slot)
@@ -702,7 +703,9 @@ This function works only in Emacs 21.4 or higher."
                  :minibuffer-contents
                    (if (speechd-speak--in-minibuffer-p)
                        (minibuffer-contents)
-                     'unset))))))))
+                     'unset)
+                 :info (speechd-speak--current-info)
+                )))))))
 
 (defun speechd-speak--reset-command-start-info ()
   (speechd-speak--set-command-start-info t))
@@ -1266,7 +1269,7 @@ Only single characters are allowed in the keymap.")
       (speechd-speak-report (speechd-speak--event-mapping 'end-of-line)))
      (t
       (speechd-speak-read-char)))))
-  
+
 (speechd-speak--post-defun buffer-switch t t
   ;; Any buffer switch
   buffer-changed
@@ -1289,6 +1292,20 @@ Only single characters are allowed in the keymap.")
   (if speechd-speak-read-command-name
       (speechd-speak--text (symbol-name this-command) :priority 'message)
     (speechd-speak--command-keys 'message)))
+
+(speechd-speak--post-defun info-change t nil
+  ;; General status information has changed
+  (not (equalp (speechd-speak--cinfo info) (speechd-speak--current-info)))
+  (let ((old-info (speechd-speak--cinfo info))
+        (new-info (speechd-speak--current-info)))
+    (dolist (item new-info)
+      (let* ((id (car item))
+             (new (cdr item))
+             (old (cdr (assq id old-info))))
+        (when (and (memq id speechd-speak-state-changes)
+                   (not (equalp old new)))
+          (funcall (speechd-speak--name 'speechd-speak--update id)
+                   old new))))))
 
 (speechd-speak--post-defun speaking-commands nil t
   ;; Avoid additional reading on speaking commands
@@ -1429,6 +1446,7 @@ Only single characters are allowed in the keymap.")
   '(speechd-speak--post-read-special-commands
     speechd-speak--post-read-buffer-switch
     speechd-speak--post-read-command-keys
+    speechd-speak--post-read-info-change
     speechd-speak--post-read-speaking-commands
     speechd-speak--post-read-buffer-modifications
     speechd-speak--post-read-completions
@@ -1611,14 +1629,14 @@ When the mode is enabled, all spoken text is spelled."
      ,(when on-change
         `(defun ,(speechd-speak--name 'speechd-speak--update name) (old new)
            (speechd-speak--maybe-speak
-            (funcall ,on-change old new))))
+            (let ((speechd-default-text-priority 'message))
+              (funcall ,on-change old new)))))
      ,(when on-change
         `(add-to-list 'speechd-speak--info-updates (quote ,name)))))
 
 (speechd-speak--watch buffer-name #'buffer-name
   :on-change #'(lambda (old new)
-                 (speechd-speak--text
-                  (format "Old buffer: %s; new buffer: %s" old new))))
+                 (speechd-speak--text (format "Buffer %s" new))))
 
 (speechd-speak--watch buffer-identification
   #'(lambda ()
@@ -1760,6 +1778,27 @@ When the mode is enabled, all spoken text is spelled."
                   (format "Process status changed from %s to %s" old new)))
   :info-string "Process status: %s"
   :key "p")
+
+(defcustom speechd-speak-state-changes
+  '(buffer-identification buffer-read-only frame-name frame-identification
+    major-mode minor-modes buffer-file-coding terminal-coding input-method
+    process)
+  "List of identifiers of the Emacs state changes to be automatically reported.
+The following symbols are valid state change identifiers: `buffer-name',
+`buffer-identification', `buffer-modified', `buffer-read-only', `frame-name',
+`frame-identification', `header-line', `major-mode', `minor-modes',
+`buffer-file-coding', `terminal-coding', `input-method', `process'."
+  :type `(set ,@(mapcar #'(lambda (i) `(const ,i))
+                        (reverse speechd-speak--info-updates)))
+  :group 'speechd-speak)
+
+(defun speechd-speak--current-info ()
+  (sort (mapcar #'(lambda (i)
+                    (cons i (funcall
+                             (speechd-speak--name 'speechd-speak--get i))))
+                speechd-speak--info-updates)
+        #'(lambda (x y) (string< (symbol-name (car x))
+                                 (symbol-name (car y))))))
 
 
 ;;; Mode definition
