@@ -1,3 +1,22 @@
+2003-05-28  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-say-text): Don't resume paused speaking.
+	* dtk-interp.el (dtk-interp-pause, dtk-interp-resume): Do nothing.
+
+	* dtk-tcl.el (dtk-speak): Don't perform text chunking.  Other
+	minor simplifications.
+	* install-debian.sh: Test for the presence of the newly patched
+	Emacspeak code.
+
+	* speechd.el (speechd-open): Set process input encoding to
+	raw-text.
+	(speechd--send-string): Recode STRING to speechd--coding-system
+	before sending it to the process.
+
+2003-05-27  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-emacspeak.el (tts-restart): New redefinition.
+
 2003-05-26  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd.el (speechd-say-char): If CHAR is space, transform it to
@@ -19,7 +38,8 @@
 
 2003-05-25  Hynek Hanke  <hanke@localhost.localdomain>
 
-	* speechd.el (speechd-say-char): CHAR and KEY commands are sent without doublequotes.
+	* speechd.el (speechd-say-char): CHAR and KEY commands are sent
+	without doublequotes.
 
 2003-05-21  Milan Zamazal  <pdm@brailcom.org>
 
