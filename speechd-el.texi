@@ -1108,11 +1108,17 @@ You can also look at @ref{Advanced Customization}.
 @node Contact Information, Copying This Manual, speechd-el Elisp Library, Top
 @chapter Contact Information
 @cindex authors
+@cindex bugs
 @cindex contact
 
-If you have any questions, bug reports, suggestions, patches or
-anything else to tell us, feel free to contact us at the e-mail
-address @email{speechd-devel@@freebsoft.org}.
+If you want to report a bug on speechd-el, send complete information
+regarding the bug to the bug tracking address
+@email{speechd-el@@bugs.freebsoft.org}.  If you have a patch to
+speechd-el, you can send it to the same address.
+
+If you have any questions, suggestions, or anything else to tell us,
+feel free to contact us at the e-mail address
+@email{speechd@@freebsoft.org}.
 
 @c ****************************************************************************
 
