@@ -1,3 +1,8 @@
+2003-08-29  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd--send-data): Missing backslash in a regexp
+	added.
+
 2003-08-20  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-el.cs.texi: New file.
