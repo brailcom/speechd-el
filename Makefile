@@ -1,5 +1,5 @@
 # Makefile for speechd-el
-# Copyright (C) 2003 Brailcom, o.p.s.
+# Copyright (C) 2003, 2004 Brailcom, o.p.s.
 
 EMACS = emacs
 
@@ -61,6 +61,7 @@ ps: speechd-el.ps
 
 dist: maintainer-clean info
 	mkdir $(DISTDIR)
+	chmod 755 $(DISTDIR)
 	install -m 644 `find . -maxdepth 1 -type f -name '[a-zA-Z]*'` \
 		$(DISTDIR)
 	(cd $(DISTDIR); $(MAKE) distclean)

@@ -4,6 +4,10 @@
 
 2004-05-27  Milan Zamazal  <pdm@brailcom.org>
 
+	* Makefile (dist): Change mode of DISTDIR.
+
+2004-05-27  Milan Zamazal  <pdm@brailcom.org>
+
 	* speechd-speak.el (speechd-speak--pre-command-hook): Call
 	speechd-speak--read-pending-speeches before cancel.
 
