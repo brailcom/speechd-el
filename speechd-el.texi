@@ -634,8 +634,10 @@ adjacent character.
 @item speechd-speak-buffer-name
 @cindex buffer names
 When you switch to another buffer and this variable is non-@code{nil},
-speak the new buffer name.  Otherwise speak the text on the cursor
-position in a usual way.
+speak the new buffer name.  If the variable value is the symbol
+@code{text}, speak the text from the cursor position to the end of
+line in the new buffer as well.  If the variable is @code{nil}, speak
+the text without speaking the buffer name.
 
 @item speechd-speak-read-command-keys
 @cindex command keys

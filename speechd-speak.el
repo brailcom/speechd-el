@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.48 2003-10-14 16:51:53 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.49 2003-10-15 14:29:46 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -48,9 +48,14 @@
   :type 'boolean
   :group 'speechd-speak)
 
-(defcustom speechd-speak-buffer-name t
-  "If non-nil, speak buffer name on a buffer change, otherwise speak a line."
-  :type 'boolean
+(defcustom speechd-speak-buffer-name 'text
+  "If non-nil, speak buffer name on a buffer change.
+If the value is the symbol `text', speak the text from the cursor position in
+the new buffer to the end of line as well.  If nil, speak the text only, not
+the buffer name."
+  :type '(choice (const :tag "Buffer name and buffer text" text)
+                 (const :tag "Buffer name" t)
+                 (const :tag "Buffer text" nil))
   :group 'speechd-speak)
 
 (defcustom speechd-speak-auto-speak-buffers '("*Help*")
@@ -985,9 +990,11 @@ connections, otherwise create completely new connection."
 (speechd-speak--post-defun buffer-switch t t
   ;; Any buffer switch
   buffer-changed
-  (if speechd-speak-buffer-name
-      (speechd-speak--text (buffer-name) :priority 'message)
-    (speechd-speak-read-line)))
+  (speechd-block ('message-priority 'text)
+    (when speechd-speak-buffer-name
+     (speechd-speak--text (buffer-name)))
+    (when (memq speechd-speak-buffer-name '(text nil))
+      (speechd-speak-read-line t))))
 
 (speechd-speak--post-defun command-keys t nil
   ;; Keys that invoked the command
