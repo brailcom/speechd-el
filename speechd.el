@@ -220,7 +220,7 @@ locally through `let'.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.53 2003-08-29 10:38:31 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.54 2003-09-15 11:33:39 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -721,9 +721,8 @@ Return the opened connection on success, nil otherwise."
                   (string-match
                    "\\(\\`\\|.*\n\\)\\(\\.\\)\\(.*\\)\\(\n\\|\\'\\)"
                    text))
-        (replace-match ".." nil nil text 2)
-        (let ((end (1+ (match-end 0))))
-          (send (substring text 0 end))
+        (let ((end (match-end 0)))
+          (send (concat "." (substring text 0 end)))
           (setq text (substring text end))))
       (send text)
       (unless (or (string= text "")
