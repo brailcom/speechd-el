@@ -1,3 +1,8 @@
+2003-07-07  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak-read-region): Call
+	speechd-speak--text for ordinary text.
+
 2003-07-04  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-speak.el (speechd-speak-report): New function.
