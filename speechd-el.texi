@@ -1145,6 +1145,22 @@ precautions yourself.
 
 @itemize @bullet
 @item
+@cindex repeated reading
+@emph{In some situations, when a modified text is read after
+performing a command, the text is read in separate pieces and some of
+the pieces are repeated.}
+
+Buffer modifications can be performed by many different ways in Elisp
+programs.  speechd-el is unable to track them always satisfactory.  If
+you have a reasonable idea how to improve buffer modification reading,
+please tell us.
+
+As a workaround, if you encounter this problem when performing some
+often used commands, you might want to define your own speaking
+feedbacks of those commands.  @xref{Advanced Customization}, for more
+details.
+
+@item
 @cindex delays
 @cindex garbage collection
 @cindex @code{gc-cons-threshold}
