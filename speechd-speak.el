@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.38 2003-08-05 17:24:15 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.39 2003-08-06 14:40:30 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -523,6 +523,11 @@ If BUFFER is nil, read current buffer."
            ,(when (eq class 'around) 'ad-do-it)
          ,@body))))
 
+(defmacro speechd-speak--report (feedback &rest args)
+  (if (stringp feedback)
+      `(speechd-speak-report ,feedback ,@args)
+    feedback))
+
 (defmacro speechd-speak-function-feedback (function position feedback)
   "Report FEEDBACK on each invocation of FUNCTION.
 FUNCTION is a function name.
@@ -530,9 +535,9 @@ POSITION may be one of the symbols `before' (the feedback is run before the
 function is invoked) or `after' (the feedback is run after the function is
 invoked.
 FEEDBACK is a string to be given as the argument of the `speechd-speak-report'
-function."
+function or a sexp to be evaluated."
   `(speechd-speak--defadvice ,(list function) ,position
-     (speechd-speak-report ,feedback :priority 'message)))
+     (speechd-speak--report ,feedback :priority 'message)))
 
 (defmacro speechd-speak-command-feedback (function position feedback)
   "Report FEEDBACK on each invocation of FUNCTION.
@@ -541,7 +546,7 @@ Unlike `speechd-speak-function-feedback', the feedback is reported only when
 FUNCTION is invoked interactively."
   `(speechd-speak--defadvice ,(list function) ,position
      (when (interactive-p)
-       (speechd-speak-report ,feedback :priority 'message))))
+       (speechd-speak--report ,feedback :priority 'message))))
 
 (defmacro speechd-speak--command-feedback (commands position &rest body)
   (let ((commands* (if (listp commands) commands (list commands)))
