@@ -657,6 +657,12 @@ Buffer was modified, the cursor hasn't moved.
 @item movement-modification
 Buffer was modified and the cursor was moved.
 @end table
+
+@item speechd-speak-read-command-name
+@cindex command name
+If non-@code{nil}, read in the situations defined by the variable
+@code{speechd-speak-read-command-keys} command name instead of command
+keys.
 @end vtable
 
 @node Auto-Speaking Buffers, Signalling, Basic Speaking, Customization
