@@ -639,6 +639,12 @@ speak the new buffer name.  If the variable value is the symbol
 line in the new buffer as well.  If the variable is @code{nil}, speak
 the text without speaking the buffer name.
 
+@item speechd-speak-on-minibuffer-exit
+@cindex minibuffer
+When this variable is non-@code{nil}, speechd-el reads the text around
+cursor after exiting from minibuffer or its recursive level if there
+is nothing else to speak.
+
 @item speechd-speak-read-command-keys
 @cindex command keys
 @cindex keys
@@ -709,7 +715,7 @@ Don't speak the inserted texts.
 Speak all the inserted texts.
 
 @item one-line
-Speak only those inserted texts that don't exceed line boundaries.
+Speak only the first lines of inserted texts.
 
 @item whole-buffer
 Speak whole buffer if it was modified in any way.

@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.49 2003-10-15 14:29:46 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.50 2003-10-16 16:32:01 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -58,6 +58,11 @@ the buffer name."
                  (const :tag "Buffer text" nil))
   :group 'speechd-speak)
 
+(defcustom speechd-speak-on-minibuffer-exit t
+  "If non-nil, always try to speak something when exiting the minibuffer."
+  :type 'boolean
+  :group 'speechd-speak)
+
 (defcustom speechd-speak-auto-speak-buffers '("*Help*")
   "List of names of other-window buffers to speak if nothing else fits.
 If nothing else is to be spoken after a command and a visible window in the
@@ -78,7 +83,7 @@ spoken even when there are other messages to speak."
 The value is a symbol and can be from the following set:
 - nil means don't speak them
 - t means speak them all
-- `one-line' means speak only changes not exceeding line boundary
+- `one-line' means speak only first line of any change
 - `whole-buffer' means speak whole buffer if it was changed in any way
 Only newly inserted text is read, the option doesn't affect processing of
 deleted text.  Also, the option doesn't affect insertions within commands
@@ -270,6 +275,21 @@ The following actions are supported: `empty', `beginning-of-line',
     (message . "*message")))
 (defun speechd-speak--event-mapping (event)
   (cdr (assq event speechd-speak--event-mapping)))
+
+
+;;; Debugging support
+
+
+(defvar speechd-speak--debug ())
+(defvar speechd-speak--max-debug-length 12)
+
+(defun speechd-speak--debug (info)
+  (setq speechd-speak--debug
+        (cons info
+              (if (>= (length speechd-speak--debug)
+                      speechd-speak--max-debug-length)
+                  (butlast speechd-speak--debug)
+                speechd-speak--debug))))
 
 
 ;;; Control functions
@@ -1018,7 +1038,7 @@ connections, otherwise create completely new connection."
   (let ((self-insert (eq this-command 'self-insert-command)))
     (when (and speechd-speak-buffer-insertions
                (or (not speechd-speak-movement-on-insertions)
-                   point-moved))
+                   (not point-moved)))
       (let ((text (mapconcat #'identity
                              (funcall (if self-insert
                                           #'butlast #'identity)
@@ -1028,9 +1048,12 @@ connections, otherwise create completely new connection."
          ((and (eq speechd-speak-buffer-insertions 'whole-buffer)
                (not self-insert))
           (speechd-speak-read-buffer))
-         ((or (eq speechd-speak-buffer-insertions t)
-              (save-match-data (not (string-match "\n" text))))
-          (speechd-speak--text text)))))
+         (t
+          (speechd-speak--text (if (eq speechd-speak-buffer-insertions t)
+                                   text
+                                 (save-match-data
+                                   (string-match "^.*$" text)
+                                   (match-string 0 text))))))))
     (when self-insert
       (speechd-speak--command-keys))))
 
@@ -1095,7 +1118,14 @@ connections, otherwise create completely new connection."
                    (speechd-speak--cinfo other-buffer-modified)))))
   (speechd-speak-read-buffer (window-buffer (next-window))))
 
-(defvar speechd-speak--post-command-speaking
+(speechd-speak--post-defun minibuffer-exit t t
+  (and speechd-speak-on-minibuffer-exit
+       (not (eql (minibuffer-depth) speechd-speak--last-minibuffer-depth)))
+  (speechd-speak-read-line t))
+                           
+(defvar speechd-speak--last-minibuffer-depth 0)
+
+(defvar speechd-speak--post-command-speaking-defaults
   '(speechd-speak--post-read-special-commands
     speechd-speak--post-read-buffer-switch
     speechd-speak--post-read-command-keys
@@ -1104,7 +1134,9 @@ connections, otherwise create completely new connection."
     speechd-speak--post-read-text-property-movement
     speechd-speak--post-read-plain-movement
     speechd-speak--post-read-other-window-event
-    speechd-speak--post-read-other-window-buffer))
+    speechd-speak--post-read-other-window-buffer
+    speechd-speak--post-read-minibuffer-exit))
+(defvar speechd-speak--post-command-speaking nil)
 
 (defun speechd-speak--post-command-hook ()
   (speechd-speak--enforce-speak-mode)
@@ -1131,8 +1163,17 @@ connections, otherwise create completely new connection."
                              (unless (eq buffer (current-buffer))
                                buffer))))
         (dolist (f speechd-speak--post-command-speaking)
-          (setq state (funcall f state buffer-changed buffer-modified
-                               point-moved in-minibuffer other-buffer)))))
+          (let ((new-state state))
+            (condition-case err
+                (setq new-state (funcall f state buffer-changed buffer-modified
+                                         point-moved in-minibuffer
+                                         other-buffer))
+              (error
+               (speechd-speak--debug (list 'post-command-hook-error f err))
+               (setq speechd-speak--post-command-speaking
+                     (remove f speechd-speak--post-command-speaking))))
+            (setq state new-state)))
+        (setq speechd-speak--last-minibuffer-depth (minibuffer-depth))))
     (add-hook 'post-command-hook 'speechd-speak--post-command-hook)))
 
 
@@ -1284,7 +1325,7 @@ Null prefix argument turns off the mode."
 
 (defun speechd-speak--shutdown ()
   (when (speechd-speak--signal 'finish :priority 'important)
-    (sit-for 0.5))                      ; not to CANCEL prematurely
+    (sit-for 2))                        ; not to CANCEL prematurely
   (global-speechd-speak-mode -1))
 
 ;;;###autoload
@@ -1382,9 +1423,50 @@ With a prefix argument, close all open connections first."
   (let ((already-started speechd-speak--started))
     (setq speechd-speak--started t)
     (speechd-speak--build-mode-map)
+    (setq speechd-speak--post-command-speaking
+          speechd-speak--post-command-speaking-defaults)
     (global-speechd-speak-mode 1)
     (global-speechd-speak-map-mode 1)
+    (speechd-speak--debug 'start)
     (speechd-speak-report (speechd-speak--event-mapping 'start))))
+
+
+;;; Bug reporting
+
+
+(defun speechd-speak-bug ()
+  "Send a bug report on speechd-el or Speech Dispatcher."
+  (interactive)
+  (require 'reporter)
+  (let ((package (completing-read "Package: " '(("speechd-el" "speechd"))))
+        (reporter-prompt-for-summary-p t))
+    (reporter-submit-bug-report
+     (format "%s@bugs.freebsoft.org" package)
+     package
+     '(speechd-speak-version
+       speechd--el-version
+       speechd-speak--debug
+       speechd-connection-parameters
+       speechd-face-voices
+       speechd-speak-deleted-char
+       speechd-speak-buffer-name
+       speechd-speak-on-minibuffer-exit
+       speechd-speak-auto-speak-buffers
+       speechd-speak-force-auto-speak-buffers
+       speechd-speak-buffer-insertions
+       speechd-speak-insertions-in-buffers
+       speechd-speak-priority-insertions-in-buffers
+       speechd-speak-align-buffer-insertions
+       speechd-speak-movement-on-insertions
+       speechd-speak-read-command-keys
+       speechd-speak-read-command-name
+       speechd-speak-by-properties-on-movement
+       speechd-speak-by-properties-always
+       speechd-speak-by-properties-never
+       speechd-speak-faces
+       speechd-speak-whole-line
+       speechd-speak-connections
+       speechd-speak-signal-events))))
 
 
 ;;; Announce
