@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.56 2003-10-22 11:02:41 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.57 2003-10-22 14:25:17 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -856,6 +856,13 @@ connections, otherwise create completely new connection."
 ;;; Minibuffer
 
 
+(defvar speechd-speak--minibuffer-inherited-language nil)
+
+(speechd-speak--defadvice read-from-minibuffer around
+  (let ((speechd-speak--minibuffer-inherited-language
+         (and (ad-get-arg 6) speechd-language)))
+    ad-do-it))
+
 (defun speechd-speak--prompt (prompt)
   (speechd-speak--text prompt :priority 'message))
 
@@ -865,6 +872,8 @@ connections, otherwise create completely new connection."
   (speechd-speak--prompt (minibuffer-contents)))
 
 (defun speechd-speak--minibuffer-setup-hook ()
+  (set (make-local-variable 'speechd-language)
+       speechd-speak--minibuffer-inherited-language)
   (speechd-speak--enforce-speak-mode)
   (speechd-speak--with-command-start-info
    (setf (speechd-speak--cinfo minibuffer-contents) (minibuffer-contents)))
@@ -890,7 +899,7 @@ connections, otherwise create completely new connection."
   (speechd-speak--read-other-changes)
   (let ((speechd-language "en"))
     (apply #'speechd-speak--text prompt args)))
-
+                          
 (speechd-speak--command-feedback minibuffer-message after
   (speechd-speak--minibuffer-prompt (ad-get-arg 0) :priority 'notification))
 
@@ -958,8 +967,9 @@ connections, otherwise create completely new connection."
             (not (eq this-command 'self-insert-command)))
        (save-excursion
          (goto-char beg)
-         (when (and (looking-at "\\w")
-                    (not (looking-at "\\<")))
+         (when (save-match-data
+                 (and (looking-at "\\w")
+                      (not (looking-at "\\<"))))
            (backward-word 1))
          (point))
      beg)
