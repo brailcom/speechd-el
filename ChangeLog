@@ -1,9 +1,14 @@
 2003-10-21  Milan Zamazal  <pdm@brailcom.org>
 
+	* speechd-el.texi (Auto-Speaking Buffers):
+	speechd-speak-movement-on-insertions change documented.
+
 	* speechd.el (speechd-language): New variable.
 	(speechd-say-char, speechd-say-key, speechd-say-text): Honor it.
 	(speechd--with-connection-parameters): Exclude `language' if nil.
 	(speechd-block): Likewise.
+	(speechd-repeat): Getting id from the speechd--send-command result
+	value fixed.
 
 	* speechd-speak.el (speechd-speak--minibuffer-prompt): Call the
 	speaking function with speechd-language set to "en".
@@ -11,8 +16,11 @@
 	(buffer-modifications): Ignore
 	speechd-speak-movement-on-insertions.  Speak the last change of
 	self-insert-command if longer than 1 character.
-	(speechd-speak-movement-on-insertions): Default value changed to
-	nil.
+	(speechd-speak-movement-on-insertions): New value `read-only', set
+	as the default.
+	(buffer-modifications): Honor speechd-speak-movement-on-insertions
+	in determining the final state.
+	(speechd-speak-last-message): Say the message in English.
 
 	* speechd.el (speechd-block): Evaluate parameters completely
 	instead of just expanding them.
