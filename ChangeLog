@@ -1,3 +1,30 @@
+2003-07-30  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-priority-tags): Renamed to
+	speechd--priority-tags.
+	(speechd-client-name): Docstring rewritten.
+	(speechd--with-connection-setting): Don't enclose the VAR and
+	VALUE arguments in parentheses.
+	(speechd--process-request): Consider the previous change.
+	
+	* speechd.el All keywords converted to non-keywords.
+	(speechd--keyword->nonkeyword): Removed.
+	(speechd--generate-customization-options) 
+	(speechd-connection-parameters): Consider the previous change.
+	(speechd--generate-set-command): Consider the previous changes.
+
+	* speechd-speak.el: All keywords converted to non-keywords.
+
+	* speechd.el: Most `defmacro*'s changed to `defmacro'.
+	* speechd-speak.el: Likewise.
+	(speechd-speak--command-feedback-region): Argument MOVE removed.
+
+2003-07-29  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak-mode-map): Typo in
+	speechd-speak-read-sexp fixed.
+	(speechd-speak-mode-map): Binding for speechd-repeat added.
+
 2003-07-28  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-speak.el (speechd-speak-mode): Don't call
