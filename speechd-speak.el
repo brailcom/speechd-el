@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.54 2003-10-21 15:00:05 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.55 2003-10-21 16:42:46 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -114,10 +114,11 @@ This is typically useful in comint buffers."
   :type 'boolean
   :group 'speechd-speak)
 
-(defcustom speechd-speak-movement-on-insertions nil
-  "If non-nil, speak the text around moved cursor even in modified buffers.
+(defcustom speechd-speak-movement-on-insertions 'read-only
+  "If t, speak the text around moved cursor even in modified buffers.
 If nil, additional cursor movement doesn't cause speaking the text around the
-new cursor position in modified buffers."
+new cursor position in modified buffers.
+If `read-only', speak the text around cursor in read-only buffers only."
   :type 'boolean
   :group 'speechd-speak)
 
@@ -833,7 +834,8 @@ connections, otherwise create completely new connection."
   "Speak last message from the echo area."
   (interactive)
   (speechd-speak--interactive
-   (speechd-speak--text speechd-speak--last-message)))
+   (let ((speechd-language "en"))
+     (speechd-speak--text speechd-speak--last-message))))
 
 (defun speechd-speak--current-message (&optional reset-last-spoken)
   (let ((message (current-message)))
@@ -1069,7 +1071,13 @@ connections, otherwise create completely new connection."
     (speechd-speak--command-keys :priority 'message)))
 
 (speechd-speak--post-defun buffer-modifications t
-    (if (eq this-command 'self-insert-command) t 'insertions)
+    (cond
+     ((eq this-command 'self-insert-command) t)
+     ((not speechd-speak-movement-on-insertions) t)
+     ((and (eq speechd-speak-movement-on-insertions 'read-only)
+           (not buffer-read-only))
+      t)
+     (t 'insertions))
   ;; Any buffer modification, including completion, abbrev expansions and
   ;; self-insert-command
   buffer-modified
