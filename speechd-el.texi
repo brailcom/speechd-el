@@ -281,6 +281,11 @@ Read text in the rectangle-region (@code{speechd-speak-read-rectangle}).
 @findex speechd-speak-read-word
 Read the next word after cursor (@code{speechd-speak-read-word}).
 
+@item C-e .
+@kindex C-e .
+@findex speechd-speak-read-sentence
+Read current sentence (@code{speechd-speak-read-sentence}).
+
 @item C-e @{
 @kindex C-e @{
 @findex speechd-speak-read-paragraph
@@ -498,7 +503,7 @@ The second spelling method is using the following command:
 @item C-e C-l
 @kindex C-e C-l
 @findex speechd-speak-spell
-Make the following command spell the text it reads
+Cause the following command to spell the text it reads
 (@code{speechd-speak-spell}).  For instance, if you want to spell the
 word after the cursor, you can type @kbd{C-e C-l C-e w}.
 @end table

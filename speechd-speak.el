@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.66 2003-11-13 10:07:11 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.67 2003-12-10 14:22:21 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -1109,6 +1109,13 @@ connections, otherwise create completely new connection."
       (speechd-speak--text (symbol-name this-command) :priority 'message)
     (speechd-speak--command-keys 'message)))
 
+(speechd-speak--post-defun speaking-commands nil t
+  ;; Avoid additional reading on speaking commands
+  (let ((command-name (symbol-name this-command))
+        (prefix "speechd-speak-read-"))
+    (and (> (length command-name) (length prefix))
+         (string= (substring command-name 0 (length command-name)) prefix))))
+
 (speechd-speak--post-defun buffer-modifications t
     (cond
      ((eq this-command 'self-insert-command) t)
@@ -1222,6 +1229,7 @@ connections, otherwise create completely new connection."
   '(speechd-speak--post-read-special-commands
     speechd-speak--post-read-buffer-switch
     speechd-speak--post-read-command-keys
+    speechd-speak--post-read-speaking-commands
     speechd-speak--post-read-buffer-modifications
     speechd-speak--post-read-special-face-movement
     speechd-speak--post-read-text-property-movement
@@ -1394,6 +1402,7 @@ When the mode is enabled, all spoken text is spelled."
 (define-key speechd-speak-mode-map "w" 'speechd-speak-read-word)
 (define-key speechd-speak-mode-map "x" 'speechd-cancel)
 (define-key speechd-speak-mode-map "z" 'speechd-repeat)
+(define-key speechd-speak-mode-map "." 'speechd-speak-read-sentence)
 (define-key speechd-speak-mode-map "{" 'speechd-speak-read-paragraph)
 (define-key speechd-speak-mode-map " " 'speechd-resume)
 (define-key speechd-speak-mode-map "'" 'speechd-speak-read-sexp)
