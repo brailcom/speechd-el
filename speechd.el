@@ -80,7 +80,7 @@ Nil if no connection is currently open.")
   :group 'speechd)
 
 
-(defconst speechd-el-version "speechd-el $Id: speechd.el,v 1.4 2003-04-14 14:46:36 pdm Exp $"
+(defconst speechd-el-version "speechd-el $Id: speechd.el,v 1.5 2003-04-16 08:26:39 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -338,24 +338,24 @@ for closer description of those arguments."
 ;;;###autoload
 (defun speechd-cancel ()
   (interactive)
-  (speechd-send-command "CANCEL"))
+  (speechd-send-command "CANCEL" "self"))
 
 ;;;###autoload
 (defun speechd-stop ()
   (interactive)
-  (speechd-send-command "STOP"))
+  (speechd-send-command "STOP" "self"))
 
 ;;;###autoload
 (defun speechd-pause ()
   (interactive)
   (setq speechd-paused-p t)
-  (speechd-send-command "PAUSE"))
+  (speechd-send-command "PAUSE" "self"))
 
 ;;;###autoload
 (defun speechd-resume (&optional softp)
   (interactive)
   (when (or speechd-paused-p (not softp))
-    (speechd-send-command "RESUME")
+    (speechd-send-command "RESUME" "self")
     (setq speechd-paused-p nil)))
 
 
