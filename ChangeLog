@@ -7,6 +7,10 @@
 	(speechd-speak-read-region): Use them.
 	(speechd-speak--post-command-hook): Report beginnings and ends of
 	lines.
+	(speechd-speak--command-feedback): Unused local variable C removed.
+	(speechd-speak--defadvice): Support user advices.
+	(speechd-speak-function-feedback, speechd-speak-command-feedback):
+	New macros.
 
 	* speechd.el (speechd-default-voice): New user option.
 	(speechd-open): Call speechd-set-voice.
@@ -17,6 +21,8 @@
 	group.
 	(speechd-speak-connection-parameters): Renamed to
 	speechd-connection-parameters.
+	(speechd--connection-filter): Use connection corresponding to
+	PROCESS.
 
 2003-07-03  Milan Zamazal  <pdm@brailcom.org>
 
