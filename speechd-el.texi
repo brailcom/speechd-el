@@ -572,6 +572,7 @@ Prompt for a text and speak it.
 * Auto-Speaking Buffers::       Making certain buffers speak automatically.
 * Signalling::                  Signalling empty lines, etc.
 * Text Properties::             Handling faces and special pieces of text.
+* Languages::                   Using multiple languages.
 * Connection Parameters::       Setting Speech Dispatcher parameters.
 * Multiple Connections::        Different parameters for some modes & buffers.
 * Keys::                        Customizing command keys.
@@ -813,7 +814,7 @@ Messages in echo area follow.
 @end table
 @end vtable
 
-@node Text Properties, Connection Parameters, Signalling, Customization
+@node Text Properties, Languages, Signalling, Customization
 @subsection Text Properties
 @cindex text properties
 @cindex faces
@@ -876,7 +877,43 @@ Note that the mapping takes the effect only if font lock mode is
 enabled.
 @end vtable
 
-@node Connection Parameters, Multiple Connections, Text Properties, Customization
+@node Languages, Connection Parameters, Text Properties, Customization
+@subsection Using multiple languages
+@cindex languages
+
+You can use speechd-el with multiple languages.  However, the process
+can't be easily automated, since ordinary text does not contain any
+information about its language.  So if you want to use speechd-el with
+the output being spoken in multiple languages, you must provide
+speechd-el some hints.
+
+@vindex speechd-language
+@cindex RFC 1766
+The basic means for providing language information to speechd-el is
+the variable @code{speechd-language}.  Each time speechd-el is about
+to speak a piece of text, it checks the variable for the language code
+and if it is non-@code{nil}, it speaks the text in the corresponding
+language.  The non-@code{nil} value must be a string of the RFC 1766
+language code.
+
+Most often you will probably want to set the variable in a particular
+file, see @ref{File Variables,,,emacs,GNU Emacs Manual}, or as a
+buffer local variable, see @ref{Locals,,,emacs,GNU Emacs
+Manual}, in mode hooks, see @ref{Hooks,,,emacs,GNU Emacs Manual}.
+
+@findex speechd-language
+@cindex @code{language} text property
+If a piece of the text has the @code{language} property containing the
+RFC 1766 language code, it is spoken in the corresponding language,
+regardless of other settings.  You can use the @code{speechd-language}
+function to put the property on a string in your Elisp programs.
+
+Another good way of using multiple languages is to use multiple
+connections for separating language dependent buffers or modes, see
+@ref{Multiple Connections}, and to set the @code{language} parameter
+for each such a connection, see @ref{Connection Parameters}.
+
+@node Connection Parameters, Multiple Connections, Languages, Customization
 @subsection Connection Parameters
 @cindex parameters
 
