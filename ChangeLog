@@ -1,3 +1,8 @@
+2003-08-13  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-connection-parameters): Don't use cl macros
+	in :get.
+
 2003-08-08  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-speak.el (beginning-of-defun): Advice removed.
