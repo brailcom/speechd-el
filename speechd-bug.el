@@ -34,8 +34,18 @@
 ;;; Utility functions
 
 
+(defun speechd-bug--ensure-empty-line ()
+  (goto-char (point-min))
+  (while (not (re-search-forward "\n\n\\'" nil t))
+    (goto-char (point-max))
+    (insert "\n")
+    (goto-char (point-min))))
+
 (defun speechd-bug--insert (&rest args)
   (goto-char (point-max))
+  (unless (looking-at "^")
+    (insert "\n")
+    (goto-char (point-max)))
   (apply #'insert args)
   (goto-char (point-max))
   (insert "\n")
@@ -55,47 +65,49 @@
 
 
 (defun speechd-bug--insert-program-version (program)
-  (speechd-bug--insert "Version of `%s':" program)
-  (shell-command (format "%s --version | head -1" program) t)
-  (speechd-bug--insert "\n"))
+  (speechd-bug--ensure-empty-line)
+  (speechd-bug--insert (format "Version of `%s':" program))
+  (shell-command (format "%s --version | head -1" program) t))
 
-(defun speechd-bug--insert-config-file (file directories)
+(defun speechd-bug--insert-config-file (file directories comment-start)
+  (speechd-bug--ensure-empty-line)
   (speechd-bug--insert "===" file ":begin===")
   (let ((file-name (speechd-bug--look-for-file file directories)))
     (if file-name
-        (insert-file-contents file-name)
+        (let ((point (point)))
+          (insert-file-contents file-name)
+          (flush-lines (format "^[ \t]*\\(%s.*\\)?$" comment-start)
+                       point (point-max-marker)))
       (speechd-bug--insert "---not-found---")))
-  (speechd-bug--insert "===" file ":end===")
-  (speechd-bug--insert "\n"))
+  (speechd-bug--insert "===" file ":end==="))
 
 (defun speechd-bug--insert-general-info ()
   (dolist (p '("speechd" "festival"))
     (speechd-bug--insert-program-version p))
   (speechd-bug--insert-config-file
-   "speechd.conf" '("/etc/speechd" "/etc/speech-dispatcher"))
+   "speechd.conf" '("/etc/speechd" "/etc/speech-dispatcher") "#")
   (speechd-bug--insert-config-file
-   "festival.conf" '("/etc/speechd/modules" "/etc/speech-dispatcher/modules"))
-  (speechd-bug--insert-config-file "festival.scm" '("/etc")))
+   "festival.conf" '("/etc/speechd/modules" "/etc/speech-dispatcher/modules")
+   "#")
+  (speechd-bug--insert-config-file "festival.scm" '("/etc") ";"))
 
 
 ;;; Log insertion
 
 
 (defun speechd-bug--insert-log-file (file-name)
+  (speechd-bug--ensure-empty-line)
   (speechd-bug--insert "===" file-name ":logbegin===")
   (shell-command
-   (format "sed -n '1,/%s/d ; 0,/%s/p' %s"
+   (format "sed -n '1,/_debug_on%s/d ; 0,/_debug_off%s/p' %s"
            speechd-bug--repro-id speechd-bug--repro-id file-name) t)
-  (speechd-bug--insert "===" file-name ":logend===")
-  (speechd-bug--insert "\n"))
+  (speechd-bug--insert "===" file-name ":logend==="))
 
 (defun speechd-bug--insert-logs ()
   ;; speechd
   (let ((file-name (speechd-bug--look-for-file
                     "speechd.conf"
-                    '("/etc/speechd" "/etc/speech-dispatcher")))
-        (festival-server "localhost")
-        (festival-port 1314))
+                    '("/etc/speechd" "/etc/speech-dispatcher"))))
     (when file-name
       (let ((log-files ()))
         (save-excursion
@@ -112,8 +124,48 @@
         (dolist (f log-files)
           (speechd-bug--insert-log-file f))))
     ;; Festival
-    ;; TODO:
-    ))
+    (let ((file-name (speechd-bug--look-for-file
+                      "festival.conf"
+                      '("/etc/speechd/modules"
+                        "/etc/speech-dispatcher/modules")))
+          (festival-server "localhost")
+          (festival-port 1314))
+      (when file-name
+        (save-excursion
+          (find-file file-name)
+          (save-match-data
+            (goto-char (point-min))
+            (when (re-search-forward
+                   "^[ \t]*FestivalServerHost[ \t]*\"\\([^\"\n]+\\)\"" nil t)
+              (setq festival-server (match-string 1)))
+            (goto-char (point-min))
+            (when (re-search-forward
+                   "^[ \t]*FestivalServerPort[ \t]*\"\\([0-9]+\\)\"" nil t)
+              (setq festival-port (string-to-number (match-string 1)))))))
+      (let ((process (open-network-stream "speechd-festival" nil
+                                          festival-server festival-port))
+            (output "")
+            (log-file nil))
+        (when process
+          (unwind-protect
+              (progn
+                (set-process-filter process
+                                    #'(lambda (p str)
+                                        (setq output (concat output str))))
+                (process-send-string process "server_log_file\n")
+                (while output
+                  (unless (accept-process-output nil 1)
+                    (setq output nil))
+                  (save-match-data
+                    (when (string-match "^LP\r?\n\\(.*\\)\n" output)
+                      (setq log-file (match-string 1 output))
+                      (setq output nil)))))
+            (delete-process process))
+          (save-match-data
+            (when (and log-file
+                       (string-match "\"\\(/.*\\)\"" log-file)))
+            (speechd-bug--insert-log-file
+             (concat (match-string 1 log-file) "-e"))))))))
 
 
 ;;; Reproducing bug
@@ -132,15 +184,18 @@
 (defun speechd-bug--start-repro ()
   (setq speechd-bug--marker (point-marker))
   (setq speechd-bug--repro-id (speechd-bug--generate-repro-id))
-  (speechd-say-sound (concat "_debug_on" speechd-bug--repro-id))
+  (speechd-say-sound (concat "_debug_on" speechd-bug--repro-id)
+                     :priority 'important)
   (define-key speechd-speak-mode-map speechd-bug--finish-repro-key
     'speechd-bug--finish-repro))
 
 (defun speechd-bug--finish-repro ()
   "Finish reproducing a bug."
   (interactive)
-  (speechd-say-sound (concat "_debug_off" speechd-bug--repro-id))
+  (speechd-say-sound (concat "_debug_off" speechd-bug--repro-id)
+                     :priority 'important)
   (define-key speechd-speak-mode-map speechd-bug--finish-repro-key 'undefined)
+  (sit-for 1)
   (speechd-bug--insert-logs)
   (switch-to-buffer (marker-buffer speechd-bug--marker))
   (goto-char (marker-position speechd-bug--marker))
@@ -194,6 +249,9 @@
           (message "Reproduce the bug now and finish it with `%s .'"
                    speechd-speak-prefix)
           (speechd-bug--start-repro))
+      (save-excursion
+        (speechd-bug--ensure-empty-line)
+        (speechd-bug--insert "The bug was not reproduced."))
       (message "Please describe the bug as precisely as possible."))))
 
 
