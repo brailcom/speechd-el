@@ -26,7 +26,7 @@
 ;; 
 ;;   (speechd-open)
 ;;   ...
-;;   (speechd-say "Hello, world!")
+;;   (speechd-say-text "Hello, world!")
 ;;   ...
 ;;   (speechd-close)
 
@@ -99,7 +99,7 @@
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.16 2003-05-26 17:35:24 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.17 2003-05-28 10:07:01 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -266,8 +266,12 @@ Return the opened connection on success, nil otherwise."
 			(error nil))))
 	(if process
 	    (progn
-	      (set-process-coding-system
-	       process speechd--coding-system speechd--coding-system)
+	      ;; The process input encoding is set to raw-text and the coding
+	      ;; conversion is performed by hand in `speechd--send-string'.
+	      ;; The reason is that Emacs 21.3 is buggy when performing the
+	      ;; automated conversion on longer strings.
+	      (set-process-coding-system process
+					 speechd--coding-system 'raw-text)
 	      (set-process-filter process 'speechd--connection-filter)
 	      (process-kill-without-query process))
 	  (unless quiet
@@ -337,7 +341,8 @@ Return the opened connection on success, nil otherwise."
 
 (defun speechd--send-string (string)
   (speechd--with-current-connection
-    (let ((process (speechd--connection-process connection)))
+    (let ((process (speechd--connection-process connection))
+	  (string (encode-coding-string string speechd--coding-system)))
       (when process
 	(unwind-protect
 	    (process-send-string process string)
@@ -608,8 +613,6 @@ append the next text to it.  Regardless of the FINISH value, the function
 initiates sending text data to speechd immediately."
   (interactive "sText: ")
   (speechd--set-parameter :message-priority priority)
-  (when (speechd--connection-paused-p (speechd--connection))
-    (speechd-resume))
   (speechd--send-data text)
   (when finish
     (speechd--send-data-end)))
