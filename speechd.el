@@ -103,7 +103,7 @@
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.18 2003-05-28 14:55:41 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.19 2003-05-29 09:34:58 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -586,7 +586,7 @@ Mode must be one of the symbols `:none' (don't read any punctuation), `:some'
 (read only some punctuation), and `:all' (read all the punctuation)."
   (interactive (list
 		(cdr
-		 (rassoc (completing-read "Punctuation mode: "
+		 (assoc (completing-read "Punctuation mode: "
 					  speechd--set-punctuation-mode-table
 					  nil t)
 			 speechd--set-punctuation-mode-table))))
