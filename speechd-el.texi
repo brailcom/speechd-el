@@ -1249,6 +1249,11 @@ directly related to speechd-el but which may be of special interest to
 speechd-el users.
 
 @table @emph
+@cindex appointments
+@cindex diary
+@item How to make appointments speak their notifications?
+Set the variable @code{appt-msg-window} to @code{nil}.
+
 @cindex w3m-el
 @cindex URL speaking
 @item How to avoid printing URL when moving through links in w3m-el?
