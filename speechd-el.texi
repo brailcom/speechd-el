@@ -127,6 +127,7 @@ more information about Speech Dispatcher.
 * Commands::                    Usage.
 * Customization::               Basic customization.
 * Advanced Customization::      Writing your own command feedbacks.
+* Problems::                    Strange behavior.
 @end menu
 
 @node Installation, Starting Speech Output, speechd-el User Manual, speechd-el User Manual
@@ -943,7 +944,7 @@ actions on entering it through the following hook.
 Hook run when speechd-speak minor mode is enabled.
 @end vtable
 
-@node Advanced Customization,  , Customization, speechd-el User Manual
+@node Advanced Customization, Problems, Customization, speechd-el User Manual
 @section Defining Your Own Command Feedbacks
 @cindex extensions
 
@@ -1003,6 +1004,40 @@ the macros above.  The macros install code ensuring nothing is spoken
 if @code{speechd-speak-mode} is disabled and other similar
 precautions.  If you do not use them, you should make those
 precautions yourself.
+@end itemize
+
+@node Problems,  , Advanced Customization, speechd-el User Manual
+@section Problems You May Encounter
+@cindex problems
+
+@itemize @bullet
+@item
+@cindex delays
+@cindex garbage collection
+@cindex @code{gc-cons-threshold}
+@emph{There are sometimes small delays (about 1 second) before
+something is spoken after a command.}
+
+Maybe Emacs is garbage collecting in the meantime.  Try to increase
+the value of the @code{gc-cons-threshold} variable, e.g. to 4000000.
+It may increase or reduce the performance, depending on your
+environment and particular requirements.
+
+If you are an experienced Elisp hacker and you can find out why
+speechd-el produces significant amount of data increasing the
+frequency of garbage collection and how to make the things better,
+your help is welcome!
+
+@item
+@emph{During holding down the @kbd{C-n} key, the screen gets frozen
+and the cursor doesn't move for a while.}
+
+Emacs redisplay routines are generally not invoked when Emacs is busy.
+speechd-el combined with your autorepeat may achieve such a state
+quite easily.  If that's a real problem to you, you can reduce your
+autorepeat rate or buy a faster computer.
+
+Certainly, any tips increasing speechd-el performance are welcome.
 @end itemize
 
 @c ****************************************************************************
