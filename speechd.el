@@ -211,7 +211,7 @@ locally through `let'.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.62 2003-10-07 10:19:04 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.63 2003-10-09 21:30:37 hanke Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -241,6 +241,7 @@ Useful only for diagnosing problems.")
     (language . "LANGUAGE")
     (message-priority . "PRIORITY")
     (punctuation-mode . "PUNCTUATION")
+    (pause-context . "PAUSE_CONTEXT")
     (capital-character-mode . "CAP_LET_RECOGN")
     (voice . "VOICE")
     (rate . "RATE")
@@ -822,6 +823,7 @@ VALUE must be %s."
 (speechd--generate-set-command voice "Voice" 'voices)
 (speechd--generate-set-command punctuation-mode "Punctuation mode"
                                speechd--punctuation-modes)
+(speechd--generate-set-command pause-context "Pause context" 0)
 ;; TODO: Remove this one once proper output module setting is defined.
 (speechd--generate-set-command output-module "Output module" nil)
 
