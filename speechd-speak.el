@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.53 2003-10-20 15:47:48 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.54 2003-10-21 15:00:05 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -114,7 +114,7 @@ This is typically useful in comint buffers."
   :type 'boolean
   :group 'speechd-speak)
 
-(defcustom speechd-speak-movement-on-insertions t
+(defcustom speechd-speak-movement-on-insertions nil
   "If non-nil, speak the text around moved cursor even in modified buffers.
 If nil, additional cursor movement doesn't cause speaking the text around the
 new cursor position in modified buffers."
@@ -262,7 +262,7 @@ The following actions are supported: `empty', `beginning-of-line',
   :type 'sexp
   :group 'speechd-speak)
 
-
+
 ;;; Internal constants
 
 
@@ -858,7 +858,8 @@ connections, otherwise create completely new connection."
   (speechd-speak--text prompt :priority 'message))
 
 (defun speechd-speak--speak-minibuffer-prompt ()
-  (speechd-speak--prompt (minibuffer-prompt))
+  (let ((speechd-language "en"))
+    (speechd-speak--prompt (minibuffer-prompt)))
   (speechd-speak--prompt (minibuffer-contents)))
 
 (defun speechd-speak--minibuffer-setup-hook ()
@@ -885,7 +886,8 @@ connections, otherwise create completely new connection."
 
 (defun speechd-speak--minibuffer-prompt (prompt &rest args)
   (speechd-speak--read-other-changes)
-  (apply #'speechd-speak--text prompt args))
+  (let ((speechd-language "en"))
+    (apply #'speechd-speak--text prompt args)))
 
 (speechd-speak--command-feedback minibuffer-message after
   (speechd-speak--minibuffer-prompt (ad-get-arg 0) :priority 'notification))
@@ -1032,7 +1034,7 @@ connections, otherwise create completely new connection."
 (speechd-speak--post-defun special-commands t t
   ;; Speak commands that can't speak in a regular way
   (memq this-command '(forward-char backward-char))
-  (speechd-block ('message-priority speechd-default-char-priority)
+  (speechd-block `(message-priority ,speechd-default-char-priority)
     (cond
      ((looking-at "^")
       (speechd-speak--signal 'beginning-of-line)
@@ -1046,7 +1048,7 @@ connections, otherwise create completely new connection."
 (speechd-speak--post-defun buffer-switch t t
   ;; Any buffer switch
   buffer-changed
-  (speechd-block ('message-priority 'text)
+  (speechd-block '(message-priority text)
     (when speechd-speak-buffer-name
      (speechd-speak--text (buffer-name)))
     (when (memq speechd-speak-buffer-name '(text nil))
@@ -1068,18 +1070,20 @@ connections, otherwise create completely new connection."
 
 (speechd-speak--post-defun buffer-modifications t
     (if (eq this-command 'self-insert-command) t 'insertions)
-  ;; Any buffer modification, including abbrev expansions and
+  ;; Any buffer modification, including completion, abbrev expansions and
   ;; self-insert-command
   buffer-modified
-  (let ((self-insert (eq this-command 'self-insert-command)))
-    (when (and speechd-speak-buffer-insertions
-               (or (not speechd-speak-movement-on-insertions)
-                   (not point-moved)))
+  (let ((self-insert (eq this-command 'self-insert-command))
+        (changes (speechd-speak--cinfo changes)))
+    (when speechd-speak-buffer-insertions
       (let ((text (mapconcat #'identity
                              (funcall (if self-insert
                                           #'butlast #'identity)
-                                      (reverse (speechd-speak--cinfo changes)))
+                                      (reverse changes))
                              " ")))
+        (when (and self-insert
+                   (> (length (first changes)) 1))
+          (setq text (concat text " " (first changes))))
         (cond
          ((and (eq speechd-speak-buffer-insertions 'whole-buffer)
                (not self-insert))

@@ -6,20 +6,19 @@
 
 ;; COPYRIGHT NOTICE
 ;;
-;; This program is free software; you can redistribute it and/or modify it
-;; under the terms of the GNU General Public License as published by the Free
-;; Software Foundation; either version 2, or (at your option) any later
-;; version.
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2 of the License, or
+;; (at your option) any later version.
 ;;
-;; This program is distributed in the hope that it will be useful, but
-;; WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-;; or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-;; for more details.
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
 ;;
-;; You can find the GNU General Public License at
-;; http://www.gnu.org/copyleft/gpl.html
-;; or you can write to the Free Software Foundation, Inc., 59 Temple Place,
-;; Suite 330, Boston, MA 02111-1307, USA.
+;; You should have received a copy of the GNU General Public License
+;; along with this program; if not, write to the Free Software
+;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 ;;; Commentary:
 
@@ -207,11 +206,16 @@ Speech Dispatcher, each connection has its own client name.  Usually, you
 select the proper client (connection) by assigning a value to this variable
 locally through `let'.")
 
+(defvar speechd-language nil
+  "If non-nil, it is an RFC 1766 language code, as a string.
+If text is read and this variable is non-nil, the text is read in the given
+language.")
+
 
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.67 2003-10-20 15:31:51 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.68 2003-10-21 15:00:05 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -335,7 +339,7 @@ macro."
   `(let ((connection (speechd--connection)))
      ,@body))
 
-(defmacro* speechd--with-connection-setting (var value &rest body)
+(defmacro speechd--with-connection-setting (var value &rest body)
   (let ((accessor (intern (concat "speechd--connection-" (symbol-name var))))
 	(orig-value (gensym)))
     `(let ((,orig-value (,accessor connection)))
@@ -362,7 +366,9 @@ macro."
                       (,$orig-v (plist-get
                                  (speechd--connection-parameters connection)
                                  ,$p)))
-                 (unless (equal ,$v ,$orig-v)
+                 (when (and (not (equal ,$v ,$orig-v))
+                            (or ,$v
+                                (not (memq ,$p '(language)))))
                    (push (cons ,$p ,$orig-v) ,$orig-parameters)
                    (speechd--set-parameter ,$p ,$v)))
                (setq ,$parameters (nthcdr 2 ,$parameters)))
@@ -863,11 +869,16 @@ command is sent afterwards.
 PARAMETERS is a property list defining parameters to be set before sending the
 BLOCK BEGIN command.  The property-value pairs correspond to the arguments of
 the `speechd--set-parameter' function."
-  (let (($parameters (gensym)))
+  (let (($parameters (gensym))
+        ($p (gensym))
+        ($v (gensym)))
     `(progn
-       (let ((,$parameters (list ,@parameters)))
+       (let ((,$parameters ,parameters))
          (while ,$parameters
-           (speechd--set-parameter (first ,$parameters) (second ,$parameters))
+           (let ((,$p (first ,$parameters))
+                 (,$v (second ,$parameters)))
+             (when (or ,$v (not (memq ,$p '(language))))
+               (speechd--set-parameter ,$p ,$v)))
            (setq ,$parameters (nthcdr 2 ,$parameters))))
        (speechd--with-current-connection
         (if (and connection (speechd--connection-in-block connection))
@@ -909,7 +920,7 @@ initiates sending text data to speechd immediately."
                    (language (get-text-property point 'language text)))
                (append (when voice (list 'voice voice))
                        (when language (list 'language language))))))
-      (speechd-block ()
+      (speechd-block `(language ,speechd-language)
         (let* ((beg 0)
                (new-properties (properties beg)))
           (while beg
@@ -948,11 +959,13 @@ The key argument `priority' defines the priority of the message and must be one
 of the symbols `important', `message', `text', `notification' or
 `progress'."
   (speechd--set-parameter 'message-priority priority)
-  (speechd--send-command
-   (list "CHAR" (format "%s" (case char
-			       (?  "space")
-			       (?\n "linefeed")
-			       (t (char-to-string char)))))))
+  (speechd--with-current-connection
+    (speechd--with-connection-parameters `(language ,speechd-language)
+      (speechd--send-command
+       (list "CHAR" (format "%s" (case char
+                                   (?  "space")
+                                   (?\n "linefeed")
+                                   (t (char-to-string char)))))))))
 
 (defun* speechd-say-key (key &key (priority speechd-default-key-priority))
   "Speak the given KEY, represented by a key event.
@@ -975,7 +988,9 @@ of the symbols `important', `message', `text', `notification' or
     (dolist (m modifiers)
       (setq string (concat (symbol-name m) "_" string)))
     (speechd--set-parameter 'message-priority priority)
-    (speechd--send-command (list "KEY" (format "%s" string)))))
+    (speechd--with-current-connection
+      (speechd--with-connection-parameters `(language ,speechd-language)
+        (speechd--send-command (list "KEY" (format "%s" string)))))))
 
 
 ;;; Control functions
