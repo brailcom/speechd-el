@@ -35,6 +35,7 @@
 	(speechd-speak--post-command-hook): Use it.
 	* speechd-el.texi (Basic Speaking):
 	speechd-speak-read-command-keys documented.
+	(Basic Speaking): speechd-speak-read-command-name documented.
 
 2003-10-13  Milan Zamazal  <pdm@brailcom.org>
 
