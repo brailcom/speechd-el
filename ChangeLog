@@ -1,3 +1,42 @@
+2004-05-11  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd--send-text): Check for command errors and
+	perform appropriate actions.
+
+2004-05-11  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd--send-request, speechd--send-command): NOW
+	argument removed.
+	(speechd--send-text): Honor the change above.
+
+2004-05-11  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd--send-text, speechd--send-command): Don't
+	call make-speechd--request with the answer-type argument.
+	(speechd--process-request): Code cleanup.
+
+2004-05-11  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd--send-command): DELAY-ANSWER argument
+	removed.
+	(speechd--send-text): Honor the change above.
+	(speechd--process-queues): Redundant answer-type setting removed.
+
+2004-05-11  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd--connection, speechd--request):
+	transaction-state and new-state slots removed.
+	(speechd--permanent-connection-failure, speechd--send-request) 
+	(speechd--send-command): Transaction state support removed.	
+	(speechd--send-data-begin, speechd--send-data-end): Removed.
+	(speechd--send-data): Renamed to speech--send-text and changed to
+	send complete SPEAK command.
+	(speechd-say-text): Honor the changes above.
+
+2004-05-11  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-say-text): FINISH argument removed.
+
 2004-05-03  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-speak.el (speechd-speak--pre-command-hook): Don't crash
