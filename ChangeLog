@@ -1,4 +1,32 @@
+2003-10-16  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-el.texi (Basic Speaking): Changes in user options
+	documented.
+
+	* speechd-speak.el (speechd-speak--debug)
+	(speechd-speak--max-debug-length): New variables.
+	(speechd-speak--debug): New function.
+	(speechd-speak): Log the start.
+	(speechd-speak--post-command-speaking-defaults): New variable.
+	(speechd-speak--post-command-speaking): Default value set to nil.
+	(speechd-speak): Set speechd-speak--post-command-speaking.
+	(speechd-speak--post-command-hook): Handle errors.
+	(buffer-modifications): If speechd-speak-buffer-insertions is
+	one-line, read the first line of a multiline text instead of not
+	reading anything.
+	(buffer-modifications): Invalid point-moved test fixed.
+	(speechd-speak--last-minibuffer-depth): New variable.
+	(speechd-speak-on-minibuffer-exit): New user option.
+	(speechd-speak--post-command-hook): Handle the new variables.
+	(minibuffer-exit): New post-defun.
+	(speechd-speak--post-command-speaking-defaults): minibuffer-exit
+	added.
+	(speechd-speak-bug): New command.
+
 2003-10-15  Milan Zamazal  <pdm@brailcom.org>
+	
+	* speechd-speak.el (speechd-speak--shutdown): Waiting before
+	cancel increased to 2.
 
 	* speechd-speak.el (speechd-speak-buffer-name): New value `text';
 	set as the default value.
