@@ -31,7 +31,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.17 2003-07-15 08:53:32 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.18 2003-07-15 17:36:08 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -135,16 +135,27 @@ Each element of the alist is of the form (MODE-OR-BUFFER . CONNECTION-NAME).
 MODE-OR-BUFFER may be, in the order of preference from the highest to the
 lowest:
 
+- a list, representing a function call returning non-nil iff the element should
+  be applied
 - buffer name
-- major mode symbol
 - the symbol `:minibuffer', representing minibuffers
+- major mode symbol
 - nil, representing non-buffer areas, e.g. echo area
 - t, representing the default value if nothing else matches
 
 CONNECTION-NAME is an arbitrary non-empty string naming the corresponding
 connection.  If connection with such a name doesn't exist, it is automatically
 created."
-  :type '(repeat (cons (choice symbol string) string))
+  :type '(repeat (cons :tag "Connection"
+                       (choice :tag "Matcher" :value nil
+                         (const :tag "Default" t)
+                         (const :tag "Non-buffers" nil)
+                         (const :tag "Minibuffer" :value :minibuffer)
+                         (symbol :tag "Major mode" :value fundamental-mode)
+                         (string :tag "Buffer name" :value "")
+                         (restricted-sexp :tag "Function call"
+                                          :match-alternatives (listp)))
+                       (string :tag "Connection name")))
   :group 'speechd-speak)
 
 (defcustom speechd-speak-empty-message "empty"
@@ -266,11 +277,24 @@ Level 1 is the slowest, level 9 is the fastest."
               speechd-speak--last-connections speechd-speak-connections
               speechd-speak--last-connection-name
               (if buffer-mode
-                  (or (cdr (or (assoc (buffer-name) speechd-speak-connections)
+                  (or (cdr (or ;; functional test
+                               (let ((specs speechd-speak-connections)
+                                     (result nil))
+                                 (while (and (not result) specs)
+                                   (if (and (listp (caar specs))
+                                            (eval (caar specs)))
+                                       (setq result (car specs))
+                                     (setq specs (cdr specs))))
+                                 result)
+                               ;; buffer name
+                               (assoc (buffer-name) speechd-speak-connections)
+                               ;; minibuffer
                                (and (speechd-speak--in-minibuffer-p)
                                     (assoc :minibuffer
                                            speechd-speak-connections))
+                               ;; major mode
                                (assq major-mode speechd-speak-connections)
+                               ;; default
                                (assq t speechd-speak-connections)))
                       speechd-speak--default-connection-name)
                 (or (cdr (assq nil speechd-speak-connections))
