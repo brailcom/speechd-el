@@ -1,3 +1,11 @@
+2004-07-16  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak--maybe-speak*): New macro.
+	(speechd-speak--maybe-speak): Use it.
+	(kill-region, speechd-speak--message): Use
+	speechd-speak--maybe-speak* instead of speechd-speak--maybe-speak.
+	(speechd-speak--read-message): Use speechd-speak--maybe-speak.
+
 2004-07-15  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-bug.el (speechd-bug--insert-log-file): Make sure the

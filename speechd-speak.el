@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "2004-07-15 10:37 pdm"
+(defconst speechd-speak-version "2004-07-16 13:27 pdm"
   "Version of the speechd-speak file.")
 
 
@@ -426,9 +426,13 @@ Level 1 is the slowest, level 9 is the fastest."
        (or (eq major-mode 'debugger-mode)
            (and (boundp 'edebug-active) edebug-active))))
 
-(defmacro speechd-speak--maybe-speak (&rest body)
+(defmacro speechd-speak--maybe-speak* (&rest body)
   `(when (and speechd-speak-mode
               (not (speechd-speak--in-debugger)))
+     ,@body))
+
+(defmacro speechd-speak--maybe-speak (&rest body)
+  `(speechd-speak--maybe-speak*
      (let ((speechd-client-name (speechd-speak--connection-name))
            (speechd-language
             (or (and speechd-speak-input-method-languages
@@ -919,7 +923,7 @@ connections, otherwise create completely new connection."
 (speechd-speak--command-feedback (kill-region completion-kill-region) around
   (let ((nlines (count-lines (region-beginning) (region-end))))
     ad-do-it
-    (speechd-speak--maybe-speak
+    (speechd-speak--maybe-speak*
      (message "Killed region containing %s lines" nlines))))
 
 
@@ -939,12 +943,13 @@ connections, otherwise create completely new connection."
 
 (defun speechd-speak--read-message (message)
   (let ((speechd-speak--special-area t))
-    (speechd-block '(spelling-mode nil message-priority progress)
-      (speechd-speak--signal 'message)
-      (speechd-speak--minibuffer-prompt message))))
+    (speechd-speak--maybe-speak         ; necessary to select proper connection
+      (speechd-block '(spelling-mode nil message-priority progress)
+        (speechd-speak--signal 'message)
+        (speechd-speak--minibuffer-prompt message)))))
 
 (defun speechd-speak--message (message &optional reset-last-spoken)
-  (speechd-speak--maybe-speak
+  (speechd-speak--maybe-speak*
    (when (and message
               (not (string= message speechd-speak--last-spoken-message)))
      (let* ((oldlen (length speechd-speak--last-spoken-message))
