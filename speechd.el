@@ -215,7 +215,7 @@ language.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.76 2003-10-29 16:53:30 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.77 2003-11-05 11:26:02 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -700,6 +700,15 @@ Return the opened connection on success, nil otherwise."
 (defun speechd--send-data (text)
   (let ((text* text))
     (flet ((send (string)
+             (let ((i 0))
+               (save-match-data
+                 (while (string-match "[\200-\377]" string i)
+                   (let ((char (string-to-char (match-string 0 string))))
+                     (if (memq (char-charset char)
+                               '(eight-bit-control eight-bit-graphic))
+                         (setq string
+                               (replace-match (format "\\%o" char) t t string))
+                       (setq i (match-end 0)))))))
              (speechd--send-request
               (make-speechd--request :string string :answer-type nil
                                      :transaction-state '(in-data in-data)))))
