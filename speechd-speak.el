@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.37 2003-08-04 18:00:00 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.38 2003-08-05 17:24:15 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -462,6 +462,7 @@ If BUFFER is nil, read current buffer."
   modified
   (changes '())
   (change-end nil)
+  (other-changes '())
   other-window
   other-buffer-modified
   minibuffer-contents)
@@ -696,7 +697,7 @@ FUNCTION is invoked interactively."
       (setq speechd-speak--last-message message
 	    speechd-speak--last-spoken-message message)
       (let ((speechd-speak--special-area t))
-        (speechd-speak--text message :priority 'progress))))
+        (speechd-speak--minibuffer-prompt message :priority 'progress))))
   (when reset-last-spoken
     (setq speechd-speak--last-spoken-message "")))
 
@@ -729,16 +730,32 @@ FUNCTION is invoked interactively."
 (defun speechd-speak--speak-minibuffer ()
   (speechd-speak--text (minibuffer-contents)))
 
+(defun speechd-speak--read-other-changes ()
+  (speechd-speak--with-command-start-info
+   (when (speechd-speak--command-info-struct-other-changes info)
+     (speechd-speak--text
+      (mapconcat #'identity
+                 (nreverse
+                  (speechd-speak--command-info-struct-other-changes info))
+                 "")
+      :priority 'message)
+     (setf (speechd-speak--command-info-struct-other-changes info) '()))))
+
+(defun speechd-speak--minibuffer-prompt (prompt &rest args)
+  (speechd-speak--read-other-changes)
+  (apply #'speechd-speak--text prompt args))
+
 (speechd-speak--command-feedback minibuffer-message after
-  (speechd-speak--text (ad-get-arg 0) :priority 'notification))
+  (speechd-speak--minibuffer-prompt (ad-get-arg 0) :priority 'notification))
 
 ;; The following functions don't invoke `minibuffer-setup-hook'
 (speechd-speak--defadvice y-or-n-p before
-  (speechd-speak--text (concat (ad-get-arg 0) "(y or n)") :priority 'message))
+  (speechd-speak--minibuffer-prompt
+   (concat (ad-get-arg 0) "(y or n)") :priority 'message))
 (speechd-speak--defadvice read-key-sequence before
   (let ((prompt (ad-get-arg 0)))
     (when prompt
-      (speechd-speak--text prompt :priority 'message))))
+      (speechd-speak--minibuffer-prompt prompt :priority 'message))))
 
 
 ;;; Commands
@@ -803,12 +820,14 @@ FUNCTION is invoked interactively."
          ((eq (current-buffer)
               (speechd-speak--command-info-struct-buffer info))
           (if (speechd-speak--in-minibuffer-p)
-              (speechd-speak--minibuffer-update beg end len)
+              (progn
+                (speechd-speak--read-other-changes)
+                (speechd-speak--minibuffer-update beg end len))
             (speechd-speak--add-command-text info beg end)))
          ((member (buffer-name (current-buffer))
                   speechd-speak-insertions-in-buffers)
-          (speechd-speak--text (speechd-speak--buffer-substring beg end)
-                               :priority 'message)))))))
+          (push (speechd-speak--buffer-substring beg end)
+                (speechd-speak--command-info-struct-other-changes info))))))))
 
 (defun speechd-speak--pre-command-hook ()
   (speechd-speak--set-command-start-info)
@@ -1185,12 +1204,12 @@ With a prefix argument, close all open connections first."
   (if arg
       (speechd-unspeak)
     (speechd-reopen))
-  (setq speechd-speak--started t)
-  (speechd-speak--build-mode-map)
-  (global-speechd-speak-mode 1)
-  (global-speechd-speak-map-mode 1)
-  (message "Speechd-speak %s"
-	   (if speechd-speak--started "restarted" "started")))
+  (let ((already-started speechd-speak--started))
+    (setq speechd-speak--started t)
+    (speechd-speak--build-mode-map)
+    (global-speechd-speak-mode 1)
+    (global-speechd-speak-map-mode 1)
+    (message "Speechd-speak %s" (if already-started "restarted" "started"))))
 
 
 ;;; Announce
