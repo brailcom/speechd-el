@@ -99,7 +99,7 @@
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.15 2003-05-25 21:09:48 hanke Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.16 2003-05-26 17:35:24 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -125,7 +125,9 @@ Useful only for diagnosing problems.")
     (:sound-table . "SOUND_TABLE")
     (:voice . "VOICE")
     (:rate . "RATE")
-    (:pitch . "PITCH")))
+    (:pitch . "PITCH")
+    (:output-module . "OUTPUT_MODULE")	; TODO: to be removed once
+    ))
 
 (defconst speechd--list-parameter-names
   '((:spelling-tables . "SPELLING_TABLES")
@@ -274,12 +276,13 @@ Return the opened connection on success, nil otherwise."
 			  :name name :host host :port port
 			  :process process :failure-p (not process)))
 	(puthash name connection speechd--connections)
-	(speechd--set-connection-name name)
-	(while parameters
-	  (destructuring-bind (parameter value . next) parameters
-	    (when (not (eq parameter :client-name))
-	      (speechd--set-parameter parameter value))
-	    (setq parameters next)))))
+	(when process
+	  (speechd--set-connection-name name)
+	  (while parameters
+	    (destructuring-bind (parameter value . next) parameters
+	      (when (not (eq parameter :client-name))
+		(speechd--set-parameter parameter value))
+	      (setq parameters next))))))
     connection))
 
 (defun* speechd-close (&optional (name speechd-client-name))
@@ -321,6 +324,17 @@ Return the opened connection on success, nil otherwise."
 (defconst speechd--success-regexp
   (format "^[1-2][0-9][0-9] .*%s" speechd--eol))
 
+(defun speechd--permanent-connection-failure (connection)
+  (speechd--close-process connection)
+  (setf (speechd--connection-failure-p connection) t
+	(speechd--connection-process-output connection) nil
+	(speechd--connection-request-queue connection) (queue-create)
+	(speechd--connection-paused-p connection) nil
+	(speechd--connection-transaction-state connection) nil
+	(speechd--connection-new-state connection) nil
+	(speechd--connection-reading-answer-p connection) nil
+	(speechd--connection-parameters connection) ()))
+
 (defun speechd--send-string (string)
   (speechd--with-current-connection
     (let ((process (speechd--connection-process connection)))
@@ -335,8 +349,7 @@ Return the opened connection on success, nil otherwise."
 	      (if process
 		  (process-send-string (speechd--connection-process connection)
 				       string)
-		(setf (speechd--connection-process connection) nil
-		      (speechd--connection-failure-p connection) t)))))))))
+		(speechd--permanent-connection-failure connection)))))))))
 
 (defvar speechd--in-recursion nil)
 (defun speechd--process-request (request)
@@ -363,6 +376,7 @@ Return the opened connection on success, nil otherwise."
 		   success
 		   result)
 	       (while (and answer (string-match speechd--result-regexp answer))
+		 (push (match-string 1 answer) data)
 		 (setq answer (substring answer (match-end 0))))
 	       (setq success (and answer
 				  (string-match speechd--success-regexp
@@ -399,8 +413,9 @@ Return the opened connection on success, nil otherwise."
 		 (eq (speechd--connection-transaction-state connection)
 		     required-state)))
 	  (unless (check-state)
-	    (speechd-open)
-	    (setq connection (speechd--connection)))
+	    (unless (speechd--connection-failure-p (speechd--connection))
+	      (speechd-open)
+	      (setq connection (speechd--connection))))
 	  ;; Continue only if the state can be set properly after reopen,
 	  ;; otherwise give up and ignore the request completely.
 	  ;; This also works for the "." command when in non-data state.
@@ -408,7 +423,8 @@ Return the opened connection on success, nil otherwise."
 	      (when (check-state)
 		(speechd--send-string (speechd--request-string request))
 		(let ((answer-type (speechd--request-answer-type request)))
-		  (when answer-type
+		  (when (and answer-type
+			     (not (speechd--connection-failure-p connection)))
 		    (setf (speechd--connection-process-output connection) ""
 			  (speechd--connection-new-state connection) new-state)
 		    (when (or (eq answer-type 'required)
@@ -474,9 +490,9 @@ Return the opened connection on success, nil otherwise."
 
 
 (defun speechd--list (parameter)
-  (first (speechd--send-command
-	  (list "LIST"
-		(cdr (assoc parameter speechd--list-parameter-names))))))
+  (second (speechd--send-command
+	   (list "LIST"
+		 (cdr (assoc parameter speechd--list-parameter-names))))))
 
 
 ;;; Parameter setting functions
@@ -553,9 +569,12 @@ Mode must be one of the symbols `:none' (don't read any punctuation), `:some'
 	,(cond
 	  ((integerp argdesc)
 	   (concat "n" prompt))
+	  ((not argdesc)
+	   (concat "s" prompt))
 	  (t
-	   `(completing-read ,prompt
-			     (mapcar #'list (speechd--list ,argdesc))))))
+	   `(list
+	     (completing-read ,prompt
+			      (mapcar #'list (speechd--list ,argdesc)))))))
        (speechd--set-parameter ,parameter value))))
 (speechd--generate-set-command :punctuation-table "Punctuation table"
 			       :punctuation-tables)
@@ -569,6 +588,8 @@ Mode must be one of the symbols `:none' (don't read any punctuation), `:some'
 (speechd--generate-set-command :pitch "Pitch" 0)
 (speechd--generate-set-command :rate "Rate" 0)
 (speechd--generate-set-command :voice "Voice" :voices)
+;; TODO: Remove this one once proper output module setting is defined.
+(speechd--generate-set-command :output-module "Output module" nil)
 
 
 ;;; Speaking functions
@@ -607,7 +628,8 @@ The key argument `priority' defines the priority of the message and must be one
 of the symbols `:high', `:medium', and `:low'."
   (speechd--set-parameter :message-priority priority)
   (speechd--send-command
-   (list "CHAR" (format "%s" (char-to-string char)))))
+   (list "CHAR" (format "%s"
+			(if (eql char ? ) "space" (char-to-string char))))))
 
 (defun* speechd-say-key (key &key (priority speechd-default-key-priority))
   "Speak the given KEY.
