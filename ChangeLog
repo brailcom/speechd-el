@@ -1,8 +1,15 @@
 2003-10-22  Milan Zamazal  <pdm@brailcom.org>
 
+	* speechd-speak.el (buffer-switch): Don't use blocks.  Speak
+	buffer name with the priority `message'.
+	(speechd-speak--command-keys): Wrap the code by
+	speechd-speak--maybe-speak.
+
 	* speechd.el (speechd--send-data): When sending final eol, check
 	the original string, not the final rest of string.  Omit the final
 	newline only for empty texts.
+	(speechd-block): Ensure BLOCK END doesn't go to a different
+	connection than BLOCK BEGIN.
 
 2003-10-21  Milan Zamazal  <pdm@brailcom.org>
 
