@@ -31,7 +31,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.6 2003-06-26 11:03:44 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.7 2003-06-27 13:21:05 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -57,8 +57,28 @@
   :type 'boolean
   :group 'speechd-speak)
 
+(defcustom speechd-speak-by-properties-on-movement t
+  "Method of selection of the piece of text to be spoken on movement.
+Unless a command provides its speechd feedback in a different way, it speaks
+the current line by default if the cursor has moved.  However, if this variable
+is non-nil, it speaks the uniform text around the cursor, where \"uniform\"
+means the maximum amount of text without any text property change.
+Speaking uniform text only works if font-lock-mode is enabled for the current
+buffer."
+  :type 'boolean
+  :group 'speechd-speak)
+
+(defcustom speechd-speak-whole-line nil
+  "If non-nil, speak whole line on movement by default.
+Otherwise from the point to the end of line on movement by default."
+  :type 'boolean
+  :group 'speechd-speak)
+
 (defcustom speechd-speak-prefix "\C-e"
   "Default prefix key used for speechd-speak commands."
+  :set #'(lambda (name value)
+	   (set-default name value)
+	   (global-set-key value 'speechd-speak-prefix-command))
   :type 'sexp
   :group 'speechd-speak)
 
@@ -166,12 +186,13 @@ Level 1 is the slowest, level 9 is the fastest."
 
 (defun speechd-speak-read-region (&optional beg end)
   (interactive "r")
-  (speechd-speak--text (buffer-substring (or beg (mark)) (or end (point)))
-		       :priority :text))
+  (let ((text (buffer-substring (or beg (mark)) (or end (point)))))
+    (speechd-speak--text (if (string= text "") "empty" text) :priority :text)))
 
-(defun speechd-speak-read-line ()
+(defun speechd-speak-read-line (&optional rest-only)
   (interactive)
-  (speechd-speak-read-region (line-beginning-position) (line-end-position)))
+  (speechd-speak-read-region (if rest-only (point) (line-beginning-position))
+			     (line-end-position)))
 
 (defun speechd-speak-read-next-line ()
   (interactive)
@@ -202,6 +223,11 @@ Level 1 is the slowest, level 9 is the fastest."
 
 (defun speechd-speak--window-contents ()
   (speechd-speak-read-region (window-start) (window-end)))
+
+(defun speechd-speak--uniform-text-around-point ()
+  (let ((beg (previous-property-change (1+ (point))))
+	(end (next-property-change (point))))
+    (speechd-speak-read-region beg end)))
 
 (defun speechd-speak--speak-piece (start)
   (let ((point (point)))
@@ -250,7 +276,9 @@ Level 1 is the slowest, level 9 is the fastest."
 (defun speechd-speak--set-command-start-info (&optional reset)
   (speechd-speak--with-minibuffer-depth
     (aset speechd-speak--command-start-info depth
-	  (if reset nil (ignore-errors (list (current-buffer) (point)))))))
+	  (if reset nil (ignore-errors (list (current-buffer)
+					     (point)
+					     (buffer-modified-tick)))))))
 
 (defun speechd-speak--reset-command-start-info ()
   (speechd-speak--set-command-start-info t))
@@ -383,12 +411,14 @@ Level 1 is the slowest, level 9 is the fastest."
 (speechd-speak--command-feedback (kill-region completion-kill-region) around
   (let ((nlines (count-lines (region-beginning) (region-end))))
     ad-do-it
-    (message "Killed region containing %s lines" nlines)))
+    (speechd-speak--maybe-speak
+     (message "Killed region containing %s lines" nlines))))
 
 (speechd-speak--command-feedback (kill-ring-save) around
   (let ((nlines (count-lines (region-beginning) (region-end))))
     ad-do-it
-    (message "Region containing %s lines copied to kill ring" nlines)))
+    (speechd-speak--maybe-speak
+     (message "Region containing %s lines copied to kill ring" nlines))))
 
 
 ;;; Messages
@@ -422,11 +452,28 @@ Level 1 is the slowest, level 9 is the fastest."
 (defun speechd-speak--speak-minibuffer-prompt ()
   (speechd-speak--prompt (minibuffer-prompt))
   (speechd-speak--prompt (minibuffer-contents)))
-(add-hook 'minibuffer-setup-hook 'speechd-speak--speak-minibuffer-prompt)
+
+(defun speechd-speak--speak-minibuffer-completion (beg end len)
+  (when (and (= len 0)
+	     (speechd-speak--command-start-info))
+    (let ((start (save-excursion
+		   (goto-char beg)
+		   (or (and (looking-at "\\<\\|\\W") (point))
+		       (re-search-backward "\\<" nil t)
+		       beg))))
+      (speechd-speak--text (buffer-substring start end)))
+    (speechd-speak--reset-command-start-info)))
+
+(defun speechd-speak--minibuffer-setup-hook ()
+  (speechd-speak--speak-minibuffer-prompt)
+  (add-hook 'after-change-functions 'speechd-speak--speak-minibuffer-completion
+	    nil t))
+
+(add-hook 'minibuffer-setup-hook 'speechd-speak--minibuffer-setup-hook)
 
 (defun speechd-speak--speak-minibuffer ()
   (speechd-speak--text (minibuffer-contents)))
-
+    
 (speechd-speak--command-feedback (previous-history-element next-history-element
 				  previous-matching-history-element
 				  next-matching-history-element
@@ -453,11 +500,13 @@ Level 1 is the slowest, level 9 is the fastest."
   (speechd-speak--set-command-start-info)
   ;; Some parameters of interactive commands don't set up the minibuffer, so we
   ;; have to speak the prompt in an extra way.
+  (push 'ok pokus)
   (let ((interactive (cadr (interactive-form this-command))))
-    (when (and (stringp interactive)
-	       (string-match "^[@*]*\\([eipPmnr]\n\\)*[ckK]\\(.+\\)"
-			     interactive))
-      (speechd-speak--prompt (match-string 2 interactive))))
+    (save-match-data
+      (when (and (stringp interactive)
+		 (string-match "^[@*]*\\([eipPmnr]\n\\)*[ckK]\\(.+\\)"
+			       interactive))
+	(speechd-speak--prompt (match-string 2 interactive)))))
   (add-hook 'pre-command-hook 'speechd-speak--pre-command-hook))
 
 (defun speechd-speak--post-command-hook ()
@@ -470,18 +519,33 @@ Level 1 is the slowest, level 9 is the fastest."
   (let ((command-info (speechd-speak--command-start-info)))
     (when command-info
       ;(speechd-speak--text (symbol-name this-command) :priority :notice)
-      (multiple-value-bind (buffer position) command-info
-	(cond
-	 ((eq this-command 'self-insert-command)
-	  (speechd-speak-read-char (preceding-char)))
-	 ((memq this-command '(forward-char backward-char))
-	  (speechd-speak-read-char))
-	 ((not (eq buffer (current-buffer)))
-	  (if speechd-speak-buffer-name
-	      (speechd-speak--text (buffer-name) :priority :message)
-	    (speechd-speak-read-line)))
-	 ((not (= position (point)))
-	  (speechd-speak-read-line))))))
+      (multiple-value-bind (buffer position modification) command-info
+	(let* ((buffer-changed (not (eq buffer (current-buffer))))
+	       (buffer-modified (and (not buffer-changed)
+				     (/= modification
+					 (buffer-modified-tick))))
+	       (point-moved (and (not buffer-changed)
+				 (not (= position (point))))))
+	  (cond
+	   ((eq this-command 'self-insert-command)
+	    (speechd-speak-read-char (preceding-char)))
+	   ((memq this-command '(forward-char backward-char))
+	    (speechd-speak-read-char))
+	   (buffer-changed
+	    (if speechd-speak-buffer-name
+		(speechd-speak--text (buffer-name) :priority :message)
+	      (speechd-speak-read-line)))
+	   ((and speechd-speak-by-properties-on-movement
+		 (not buffer-modified)
+		 point-moved
+		 (get-text-property (point) 'face)
+		 (or (> (previous-property-change (1+ (point)) nil position)
+			position)
+		     (<= (next-property-change (point) (1+ position))
+			 position)))
+	    (speechd-speak--uniform-text-around-point))
+	   (point-moved
+	    (speechd-speak-read-line (not speechd-speak-whole-line))))))))
   (add-hook 'post-command-hook 'speechd-speak--post-command-hook))
 
 
@@ -524,7 +588,8 @@ Level 1 is the slowest, level 9 is the fastest."
     (setq beg (previous-single-property-change beg 'mouse-face))
     (setq end (or (next-single-property-change end 'mouse-face) (point-max)))
     (setq completion (buffer-substring beg end))
-    (speechd-speak--text completion)))
+    (speechd-speak--text completion)
+    (speechd-speak--reset-command-start-info)))
 
 (speechd-speak--command-feedback-region (expand-abbrev complete-symbol)
   :move (backward-word 1))
@@ -584,6 +649,7 @@ Level 1 is the slowest, level 9 is the fastest."
 ;;; The startup function
 
 
+(defvar speechd-speak--started nil)
 (defun speechd-speak ()
   "Start or restart speaking."
   (interactive)
@@ -592,7 +658,9 @@ Level 1 is the slowest, level 9 is the fastest."
   (add-hook 'post-command-hook 'speechd-speak--post-command-hook)
   (speechd-speak-toggle-quiet nil 'on)
   (run-hooks 'speechd-speak-startup-hook)
-  (message "Speechd-speak started"))
+  (message "Speechd-speak %s"
+	   (if speechd-speak--started "restarted" "started"))
+  (setq speechd-speak--started t))
 
 
 ;;; Keymap
@@ -624,8 +692,8 @@ Level 1 is the slowest, level 9 is the fastest."
 (define-key speechd-speak-keymap "\C-n" 'speechd-speak-read-other-window)
 (define-key speechd-speak-keymap "\C-s" 'speechd-reopen)
 (define-key speechd-speak-keymap "\M-\C-k" 'kill-emacs)
-(define-key speechd-speak-keymap '[down] 'speechd-speak-read-next-line)
-(define-key speechd-speak-keymap '[up]  'speechd-speak-read-previous-line)
+(define-key speechd-speak-keymap [down] 'speechd-speak-read-next-line)
+(define-key speechd-speak-keymap [up] 'speechd-speak-read-previous-line)
 (dotimes (i 9)
   (define-key speechd-speak-keymap (format "%s" (1+ i))
               'speechd-speak-key-set-predefined-rate))
