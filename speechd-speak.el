@@ -1647,6 +1647,18 @@ When the mode is enabled, all spoken text is spelled."
   :info-string "Frame %s"
   :key "f")
 
+(speechd-speak--watch header-line
+  #'(lambda ()
+      (if (fboundp 'format-mode-line)
+          (let ((line (format-mode-line t)))
+            (if (string= line "") "empty" line))
+        "unknown"))
+  :on-change #'(lambda (old new)
+                 (speechd-speak--text
+                  (format "Header line: %s" new)))
+  :info-string "Header line: %s"
+  :key "h")
+
 (speechd-speak--watch major-mode #'(lambda () mode-name)
   :on-change #'(lambda (old new)
                  (speechd-speak--text

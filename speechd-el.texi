@@ -385,6 +385,11 @@ Speak information about current buffer
 @cindex frame
 Speak information about current frame (@code{speechd-speak-frame-info}).
 
+@item C-e C-i h
+@findex speechd-speak-header-line-info
+@cindex header line
+Speak contents of the header line (@code{speechd-speak-header-line-info}).
+
 @item C-e C-i m
 @findex speechd-speak-mode-info
 @cindex modes

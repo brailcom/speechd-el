@@ -1,3 +1,7 @@
+2004-09-22  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (header-line): New watcher.
+
 2004-09-21  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-speak.el (speechd-speak-info-map): New keymap.
