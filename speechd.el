@@ -89,7 +89,7 @@ Nil if no connection is currently open.")
   :group 'speechd)
 
 
-(defconst speechd-el-version "speechd-el $Id: speechd.el,v 1.1 2003-04-09 12:45:32 pdm Exp $"
+(defconst speechd-el-version "speechd-el $Id: speechd.el,v 1.2 2003-04-10 19:06:19 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -121,9 +121,11 @@ Each element is a pair is of the form (CAPITALIZATION . SPEECHD-PARAMETER).")
 (defvar speechd-debug-info '())
 
 (defvar speechd-sending-data-p nil)
+(defvar speechd-paused-p nil)
 (defvar speechd-current-priority nil)
 (defsubst speechd-reset-connection-parameters ()
   (setq speechd-sending-data-p nil
+	speechd-paused-p nil
 	speechd-current-priority nil))
 
 (defsubst speechd-process-name ()
@@ -220,15 +222,15 @@ for closer description of those arguments."
 	(display-buffer (process-buffer speechd-connection)))
       (funcall (if speechd-debug #'message #'ignore)
 	       (speechd-send-string string-to-send))
-      (while (not (string-match "\n" speechd-connection-output))
+      (while (let ((len (length speechd-connection-output)))
+	       (or (= len 0)
+		   (not (eql (aref speechd-connection-output (1- len)) ?\n))))
 	(unless (accept-process-output speechd-connection speechd-timeout)
 	  (push (cons "Timeout:" speechd-connection-output) speechd-debug-info)
 	  (speechd-close)
 	  (error "Timeout during communication with speechd.")))
-      (let* ((end-of-line (match-end 0))
-	     (answer (substring speechd-connection-output 0 end-of-line)))
-	(setq speechd-connection-output
-	      (substring speechd-connection-output end-of-line))
+      (let ((answer speechd-connection-output))
+	(setq speechd-connection-output "")
 	(when speechd-debug
 	  (push (cons string-to-send answer) speechd-debug-info))
 	(unless (string-match "^2" answer) ; there should be no 1xx response
@@ -236,7 +238,7 @@ for closer description of those arguments."
 
 (defun speechd-send-data (text)
   (unless speechd-sending-data-p
-    (speechd-resume)
+    (speechd-resume t)
     (speechd-send-command "SPEAK")
     (setq speechd-sending-data-p t))
   (flet ((send (string)
@@ -252,10 +254,10 @@ for closer description of those arguments."
       (let ((end (1+ (match-end 0))))
 	(send (substring text 0 end))
 	(setq text (substring text end))))
-    (send text))
-  (unless (or (string= text "")
-	      (eql (aref text (1- (length text))) ?\n))
-    (speechd-send-string speechd-eol)))
+    (send text)
+    (unless (or (string= text "")
+		(eql (aref text (1- (length text))) ?\n))
+      (speechd-send-string speechd-eol))))
 
 (defun speechd-send-data-end ()
   (when speechd-sending-data-p
@@ -316,11 +318,14 @@ for closer description of those arguments."
 
 (defun speechd-pause ()
   (interactive)
+  (setq speechd-paused-p t)
   (speechd-send-command "PAUSE"))
 
-(defun speechd-resume ()
+(defun speechd-resume (&optional softp)
   (interactive)
-  (speechd-send-command "RESUME"))
+  (when (or speechd-paused-p (not softp))
+    (speechd-send-command "RESUME")
+    (setq speechd-paused-p nil)))
 
 
 (defconst speechd-maintainer-address "pdm@brailcom.org")
