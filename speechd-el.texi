@@ -1,0 +1,567 @@
+\input texinfo    @c -*-texinfo-*-
+@comment %**start of header
+@setfilename speechd-el.info
+@set VERSION 0.1
+@settitle speechd-el @value{VERSION}
+@syncodeindex fn cp
+@syncodeindex ky cp
+@syncodeindex vr cp
+@comment %**end of header
+@copying
+This manual is for speechd-el, @value{VERSION}.
+
+Copyright @copyright{} 2003 Brailcom, o.p.s.
+
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with no Front-Cover Texts and no Back-Cover Texts.
+A copy of the license is included in the section entitled ``GNU Free
+Documentation License.''
+@end quotation
+@end copying
+
+@dircategory Sound
+@dircategory Emacs
+@direntry
+* speechd-el: (speechd-el) Emacs interface to Speech Dispatcher.
+@end direntry
+
+@titlepage
+@title speechd-el
+@subtitle for version @value{VERSION}
+@author Milan Zamazal
+@author Brailcom, o.p.s.
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@contents
+
+@ifnottex
+@node Top, Introduction, (dir), (dir)
+@top speechd-el
+
+@insertcopying
+@end ifnottex
+
+@menu
+* Introduction::                What is speechd-el and this manual about?
+* speechd-el user manual::      Using Emacs speech output.
+* speechd-el Elisp Library::    Using speechd-el in Elisp programs.
+* Contact information::         How to speak to us.
+
+* Copying This Manual::         GNU Free Documentation License.
+* Index::                       Concept index.
+@end menu
+
+@c ****************************************************************************
+
+@node Introduction, speechd-el user manual, Top, Top
+@chapter Introduction
+@cindex Speech Dispatcher
+
+speechd-el is an Emacs client to Speech Dispatcher.  It provides the
+following functionality:
+
+@itemize @bullet
+@item
+@cindex SSIP
+An Emacs Lisp library for accessing Speech Dispatcher using its socket
+based communication protocol (SSIP).
+
+@item
+Emacs speech output support, especially focused on providing
+facilities necessary for Emacs use by the blind and visually impaired.
+@end itemize
+
+Key features of speechd-el are:
+@cindex features
+
+@itemize @bullet
+@item
+Support for automated speaking, without necessity to customize each
+particular Emacs function to make it speak; most built-in and external
+Emacs packages produce speech output immediatelly, without any special
+support.
+
+@item
+Almost no change of standard Emacs behavior, no interference with user
+settings.
+
+@item
+Full cooperation with Speech Dispatcher.
+
+@item
+Small code size.
+@end itemize
+
+This manual describes the speech output user interface, how to
+customize and extend the interface, and the Emacs Lisp library.  Some
+degree of familiarity with Speech Dispatcher on the user level is
+recommended, though not absolutely necessary.
+
+@c ****************************************************************************
+
+@node speechd-el user manual, speechd-el Elisp Library, Introduction, Top
+@chapter speechd-el user manual
+
+speechd-el allows you to use Emacs without looking at screen, with
+speech output only.  The main usage area is by blind and visually
+impaired people, but you generally you can use speech output for many
+purposes, according to any your wishes and needs.
+
+You can download the latest released version of speechd-el from
+@url{http://www.freebsoft.org/pub/projects/speechd-el/}.
+
+speechd-el uses Speech Dispatcher for the speech output, so working
+Speech Dispatcher installation is necessary to produce any speech
+output.  Please look at @url{http://www.freebsoft.org/speechd} for
+more information about Speech Dispatcher.
+
+@menu
+* Installation::                Installing speechd-el.
+* Starting speech output::      Making it speak.
+* Commands::                    Usage.
+* Customization::               Basic customization.
+* Definitions::                 Advanced customization.
+@end menu
+
+@node Installation, Starting speech output, speechd-el user manual, speechd-el user manual
+@section Installation
+
+In order to install speechd-el, you need the Elib library.  You can
+download it from @url{ftp://ftp.debian.org/debian/pool/main/e/elib/}.
+
+Once you Elib installed, you can install speechd-el in the following
+steps:
+
+@enumerate
+@item
+Copy the @file{*.el} files contained in the distribution package
+somewhere to your Emacs load path.
+
+@item
+If you like, byte compile the @file{*.el} files.  Byte compilation is
+recommended, because it speeds up speechd-el significantly.  You can
+byte compile using the command
+
+@example
+make compile
+@end example
+
+Then install the compiled files to an Emacs load path location as
+well.
+
+@item
+Add the following line to your @file{~/.emacs}:
+
+@lisp
+(autoload 'speechd-speak "speechd-speak" nil t)
+@end lisp
+@end enumerate
+
+@node Starting speech output, Commands, Installation, speechd-el user manual
+@section Starting speech output
+
+After installation of the @file{*.el} files and restarting Emacs, you
+can set up speechd-speak using the @kbd{M-x speechd-speak} command.
+If you want to happen it automatically each time Emacs is started, put
+the following line to your @file{~/.emacs} after the autoload line:
+
+@lisp
+(speechd-speak)
+@end lisp
+
+@table @kbd
+@item M-x speechd-speak
+@findex speechd-speak
+Set up Emacs for speech output and start speaking.
+
+Please don't forget Speech Dispatcher must be running in order to get
+any speech output!
+
+After the initial setup, the command can be used again to restart the
+speech support when needed.  Especially, you must run it again if
+Speech Dispatcher gets restarted.
+@end table
+
+Once the setup is done, enabling and disabling the speech output is
+controlled by speechd-speak and global-speechd-speak minor modes.
+Usually the mode commands are not used directly, you use the
+@code{speechd-speak-toggle-speaking} command (@pxref{Control commands}),
+but if you need them, they are available.
+
+@table @kbd
+@item M-x speechd-speak-mode
+@findex speechd-speak-mode
+Enable or disable speaking in the current buffer.  With no argument,
+this command toggles the mode.  Non-null prefix argument turns on the
+mode.  Null prefix argument turns off the mode.
+
+@item M-x global-speechd-speak-mode
+@findex global-speechd-speak-mode
+Enable or disable speaking globally.  With no argument, this command
+toggles the mode.  With prefix argument, turn speaking on if and only
+if the argument is positive.
+@end table
+
+@node Commands, Customization, Starting speech output, speechd-el user manual
+@section Commands
+
+The basic speechd-el commands are all accessible through a common
+special prefix key, which is @kbd{C-e} by default (you can change it,
+@pxref{Customization}).  If this prefix conflicts with a global Emacs
+command, the original command is available by double pressing the
+prefix key.  For instance, with the default prefix, the
+@code{end-of-line} command, normally available under the @kbd{C-e}
+key, can be invoked as @kbd{C-e C-e}.
+
+@menu
+* Reading commands::            Reading piecies of text.
+* Control commands::            Stopping, setting speech rate, etc.
+* Parameter setting commands::  Modifying speech output.
+* Other commands::              Auxiliary commands.
+@end menu
+
+@node Reading commands, Control commands, Commands, Commands
+@subsection Reading commands
+
+@table @kbd
+@item C-e l
+@kindex C-e l
+@findex speechd-speak-read-line
+Read current line (@code{speechd-speak-read-line}).
+
+@item C-e b
+@kindex C-e b
+@findex speechd-speak-read-buffer
+Read current buffer (@code{speechd-speak-read-buffer}).
+
+@item C-e n
+@kindex C-e n
+@findex speechd-speak-read-rest-of-buffer
+Read current buffer from the cursor to the buffer end
+(@code{speechd-speak-read-rest-of-buffer}).
+
+@item C-e C-n
+@kindex C-e C-n
+@findex speechd-speak-read-other-window
+Read buffer of the other window, if any is present
+(@code{speechd-speak-read-other-window}).
+
+@item C-e r
+@kindex C-e r
+@findex speechd-speak-read-region
+Read current region (@code{speechd-speak-read-region}).
+
+@item C-e w
+@kindex C-e w
+@findex speechd-speak-read-word
+Read the next word after cursor (@code{speechd-speak-read-word}).
+
+@item C-e @{
+@kindex C-e @{
+@findex speechd-speak-read-paragraph
+Read the next paragraph after cursor (@code{speechd-speak-read-paragraph}).
+
+@item C-e [
+@kindex C-e [
+@findex speechd-speak-read-page
+Read the next page after cursor (@code{speechd-speak-read-page}).
+
+@item C-e '
+@kindex C-e '
+@findex speechd-speak-read-sexp
+Read the next symbolic expression after cursor
+(@code{speechd-speak-read-sexp}).
+
+@item C-e c
+@kindex C-e c
+@findex speechd-speak-read-char
+Read the character at the cursor position (@code{speechd-speak-read-char}).
+
+@item C-e [down]
+@kindex C-e [down]
+@findex speechd-speak-read-next-line
+Read the next line (@code{speechd-speak-read-next-line}).
+
+@item C-e [up]
+@kindex C-e [up]
+@findex speechd-speak-read-previous-line
+Read the previous line (@code{speechd-speak-read-previous-line}).
+
+@item C-e a
+@kindex C-e a
+@findex speechd-speak-last-message
+Read last seen Emacs message (@code{speechd-speak-last-message}).
+@end table
+
+@node Control commands, Parameter setting commands, Reading commands, Commands
+@subsection Control commands
+
+@table @kbd
+@item C-e q
+@kindex C-e q
+@findex speechd-speak-toggle-speaking
+@cindex shutting up
+Toggle speaking globally (@code{speechd-speak-toggle-speaking}).  With
+a prefix argument, toggle it in the current buffer only.
+
+@item C-e s
+@kindex C-e s
+@findex speechd-stop
+@cindex stop
+Stop speaking current message (@code{speechd-stop}).  Other queued
+messages will still be spoken.
+
+@item M-x speechd-cancel
+@findex speechd-cancel
+@cindex stop
+Stop speaking all the queued messages.
+
+@item C-e p
+@kindex C-e p
+@findex speechd-pause
+@cindex pause
+Pause speaking --- just be quiet for now and postpone current speaking
+until the resume command is invoked (@code{speechd-pause}).
+
+@item C-e SPC
+@kindex C-e SPC
+@findex speechd-resume
+@cindex resume
+Resume paused speaking (@code{speechd-resume}).
+
+@item C-e 1
+@itemx C-e 2
+@itemx C-e 3
+@itemx C-e 4
+@itemx C-e 5
+@itemx C-e 6
+@itemx C-e 7
+@itemx C-e 8
+@itemx C-e 9
+@kindex C-e 1
+@kindex C-e 2
+@kindex C-e 3
+@kindex C-e 4
+@kindex C-e 5
+@kindex C-e 6
+@kindex C-e 7
+@kindex C-e 8
+@kindex C-e 9
+@findex speechd-speak-key-set-predefined-rate
+@cindex rate
+Set one of the predefined speech rates
+(@code{speechd-speak-key-set-predefined-rate}).  @kbd{C-e 1} sets the
+slowest rate, @kbd{C-e 5} sets the medium rate, and @kbd{C-e 9} sets
+the fastest rate.
+@end table
+
+@node Parameter setting commands, Other commands, Control commands, Commands
+@subsection Parameter setting commands
+@cindex parameters
+
+These commands set various properties of the speech output.  They all
+apply on the current Speech Dispatcher connection (for more
+information about Speech Dispatcher connections, @pxref{Connections}).
+
+Commands affecting basic parameters of the text-to-speech process:
+
+@table @kbd
+@item M-x speechd-speak-set-language
+@findex speechd-speak-set-language
+@cindex language
+Set default language of the connection.  Specify it as an ISO 639
+language code.
+
+@item M-x speechd-speak-set-punctuation-mode
+@findex speechd-speak-set-punctuation-mode
+@cindex punctuation mode
+Specify how to handle punctuation, whether to read it or ignore it.
+@code{all} mode reads all punctuation characters, @code{none} mode
+skips them all quietly, and @code{some} mode reads a selected subset
+of punctuation characters specified in the Speech Dispatcher
+configuration.
+
+@item M-x speechd-speak-set-capital-character-mode
+@findex speechd-speak-set-capital-character-mode
+@cindex capital character mode
+Set capital letter signalization mode.  @code{icon} means signal them
+with a sound icon, @code{spell} means spell them using a special
+spelling table, and @code{none} means no signalization.
+@end table
+
+Commands affecting speech output properties:
+
+@table @kbd
+@item M-x speechd-speak-set-voice
+@findex speechd-speak-set-voice
+@cindex voice
+Set default voice to be used by the synthesizer.  You may select one
+from the voice set offered by your Speech Dispatcher installation.
+
+@item M-x speechd-speak-set-rate
+@findex speechd-speak-set-rate
+@cindex rate
+Set exact speech rate, ranging from -100 (slowest) to 100
+(fastest).  Most often you will probably want to use the
+@code{speechd-speak-key-set-predefined-rate} command bound to @kbd{C-e
+@var{number}} instead, see @ref{Control commands}.
+
+@item M-x speechd-speak-set-pitch
+@findex speechd-speak-set-pitch
+@cindex pitch
+Set voice pitch, ranging from -100 (lowest) to 100 (highest).
+@end table
+
+Commands affecting the speech synthesizer:
+
+@table @kbd
+@item M-x speechd-speak-set-output-module
+@findex speechd-speak-set-output-module
+@cindex output module
+Switch Speech Dispatcher to the given output module.  Give the module
+name when you are prompted for the argument.
+@end table
+
+The following commands set various text transformation tables.  Each
+of the commands prompts for a table name, that must be available in
+your Speech Dispatcher installation.  Refer to the Speech Dispatcher
+documentation for more information about particular tables.
+
+@table @kbd
+@item M-x speechd-speak-set-spelling-table
+@findex speechd-speak-set-spelling-table
+@cindex spelling table
+
+@item M-x speechd-speak-set-character-table
+@findex speechd-speak-set-character-table
+@cindex character table
+
+@item M-x speechd-speak-set-capital-character-table
+@findex speechd-speak-set-capital-character-table
+@cindex capital character table
+
+@item M-x speechd-speak-set-key-table
+@findex speechd-speak-set-key-table
+@cindex key table
+
+@item M-x speechd-speak-set-punctuation-table
+@findex speechd-speak-set-punctuation-table
+@cindex punctuation table
+
+@item M-x speechd-speak-set-text-table
+@findex speechd-speak-set-text-table
+@cindex text table
+
+@item M-x speechd-speak-set-sound-table
+@findex speechd-speak-set-sound-table
+@cindex sound table
+@end table
+
+@node Other commands,  , Parameter setting commands, Commands
+@subsection Other commands
+
+These commands are rarely used, mostly for diagnosting purposes.
+
+@table @kbd
+@item C-e C-r
+@kindex C-e C-r
+@findex speechd-repeat
+Repeat the last text sent to Speech Dispatcher
+(@code{speechd-repeat}).
+
+@item M-x speechd-say-text
+@findex speechd-say-text
+Prompt for a text and speak it.
+@end table
+
+@node Customization, Definitions, Commands, speechd-el user manual
+@section Customization
+
+@menu
+* Connections::                 
+@end menu
+
+@node Connections,  , Customization, Customization
+@subsection Connections 
+
+@node Definitions,  , Customization, speechd-el user manual
+@section Defining your own command feedbacks
+
+Writing your own definitions generally requires knowledge of Elisp
+programming.  But don't be afraid, you can set some things without it,
+just following instructions here.
+
+
+@c ****************************************************************************
+
+@node speechd-el Elisp Library, Contact information, speechd-el user manual, Top
+@chapter speechd-el Emacs Lisp Library
+
+Right now, there's no real programmer's manual to the library.  Please
+read docstrings of available variables, functions and macros.
+
+Nevertheless, here are some instructions you can and should follow:
+
+@itemize @bullet
+@item
+Don't use any functions, variables or other Lisp objects, names of
+which start with the @code{speechd--} or @code{speechd-speak--}
+prefixes.  These objects are considered private and may change
+incompatibly or disappear at any time without notice.
+
+@item
+@vindex speechd-client-name
+If you want to select or create a particular connection, do so by
+binding the @code{speechd-client-name} variable:
+
+@lisp
+(let ((speechd-client-name "something"))
+  ... the code using the connection "something" ... )
+@end lisp
+
+Please note it's usually bad idea to open two concurrent Speech
+Dispatcher connections sharing the same client name.
+
+@item
+@findex speechd-protect
+If you write a code invoking speech output, that is intended to be
+called asynchronously, such as in a process filter function or a
+timer, always wrap it by the @code{speechd-protect} macro.
+
+@item
+Otherwise there should be no special pitfalls and you should be safe
+to do anything what makes sense.
+@end itemize
+
+@c ****************************************************************************
+
+@node Contact information, Copying This Manual, speechd-el Elisp Library, Top
+@chapter Contact information
+@cindex authors
+@cindex contact
+
+If you have any questions, bug reports, suggestions, patches or
+anything else to tell us, feel free to contact us at the e-mail
+address @email{speechd-devel@@freebsoft.org}.
+
+@c ****************************************************************************
+
+@node Copying This Manual, Index, Contact information, Top
+@appendix Copying This Manual
+
+@include fdl.texi
+
+@c ****************************************************************************
+
+@node Index,  , Copying This Manual, Top
+@unnumbered Index
+
+@printindex cp
+
+@bye
