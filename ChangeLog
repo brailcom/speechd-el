@@ -1,5 +1,8 @@
 2003-10-29  Milan Zamazal  <pdm@brailcom.org>
 
+	* speechd-el.texi (Control Commands): Prefix arguments of control
+	commands documented.
+
 	* speechd.el (speechd-cancel): Numeric prefix argument supported.
 	* speechd-speak.el (speechd-speak--dont-cancel-on-commands): New
 	constant.
