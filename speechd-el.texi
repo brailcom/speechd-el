@@ -243,7 +243,9 @@ key, can be invoked as @kbd{C-e C-e}.
 @item C-e l
 @kindex C-e l
 @findex speechd-speak-read-line
-Read current line (@code{speechd-speak-read-line}).
+Read current line (@code{speechd-speak-read-line}).  With the prefix
+argument, read the line only from the current cursor position to the
+end of line.
 
 @item C-e b
 @kindex C-e b

@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.61 2003-10-29 10:33:48 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.62 2003-10-29 12:50:25 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -478,9 +478,9 @@ played."
 
 (defun speechd-speak-read-line (&optional rest-only)
   "Speak current line.
-If REST-ONLY is non-nil, read only the part of the line from the current point
+If the prefix argument is given, speak the line only from the current point
 to the end of the line."
-  (interactive)
+  (interactive "P")
   (speechd-speak--interactive
    (speechd-speak-read-region (if rest-only (point) (line-beginning-position))
                               (line-end-position)
