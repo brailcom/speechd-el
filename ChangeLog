@@ -1,3 +1,26 @@
+2004-07-15  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak--message): Handle answers to
+	y/n questions in a special way.
+
+2004-07-15  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak--read-message): Set message
+	priority outside the block.
+
+2004-07-15  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (y-or-n-p): Removed.
+	(speechd-speak--message-timer): New variable.
+	(speechd-speak--message-timer): New function.
+	(speechd-speak): Setup speechd-speak--message-timer.
+	(speechd-unspeak): Cancel the timer.
+
+2004-07-13  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak--read-message): Enclose the
+	signal and message by a block.
+
 2004-06-24  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-speak.el (speechd-speak--unhide-message): New macro.

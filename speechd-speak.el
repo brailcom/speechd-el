@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "2004-06-24 09:02 pdm"
+(defconst speechd-speak-version "2004-07-15 10:37 pdm"
   "Version of the speechd-speak file.")
 
 
@@ -938,18 +938,30 @@ connections, otherwise create completely new connection."
      (speechd-speak--text speechd-speak--last-message))))
 
 (defun speechd-speak--read-message (message)
-  (let ((speechd-speak--special-area t)
-        (speechd-spell nil))
-    (speechd-speak--signal 'message :priority 'progress)
-    (speechd-speak--minibuffer-prompt message :priority 'progress)))
+  (let ((speechd-speak--special-area t))
+    (speechd-block '(spelling-mode nil message-priority progress)
+      (speechd-speak--signal 'message)
+      (speechd-speak--minibuffer-prompt message))))
 
 (defun speechd-speak--message (message &optional reset-last-spoken)
   (speechd-speak--maybe-speak
    (when (and message
               (not (string= message speechd-speak--last-spoken-message)))
-     (setq speechd-speak--last-message message
-           speechd-speak--last-spoken-message message)
-     (speechd-speak--async #'speechd-speak--read-message message))
+     (let* ((oldlen (length speechd-speak--last-spoken-message))
+            (len (length message))
+            ;; The following tries to handle answers to y-or-n questions, e.g.
+            ;; "Do something? (y or n) y", which are reported as a single
+            ;; string, including the prompt.
+            (message* (if (and (= (- len oldlen) 1)
+                               (save-match-data
+                                 (string-match "\?.*) .$" message))
+                               (string= (substring message 0 oldlen)
+                                        speechd-speak--last-spoken-message))
+                          (substring message oldlen)
+                        message)))
+       (setq speechd-speak--last-message message
+             speechd-speak--last-spoken-message message)
+       (speechd-speak--async #'speechd-speak--read-message message*)))
    (when reset-last-spoken
      (setq speechd-speak--last-spoken-message ""))))
 
@@ -1035,11 +1047,22 @@ This command applies to buffers defined in
 (speechd-speak--command-feedback minibuffer-message after
   (speechd-speak--minibuffer-prompt (ad-get-arg 0) :priority 'notification))
 
-;; The following functions don't invoke `minibuffer-setup-hook'
-(speechd-speak--defadvice y-or-n-p before
-  (let ((speechd-speak--emulate-minibuffer t))
-    (speechd-speak--minibuffer-prompt
-     (concat (ad-get-arg 0) "(y or n)") :priority 'message)))
+;; Some built-in functions, reading a single character answer, prompt in the
+;; echo area.  They don't invoke minibuffer-setup-hook and may put other
+;; messages to the echo area by invoking other built-in functions.  There's no
+;; easy way to catch the prompts and messages, the only way to deal with this
+;; is to use idle timers.
+(defvar speechd-speak--message-timer nil)
+(defun speechd-speak--message-timer ()
+  (let ((message (current-message)))
+    (when (and cursor-in-echo-area
+               (not (string= message speechd-speak--last-spoken-message)))
+      (let ((speechd-speak--emulate-minibuffer t))
+        (speechd-speak--minibuffer-prompt message))
+      (setq speechd-speak--last-spoken-message message))))
+
+;; The following functions don't invoke `minibuffer-setup-hook' and don't put
+;; the cursor into the echo area.  Sigh.
 (speechd-speak--defadvice read-key-sequence before
   (let ((prompt (ad-get-arg 0))
         (speechd-speak--emulate-minibuffer t))
@@ -1721,6 +1744,9 @@ starts blocking your Emacs functions."
   (interactive)
   (setq speechd-speak--started nil)
   (ignore-errors (global-speechd-speak-mode -1))
+  (when speechd-speak--message-timer
+    (cancel-timer speechd-speak--message-timer)
+    (setq speechd-speak--message-timer nil))
   (remove-hook 'pre-command-hook 'speechd-speak--pre-command-hook)
   (remove-hook 'post-command-hook 'speechd-speak--post-command-hook)
   (remove-hook 'after-change-functions 'speechd-speak--after-change-hook)
@@ -1746,7 +1772,9 @@ With a prefix argument, close all open connections first."
     (global-speechd-speak-mode 1)
     (global-speechd-speak-map-mode 1)
     (speechd-speak--debug 'start)
-    (speechd-speak--signal 'start)))
+    (speechd-speak--signal 'start)
+    (setq speechd-speak--message-timer
+          (run-with-idle-timer 0 t 'speechd-speak--message-timer))))
 
 
 ;;; Announce
