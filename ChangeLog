@@ -1,3 +1,8 @@
+2003-12-12  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-bug.el (speechd-bug--finish-repro): Disable
+	speechd-speak-mode when inserting the logs.
+
 2003-12-11  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-speak.el (widget-choose): The old advice replaced by a
