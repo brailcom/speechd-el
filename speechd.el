@@ -2,6 +2,8 @@
 
 ;; Copyright (C) 2003 Brailcom, o.p.s.
 
+;; Author: Milan Zamazal <pdm@brailcom.org>
+
 ;; COPYRIGHT NOTICE
 ;;
 ;; This program is free software; you can redistribute it and/or modify it
@@ -215,7 +217,7 @@ but may create a new connection.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.38 2003-07-27 16:25:02 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.39 2003-07-28 13:17:40 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -732,9 +734,13 @@ Return the opened connection on success, nil otherwise."
                        (speechd--connection-forced-priority connection)))
 	(let ((answer
 	       (speechd--send-command
-		(list "SET" "self"
-		      (cdr (assoc parameter speechd--parameter-names))
-		      (speechd--transform-parameter-value parameter value)))))
+                (let ((p (cdr (assoc parameter speechd--parameter-names)))
+                      (v (speechd--transform-parameter-value parameter value)))
+                  (unless p
+                    (error "Invalid parameter name: `%s'" parameter))
+                  (unless v
+                    (error "Invalid parameter value: %s=%s" parameter value))
+                  (list "SET" "self" p v)))))
 	  (setq connection (speechd--connection))
 	  (setf (speechd--connection-parameters connection)
 		(plist-put (speechd--connection-parameters connection)
