@@ -1,6 +1,11 @@
 User-visible changes to speechd-el:
 
 
+* Changes in speechd-el 0.4
+
+** Whitespace signalization added.
+
+
 * Changes in speechd-el 0.3
 
 ** Connection parameters are handled in a different way.

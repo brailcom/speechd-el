@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "2004-03-25 12:54 pdm"
+(defconst speechd-speak-version "2004-03-31 11:27 pdm"
   "Version of the speechd-speak file.")
 
 
@@ -248,11 +248,13 @@ created."
   :group 'speechd-speak)
 
 (defcustom speechd-speak-signal-events
-  '(empty beginning-of-line end-of-line start finish minibuffer message)
+  '(empty whitespace beginning-of-line end-of-line start finish minibuffer
+          message)
   "List of symbolic names of events to signal with a standard sound icon.
 The following actions are supported: `empty', `beginning-of-line',
 `end-of-line', `start', `finish', `minibuffer', `message'."
   :type '(set (const empty)
+              (const whitespace)
               (const beginning-of-line)
               (const end-of-line)
               (const start)
@@ -282,6 +284,7 @@ This may be useful when debugging speechd-el itself."
 
 (defvar speechd-speak--event-mapping
   '((empty . "*empty-text")
+    (whitespace . "*whitespace")
     (beginning-of-line . "*beginning-of-line")
     (end-of-line . "*end-of-line")
     (start . "*start")
@@ -483,13 +486,18 @@ played."
   (interactive "r")
   (speechd-speak--interactive
    (let ((text (buffer-substring (or beg (mark)) (or end (point)))))
-     (if (string= text "")
-         (speechd-speak-report
-          (or empty-text
-              (speechd-speak--event-mapping 'empty)
-              "")
-          :priority speechd-default-text-priority)
-       (speechd-speak--text text)))))
+     (cond
+      ((string= text "")
+       (speechd-speak-report
+        (or empty-text
+            (speechd-speak--event-mapping 'empty)
+            "")
+        :priority speechd-default-text-priority))
+      ((string-match "\\`[ \t]+\\'" text)
+       (speechd-speak-report (or (speechd-speak--event-mapping 'whitespace) "")
+                             :priority speechd-default-text-priority))
+      (t
+       (speechd-speak--text text))))))
 
 (defun speechd-speak-read-line (&optional rest-only)
   "Speak current line.
