@@ -1,3 +1,40 @@
+2003-05-17  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd--command-answer): Removed.
+	(speechd--in-recursion): New variable.
+	(speechd--process-request): Process the answers directly.
+
+2003-05-16  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el: Forgotten debugging code removed.
+	(speechd--send-string): Try to reopen the connection on error, set
+	failure-p if unsuccessful.  Don't handle queueing.
+	(speechd-running-p): Docstring added.
+	(speechd--close-process): New function.
+	(speechd-close): Use it.  Remove the connection from the
+	connection table.
+	(speechd-open): Handle both open and reopen, the latter
+	correctly.  New argument `quiet'.
+	(speechd-reopen): Rewritten -- reopen all connections and message
+	the resulting numbers of connections.
+	(speechd--connection): sending-data-p renamed to
+	transaction-state.  command-queue renamed to request-queue.  New
+	slot new-state.
+	(speechd--set-parameter): Store the new parameter value only if
+	changed successfully.  Take care about unknown parameter state.
+	(speechd--with-connection-setting): New macro.
+	(speechd--send-data-end): Only call speechd--send-command.
+	(speechd--request): New structure.
+	(speechd--send-data-begin): New function.
+	(speechd--send-data): Don't handle transaction state.  Call
+	speechd--send-request instead of speechd--send-string.
+	(speechd--send-request): New function.
+	(speechd--send-command): Use it.  New argument transaction-state.
+	(speechd--process-request): New function.
+	(speechd--command-answer): Miscellaneous changes.
+	(speechd-resume): Update `connection' after sending the command.
+	(speechd-say-text): Resume if paused.
+
 2003-05-15  Milan Zamazal  <pdm@brailcom.org>
 
 	* emacspeak.patch: dtk-speak.el patched to avoid
