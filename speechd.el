@@ -206,7 +206,7 @@ current voice."
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.33 2003-07-17 08:42:52 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.34 2003-07-17 17:13:19 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -397,7 +397,7 @@ wrapped by this macro."
     (setf (speechd--connection-process connection) nil)))
 
 ;;;###autoload
-(defun* speechd-open (&optional host port &key quiet)
+(defun* speechd-open (&optional host port &key quiet force-reopen)
   "Open connection to speechd running on the given host and port.
 If the connection corresponding to the current `speechd-client-name' value
 already exists, close it and reopen again, with the same connection parameters.
@@ -405,6 +405,10 @@ already exists, close it and reopen again, with the same connection parameters.
 The optional arguments HOST and PORT identify the speechd server location
 differing from the values of `speechd-host' and `speechd-port', see
 `open-network-stream' for closer description of those arguments.
+
+If the key argument QUIET is non-nil, don't report failures and quit silently.
+If the key argument FORCE-REOPEN is non-nil, try to reopen an existent
+connection even if it previously failed.
 
 Return the opened connection on success, nil otherwise."
   (interactive)
@@ -420,12 +424,16 @@ Return the opened connection on success, nil otherwise."
                              (speechd--connection-parameters connection)
                            (cdr (assoc speechd-client-name
                                        speechd-connection-parameters))))
-	     (process (condition-case nil
-			  (open-network-stream
-			   "speechd-proc"
-			   (concat speechd--buffer "-" name)
-			   host port)
-			(error nil))))
+	     (process (when (or
+                             (not connection)
+                             (not (speechd--connection-failure-p connection))
+                             force-reopen)
+                        (condition-case nil
+                            (open-network-stream
+                             "speechd-proc"
+                             (concat speechd--buffer "-" name)
+                             host port)
+                          (error nil)))))
 	(if process
 	    (progn
 	      ;; The process input encoding is set to raw-text and the coding
@@ -453,7 +461,7 @@ Return the opened connection on success, nil otherwise."
     connection))
 
 (defun* speechd-close (&optional (name speechd-client-name))
-  "Close connection named NAME to speechd."
+  "Close speechd connection named NAME."
   (interactive)
   (let ((connection (speechd--connection name nil)))
     (when connection
@@ -467,7 +475,7 @@ Return the opened connection on success, nil otherwise."
 	(number-of-failures 0))
     (maphash #'(lambda (name _)
 		 (let ((speechd-client-name name))
-		   (if (speechd-open :quiet t)
+		   (if (speechd-open :quiet t :force-reopen t)
 		       (incf number-of-connections)
 		     (incf number-of-failures))))
 	     speechd--connections)
@@ -509,16 +517,8 @@ Return the opened connection on success, nil otherwise."
       (when process
 	(unwind-protect
 	    (process-send-string process string)
-	  (when (and (not (speechd-running-p))
-		     (not (speechd--connection-failure-p connection)))
-	    (let* ((connection (speechd-open))
-		   (process (and connection
-				 (speechd--connection-process connection))))
-	      (if process
-                  (progn
-                    (setf (speechd--connection-failure-p connection) t)
-                    (process-send-string process string))
-		(speechd--permanent-connection-failure connection)))))))))
+	  (when (not (speechd-running-p))
+            (speechd--permanent-connection-failure connection)))))))
 
 (defvar speechd--in-recursion nil)
 
@@ -550,7 +550,7 @@ Return the opened connection on success, nil otherwise."
 		     speechd-timeout))
 		 (when (string= (speechd--connection-process-output connection)
 				output)
-		   (speechd-close)
+		   (speechd--permanent-connection-failure connection)
 		   (error "Timeout during communication with speechd."))))
 	     ;; Process the answer
 	     (let ((answer (speechd--connection-process-output connection))
