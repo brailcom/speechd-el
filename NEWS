@@ -1,6 +1,5 @@
 User-visible changes to speechd-el:
 
-
 * Changes in speechd-el 0.5
 
 ** Messages from built-in functions can be read now.
@@ -19,7 +18,7 @@ Type `C-e C-i C-h' to see the list of those commands.
 
 ** Some state changes can be automatically reported now.
 
-See the variable `speechd-speak-state-changes'.
+See the variable speechd-speak-state-changes.
 
 ** The SPEECHD_HOST environment variable is honored now.
 
