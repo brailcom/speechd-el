@@ -200,6 +200,8 @@ Pronounces character phonetically unless called with a PREFIX arg."
 (speechd-protect-against-dtk-process-errors dtk-interp-resume)
 
 (define-key emacspeak-keymap "s" 'speechd-stop)	; stop, not cancel
+(define-key emacspeak-keymap "p" 'speechd-pause) ; not dtk-pause
+(define-key emacspeak-keymap " " 'speechd-resume) ; not dtk-resume
 
 ;;; Disable voice handling (can't work the Emacspeak way; has to be solved in a
 ;;; better way in future)
