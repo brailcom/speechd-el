@@ -215,7 +215,7 @@ language.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.73 2003-10-24 10:43:53 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.74 2003-10-27 16:11:39 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -1035,9 +1035,12 @@ clients."
 (defun speechd-repeat ()
   "Repeat the last message sent to speechd."
   (interactive)
-  (let ((id (car (second (speechd--send-command '("HISTORY" "GET" "LAST"))))))
-    (when id
-      (speechd--send-command (list "HISTORY" "SAY" id)))))
+  (if t
+      (message "Not yet implemented in speechd")
+    (let ((id (car (second (speechd--send-command
+                            '("HISTORY" "GET" "LAST"))))))
+      (when id
+        (speechd--send-command (list "HISTORY" "SAY" id))))))
 
 
 ;;; Announce
