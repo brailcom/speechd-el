@@ -293,7 +293,7 @@ language.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "2004-02-20 13:13 pdm"
+(defconst speechd--el-version "2004-02-24 15:40 pdm"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -484,7 +484,7 @@ macro."
          (voice-name (speechd--voice-name parameters))
          (result (if voice-name (list 'voice voice-name) '())))
     (dolist (p parameters)
-      (unless (memq p '(voice gender age style))
+      (unless (memq (car p) '(name gender age style))
         (plist-put result (car p) (cdr p))))
     result))
 

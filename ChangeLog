@@ -1,3 +1,7 @@
+2004-02-24  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd--voice-parameters): Bug fixes.
+
 2004-02-20  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd.el (speechd-voices): Voice tag label changed to "Voice".
