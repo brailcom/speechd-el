@@ -217,13 +217,14 @@ Pronounces character phonetically unless called with a PREFIX arg."
 
 ;;; Disable other Emacspeak features
 
+(require 'emacspeak-advice)
 (defadvice message (around emacspeak pre act)
   ad-do-it
   (setq emacspeak-last-message ad-return-value)
   (when (and emacspeak-speak-messages
 	     ad-return-value)
     (tts-with-punctuations "all"
-      (dtk-speak ad-return-value :priority :progress))))
+      (speechd-say-text ad-return-value :priority :progress))))
 
 ;;; Start Emacspeak now
 
