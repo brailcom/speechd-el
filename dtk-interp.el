@@ -85,7 +85,7 @@
   (setq speechd-emacspeak-no-stop t))
 
 (defun dtk-interp-set-rate (rate)
-  (speechd-set-rate (string-to-number rate)))
+  (speechd-set-rate (if (numberp rate) rate (string-to-number rate))))
 
 (defun dtk-interp-set-character-scale (factor)
   ;; unsupported in speechd
