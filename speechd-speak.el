@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "2004-02-19 18:47 pdm"
+(defconst speechd-speak-version "2004-03-23 18:45 pdm"
   "Version of the speechd-speak file.")
 
 
@@ -284,6 +284,8 @@ The following actions are supported: `empty', `beginning-of-line',
     (message . "*message")))
 (defun speechd-speak--event-mapping (event)
   (cdr (assq event speechd-speak--event-mapping)))
+
+(defconst speechd-speak--c-buffer-name "*Completions*")
 
 
 ;;; Debugging support
@@ -584,6 +586,7 @@ If BUFFER is nil, read current buffer."
   (other-changes '())
   other-window
   other-buffer-modified
+  completion-buffer-modified
   minibuffer-contents)
 
 (defmacro speechd-speak--cinfo (slot)
@@ -629,13 +632,16 @@ If BUFFER is nil, read current buffer."
                  :marker (point-marker)
 		 :modified (buffer-modified-tick)
 		 :other-window other-window
-		 :other-buffer-modified (and other-window
-					     (buffer-modified-tick
-					      (window-buffer other-window)
-					      ))
-                 :minibuffer-contents (if (speechd-speak--in-minibuffer-p)
-                                          (minibuffer-contents)
-                                        'unset))))))))
+		 :other-buffer-modified
+                   (and other-window
+                        (buffer-modified-tick (window-buffer other-window)))
+                 :completion-buffer-modified
+                   (let ((buffer (get-buffer speechd-speak--c-buffer-name)))
+                     (and buffer (buffer-modified-tick buffer)))
+                 :minibuffer-contents
+                   (if (speechd-speak--in-minibuffer-p)
+                       (minibuffer-contents)
+                     'unset))))))))
 
 (defun speechd-speak--reset-command-start-info ()
   (speechd-speak--set-command-start-info t))
@@ -1154,6 +1160,19 @@ connections, otherwise create completely new connection."
                           speechd-speak-ignore-command-keys)))
       (speechd-speak--command-keys))))
 
+(speechd-speak--post-defun completions t t
+  ;; *Completions* buffer
+  (and in-minibuffer
+       (get-buffer speechd-speak--c-buffer-name)
+       (/= (speechd-speak--cinfo completion-buffer-modified)
+           (buffer-modified-tick (get-buffer speechd-speak--c-buffer-name))))
+  (save-excursion
+    (set-buffer speechd-speak--c-buffer-name)
+      (let ((speechd-language "en"))
+        (goto-char (point-min))
+        (re-search-forward "\n\n+" nil t)
+        (speechd-speak-read-region (point) (point-max) nil))))
+
 (speechd-speak--post-defun special-face-movement sometimes
     (or (not (stringp (cdr (assq (get-char-property (point) 'face)
                                  speechd-speak-faces))))
@@ -1231,6 +1250,7 @@ connections, otherwise create completely new connection."
     speechd-speak--post-read-command-keys
     speechd-speak--post-read-speaking-commands
     speechd-speak--post-read-buffer-modifications
+    speechd-speak--post-read-completions
     speechd-speak--post-read-special-face-movement
     speechd-speak--post-read-text-property-movement
     speechd-speak--post-read-plain-movement

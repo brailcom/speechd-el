@@ -21,6 +21,8 @@ Log extraction speed up.
 You can use the `C-e d V' command with Speech Dispatcher 0.3 or higher to
 adjust speech volume.
 
+** The *Completion* buffer is spoken now.
+
 
 * Changes in speechd-el 0.2
 

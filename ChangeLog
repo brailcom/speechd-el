@@ -1,3 +1,17 @@
+2004-03-23  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (completions): Set speechd-language in the
+	spoken buffer, not before entering it.
+
+2004-03-23  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak--command-info-struct): New slot
+	completion-buffer-modified.
+	(speechd-speak--set-command-start-info): Initialize it.
+	(completions): New post-defun.
+	(speechd-speak--post-command-speaking-defaults): Added here.
+	(speechd-speak--c-buffer-name): New constant.
+
 2004-03-17  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-bug.el (speechd-bug): reporter-submit-bug-report call
