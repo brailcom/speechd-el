@@ -125,6 +125,10 @@ sound-table, capital-character-table, capital-character-mode, voice, rate,
 pitch, output-module.  See the corresponding speechd-set-* functions for
 valid parameter values.
 
+If the symbol t is specified as the connection name, the element defines
+default connection parameters if no connection specification applies.  Only one
+such an element is allowed in the whole alist.
+
 The message-priority parameter has a special meaning: It overrides priority of
 all messages sent through the connection.
 
@@ -151,7 +155,9 @@ You must reopen the connections to apply the changes to this variable."
                    value)))
              (set-default name real-value)))
   :type `(repeat
-          (cons :tag "Connection" (string :tag "Name")
+          (cons :tag "Connection"
+                (choice (string :tag "Connection name")
+                        (const :tag "Default parameters" :value t))
            (set :tag "Parameters"
             (cons :tag "Language" (const language) string)
             (cons :tag "Messsage priority" (const message-priority)
@@ -178,17 +184,6 @@ You must reopen the connections to apply the changes to this variable."
             (cons :tag "Output module" (const output-module) string))))
   :group 'speechd)
 
-(defcustom speechd-default-voice "male1"
-  "Voice to be used by default."
-  :type 'string
-  :group 'speechd)
-
-(defcustom speechd-default-language "en"
-  "Language to be used by default.
-If nil, no default language is defined and the last language set is used."
-  :type '(choice (string :tag "ISO 639 language code") (const :tag "None" nil))
-  :group 'speechd)
-
 (defcustom speechd-face-voices '()
   "Alist mapping faces to voices.
 Each of the alist element is of the form (FACE . STRING) where FACE is a face
@@ -213,7 +208,7 @@ locally through `let'.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.41 2003-07-30 14:15:07 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.42 2003-07-30 19:38:43 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -222,6 +217,17 @@ Useful only for diagnosing problems.")
 
 (defconst speechd--application-name "Emacs"
   "Name of the client as set to speechd.")
+
+(defvar speechd--language-codes
+  '(("czech" . "cs")
+    ("english" . "en")
+    ("french" . "fr")
+    ("german" . "de")))
+
+(defvar speechd--default-voice "male1")
+(defvar speechd--default-language (or (cdr (assoc current-language-environment
+                                                  speechd--language-codes))
+                                      "en"))
 
 (defconst speechd--coding-system 'utf-8-dos)
 
@@ -430,8 +436,11 @@ Return the opened connection on success, nil otherwise."
 	(setq host (speechd--connection-host connection)
 	      port (speechd--connection-port connection)))
       (let* ((name speechd-client-name)
-             (default-parameters (cdr (assoc speechd-client-name
-                                             speechd-connection-parameters)))
+             (default-parameters (append
+                                  (cdr (assoc speechd-client-name
+                                              speechd-connection-parameters))
+                                  (cdr (assoc t
+                                              speechd-connection-parameters))))
 	     (parameters (if connection
                              (speechd--connection-parameters connection)
                            default-parameters))
@@ -464,9 +473,9 @@ Return the opened connection on success, nil otherwise."
 	(puthash name connection speechd--connections)
 	(when process
 	  (speechd--set-connection-name name)
-          (speechd-set-voice speechd-default-voice)
-          (when speechd-default-language
-            (speechd-set-language speechd-default-language))
+          (speechd-set-voice speechd--default-voice)
+          (when speechd--default-language
+            (speechd-set-language speechd--default-language))
 	  (while parameters
 	    (destructuring-bind (parameter value . next) parameters
 	      (when (not (eq parameter 'client-name))
