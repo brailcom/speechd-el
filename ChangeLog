@@ -1,3 +1,12 @@
+2003-04-10  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-resume): New argument `soft'.
+	(speechd-send-data): Use it.
+	(speechd-paused-p): New variable.
+	(speechd-reset-connection-parameters, speechd-pause): Set it.
+	(speechd-send-command): Don't use regexps for detection of the end
+	of speechd output.
+
 2003-04-09  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-emacspeak.el (dtk-speech-rate-base): Set
