@@ -178,6 +178,7 @@ the following line to your @file{~/.emacs} after the autoload line:
 @table @kbd
 @item M-x speechd-speak
 @findex speechd-speak
+@kindex C-e C-s
 Set up Emacs for speech output and start speaking.
 
 Please don't forget Speech Dispatcher must be running in order to get
@@ -186,6 +187,13 @@ any speech output!
 After the initial setup, the command can be used again to restart the
 speech support when needed.  Especially, you must run it again if
 Speech Dispatcher gets restarted.
+
+With a prefix argument, all open connections are closed first.  This
+is useful when you need to reset parameters of all connections, see
+@ref{Connections}.
+
+After the first invocation, the command is available under the
+@kbd{C-e C-s} key.
 @end table
 
 Once the setup is done, enabling and disabling the speech output is
@@ -240,14 +248,14 @@ Read current line (@code{speechd-speak-read-line}).
 @findex speechd-speak-read-buffer
 Read current buffer (@code{speechd-speak-read-buffer}).
 
-@item C-e n
-@kindex C-e n
+@item C-e >
+@kindex C-e >
 @findex speechd-speak-read-rest-of-buffer
 Read current buffer from the cursor to the buffer end
 (@code{speechd-speak-read-rest-of-buffer}).
 
-@item C-e C-n
-@kindex C-e C-n
+@item C-e o
+@kindex C-e o
 @findex speechd-speak-read-other-window
 Read buffer of the other window, if any is present
 (@code{speechd-speak-read-other-window}).
@@ -283,18 +291,18 @@ Read the next symbolic expression after cursor
 @findex speechd-speak-read-char
 Read the character at the cursor position (@code{speechd-speak-read-char}).
 
-@item C-e [down]
-@kindex C-e [down]
+@item C-e C-n
+@kindex C-e C-n
 @findex speechd-speak-read-next-line
 Read the next line (@code{speechd-speak-read-next-line}).
 
-@item C-e [up]
-@kindex C-e [up]
+@item C-e C-p
+@kindex C-e C-p
 @findex speechd-speak-read-previous-line
 Read the previous line (@code{speechd-speak-read-previous-line}).
 
-@item C-e a
-@kindex C-e a
+@item C-e m
+@kindex C-e m
 @findex speechd-speak-last-message
 Read last seen Emacs message (@code{speechd-speak-last-message}).
 @end table
@@ -317,7 +325,8 @@ a prefix argument, toggle it in the current buffer only.
 Stop speaking current message (@code{speechd-stop}).  Other queued
 messages will still be spoken.
 
-@item M-x speechd-cancel
+@item C-e x
+@kindex C-e x
 @findex speechd-cancel
 @cindex stop
 Stop speaking all the queued messages.
@@ -372,13 +381,15 @@ information about Speech Dispatcher connections, @pxref{Connections}).
 Commands affecting basic parameters of the text-to-speech process:
 
 @table @kbd
-@item M-x speechd-speak-set-language
+@item C-e d l
+@kindex C-e d l
 @findex speechd-speak-set-language
 @cindex language
 Set default language of the connection.  Specify it as an ISO 639
 language code.
 
-@item M-x speechd-speak-set-punctuation-mode
+@item C-e d .
+@kindex C-e d .
 @findex speechd-speak-set-punctuation-mode
 @cindex punctuation mode
 Specify how to handle punctuation, whether to read it or ignore it.
@@ -387,7 +398,8 @@ skips them all quietly, and @code{some} mode reads a selected subset
 of punctuation characters specified in the Speech Dispatcher
 configuration.
 
-@item M-x speechd-speak-set-capital-character-mode
+@item C-e d c
+@kindex C-e d c
 @findex speechd-speak-set-capital-character-mode
 @cindex capital character mode
 Set capital letter signalization mode.  @code{icon} means signal them
@@ -398,34 +410,41 @@ spelling table, and @code{none} means no signalization.
 Commands affecting speech output properties:
 
 @table @kbd
-@item M-x speechd-speak-set-voice
+@item C-e d v
+@kindex C-e d v
 @findex speechd-speak-set-voice
 @cindex voice
-Set default voice to be used by the synthesizer.  You may select one
-from the voice set offered by your Speech Dispatcher installation.
+Set default voice to be used by the synthesizer
+(@code{speechd-speak-set-voice}).  You may select one from the voice set
+offered by your Speech Dispatcher installation.
 
-@item M-x speechd-speak-set-rate
+@item C-e d r
+@kindex C-e d r
 @findex speechd-speak-set-rate
 @cindex rate
-Set exact speech rate, ranging from -100 (slowest) to 100
-(fastest).  Most often you will probably want to use the
-@code{speechd-speak-key-set-predefined-rate} command bound to @kbd{C-e
-@var{number}} instead, see @ref{Control commands}.
+Set exact speech rate, ranging from -100 (slowest) to 100 (fastest)
+(@code{speechd-speak-set-rate}).  Most often you will probably want to
+use the @code{speechd-speak-key-set-predefined-rate} command bound to
+@kbd{C-e @var{number}} instead, see @ref{Control commands}.
 
-@item M-x speechd-speak-set-pitch
+@item C-e d p
+@kindex C-e d p
 @findex speechd-speak-set-pitch
 @cindex pitch
-Set voice pitch, ranging from -100 (lowest) to 100 (highest).
+Set voice pitch, ranging from -100 (lowest) to 100 (highest)
+(@code{speechd-speak-set-pitch}).
 @end table
 
 Commands affecting the speech synthesizer:
 
 @table @kbd
-@item M-x speechd-speak-set-output-module
+@item C-e d o
+@kindex C-e d o
 @findex speechd-speak-set-output-module
 @cindex output module
-Switch Speech Dispatcher to the given output module.  Give the module
-name when you are prompted for the argument.
+Switch Speech Dispatcher to the given output module
+(@code{speechd-speak-set-output-module}).  Give the module name when
+you are prompted for the argument.
 @end table
 
 The following commands set various text transformation tables.  Each
@@ -434,33 +453,47 @@ your Speech Dispatcher installation.  Refer to the Speech Dispatcher
 documentation for more information about particular tables.
 
 @table @kbd
-@item M-x speechd-speak-set-spelling-table
+@item C-e d t s
+@kindex C-e d t s
 @findex speechd-speak-set-spelling-table
 @cindex spelling table
+Set spelling table (@code{speechd-speak-set-spelling-table}).
 
-@item M-x speechd-speak-set-character-table
+@item C-e d t =
+@kindex C-e d t =
 @findex speechd-speak-set-character-table
 @cindex character table
+Set character table (@code{speechd-speak-set-character-table}).
 
-@item M-x speechd-speak-set-capital-character-table
+@item C-e d t c
+@kindex C-e d t c
 @findex speechd-speak-set-capital-character-table
 @cindex capital character table
+Set capital character table (@code{speechd-speak-set-capital-character-table}).
 
-@item M-x speechd-speak-set-key-table
+@item C-e d t k
+@kindex C-e d t k
 @findex speechd-speak-set-key-table
 @cindex key table
+Set key table (@code{speechd-speak-set-key-table}).
 
-@item M-x speechd-speak-set-punctuation-table
+@item C-e d t .
+@kindex C-e d t .
 @findex speechd-speak-set-punctuation-table
 @cindex punctuation table
+Set punctuation table (@code{speechd-speak-set-punctuation-table}).
 
-@item M-x speechd-speak-set-text-table
+@item C-e d t t
+@kindex C-e d t t
 @findex speechd-speak-set-text-table
 @cindex text table
+Set text table (@code{speechd-speak-set-text-table}).
 
-@item M-x speechd-speak-set-sound-table
+@item C-e d t i
+@kindex C-e d t i
 @findex speechd-speak-set-sound-table
 @cindex sound table
+Set sound table (@code{speechd-speak-set-sound-table}).
 @end table
 
 @node Other commands,  , Parameter setting commands, Commands

@@ -2,6 +2,13 @@
 
 	* speechd-speak.el (speechd-speak--post-command-hook):
 	message-priority in block parameters, not `priority'.
+	(speechd-unspeak): Call speechd-close.
+	(speechd-speak): Prefix argument added.
+	(speechd-speak-mode-map): Some key bindings changed, many new key
+	bindings added.
+	(speechd-speak--post-command-hook): Check overlays to when looking
+	for property hit; look one character more when checking for
+	previous property change.
 
 	* speechd.el (speechd-open): Default parameter fixes and
 	improvements.
