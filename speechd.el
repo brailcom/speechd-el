@@ -603,6 +603,10 @@ Return the opened connection on success, nil otherwise."
       (speechd--close-connection connection)
       (remhash name speechd--connections))))
 
+(defun speechd-close-all ()
+  "Close all speechd connections."
+  (speechd--iterate-clients (speechd-close)))
+
 (defun speechd-reopen ()
   "Close and open again all the connections to speechd."
   (interactive)

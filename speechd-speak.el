@@ -1986,7 +1986,7 @@ starts blocking your Emacs functions."
   (remove-hook 'minibuffer-setup-hook 'speechd-speak--minibuffer-setup-hook)
   (remove-hook 'minibuffer-exit-hook 'speechd-speak--minibuffer-exit-hook)
   (remove-hook 'kill-emacs-hook 'speechd-speak--shutdown)
-  (speechd-close)
+  (speechd-close-all)
   (global-speechd-speak-map-mode -1))
 
 ;;;###autoload
