@@ -1,3 +1,11 @@
+2003-04-09  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-emacspeak.el (dtk-speech-rate-base): Set
+	dtk-speech-rate-* variables.
+
+	* dtk-interp.el (dtk-interp-set-rate): Convert `rate' to a number
+	if it is a string.
+
 2003-04-07  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd.el (speechd-reset-connection-parameters): New function.
