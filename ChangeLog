@@ -2,6 +2,11 @@
 
 	* speechd.el (speechd-set-punctuation-mode): Use `assoc', not
 	`rassoc'.
+	(speechd--process-request): Handle connection reopen in
+	check-state.  Don't try to reopen if the current state is equal to
+	NEW-STATE.
+	(speechd-say-text, speechd-say-text): If TEXT is empty, don't send
+	it.
 
 	* speechd-emacspeak.el (emacspeak-keymap): Map `C-e p' and `C-e
 	SPC' to speechd-pause and speechd-resume respectively.
