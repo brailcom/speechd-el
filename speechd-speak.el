@@ -91,13 +91,13 @@ processed in a different way by speechd-speak or user definitions."
   :group 'speechd-speak)
 
 (defcustom speechd-speak-insertions-in-buffers
-  '(" widget-choose" "*Choices*" "*shell*")
+  '(" widget-choose" "*Choices*")
   "List of names of buffers, in which insertions are automatically spoken.
 See also `speechd-speak-buffer-insertions'."
   :type '(repeat (string :tag "Buffer name"))
   :group 'speechd-speak)
 
-(defcustom speechd-speak-priority-insertions-in-buffers '()
+(defcustom speechd-speak-priority-insertions-in-buffers '("*shell*")
   "List of names of buffers, in which insertions are spoken immediately.
 Unlike `speechd-speak-insertions-in-buffers', speaking is not delayed until a
 command is completed.

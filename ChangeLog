@@ -1,5 +1,11 @@
 2004-10-01  Milan Zamazal  <pdm@brailcom.org>
 
+	* speechd-speak.el (speechd-speak-priority-insertions-in-buffers):
+	"*shell*" added.
+	(speechd-speak-insertions-in-buffers): "*shell*" removed.
+
+2004-10-01  Milan Zamazal  <pdm@brailcom.org>
+
 	* speechd-speak.el (speechd-speak--after-change-hook): Don't speak
 	changes within specially handled interactive commands.
 
