@@ -1190,13 +1190,14 @@ Only single characters are allowed in the keymap.")
   (speechd-speak--with-command-start-info
     (unless (= beg end)
       (cond
-       ((or (member (buffer-name)
-                    speechd-speak-priority-insertions-in-buffers)
+       ((or (member (buffer-name) speechd-speak-priority-insertions-in-buffers)
             ;; Asynchronous buffer changes
             (and (not this-command)
                  (member (buffer-name) speechd-speak-insertions-in-buffers)))
-        (speechd-speak--read-buffer-change
-         (buffer-name) (speechd-speak--buffer-substring beg end)))
+        (unless (memq this-command '(self-insert-command quoted-insert newline
+                                     newline-and-indent undo yank yank-pop))
+          (speechd-speak--read-buffer-change
+           (buffer-name) (speechd-speak--buffer-substring beg end))))
        ((not this-command)
         ;; Asynchronous buffer change -- we are not interested in it by
         ;; default
