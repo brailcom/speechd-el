@@ -1,3 +1,41 @@
+2003-10-14  Milan Zamazal  <pdm@brailcom.org>
+	
+	* speechd-speak.el (speechd-speak--signal): Return t if really
+	signalling.
+	(speechd-speak--shutdown): Signal the `finish' icon.
+	(buffer-modifications): Signal the command key instead of the
+	inserted character on self-insert-command.
+	(speechd-speak-read-command-name): New user option.
+	(command-keys): Consider it.
+
+	* speechd-speak.el (speechd-speak-read-command-keys): New user
+	option.
+	(speechd-speak--command-keys): New function.
+	(speechd-speak--post-command-hook): Don't speak insertions if
+	movement occurred.
+	(speechd-speak-movement-on-insertions): Default value changed to
+	t.
+	(speechd-speak--post-command-speaking): New variable.
+	(speechd-speak--post-command-hook): Most of the code moved to
+	separate functions, loop over them.
+	(speechd-speak--post-defun): New macro.
+	(special-commands, buffer-switch, command-keys) 
+	(buffer-modifications, special-face-movement) 
+	(text-property-movement, plain-movement, other-window-event) 
+	(other-window-buffer): New post command reading functions.
+	(speechd-speak--cinfo): New macro.
+	(speechd-speak--command-info-struct-buffer) 
+	(speechd-speak--command-info-struct-point) 
+	(speechd-speak--minibuffer-setup-hook) 
+	(speechd-speak--minibuffer-exit-hook) 
+	(speechd-speak--read-other-changes) 
+	(speechd-speak--add-command-text) 
+	(speechd-speak--minibuffer-update) 
+	(speechd-speak--after-change-hook) 
+	(speechd-speak--post-command-hook): Use it.
+	* speechd-el.texi (Basic Speaking):
+	speechd-speak-read-command-keys documented.
+
 2003-10-13  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-el.texi (Signalling): speechd-speak.el user option
