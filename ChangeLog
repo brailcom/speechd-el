@@ -1,3 +1,15 @@
+2003-08-19  Mario Lang  <mlang@delysid.org>
+
+	* speechd.el (speechd-priority-tag): Create a proper widget type
+	instead of previous defconst speechd--priority-tags.
+	(speechd-default-text-priority),
+	(speechd-default-sound-priority),
+	(speechd-default-char-priority),
+	(speechd-default-key-priority),
+	(speechd-connection-parameters): Use it.
+	(speechd-face-voices): Use :type alist.
+	(speechd-connection-parameters): Add :format "" to consts to hide them.
+
 2003-08-19  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd.el (speechd--priority-tags): Extra quotes removed.
