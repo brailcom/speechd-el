@@ -1,3 +1,8 @@
+2004-09-25  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (minor-modes): Use LOOP instead of REMOVE-IF,
+	to satisfy Elisp coding conventions.
+
 2004-09-23  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-speak.el (speechd-speak-state-changes): New user

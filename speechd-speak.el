@@ -1718,9 +1718,10 @@ When the mode is enabled, all spoken text is spelled."
                   (format "Major mode changed from %s to %s" old new))))
 
 (speechd-speak--watch minor-modes
-  #'(lambda () (remove-if #'(lambda (mode) (or (not (boundp mode))
-                                               (not (symbol-value mode))))
-                          (mapcar #'car minor-mode-alist)))
+  #'(lambda ()
+      (loop for mode in (mapcar #'car minor-mode-alist)
+            when (and (boundp mode) (symbol-value mode))
+            collect mode))
   :on-change #'(lambda (old new)
                  (let ((disabled (set-difference old new))
                        (enabled (set-difference new old)))
