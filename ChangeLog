@@ -1,3 +1,19 @@
+2003-06-26  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak--widget-choose-buffer-name): New
+	constant.
+	(scroll-other-window): New advice.
+	(read-key-sequence): Be safe on nil PROMPT.
+	(speechd-speak-quiet): Be no more buffer local automatically.
+	(speechd-speak-toggle-quiet): New PREFIX meaning, rewritten.
+	(speechd-speak-set-predefined-rate): Rewritten, changed to a
+	standard interactive function.
+	(speechd-speak-key-set-predefined-rate): New command.  Assign it
+	to the `C-e digit' keys.  Don't assign `C-e 0'.
+	(speechd-speak-toggle-quiet): New argument QUIET.
+	(speechd-speak): Call speechd-reopen and speechd-speak-toggle-quiet.
+	(speechd-speak-prefix): Turned into a user option.
+
 2003-06-25  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-speak.el (speechd-speak--defadvice): New macro.
