@@ -1,3 +1,11 @@
+2003-04-25  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-emacspeak.el (emacspeak-unibyte): Set it to nil.
+	(dtk-speech-rate): Set to 0.
+	(dtk-speech-rate-*): Set them before emacspeak-setup is loaded.
+	(dtk-voice-table, dtk-family-table): Clear them.
+	(dtk-default-voice-string, tts-voice-reset-code): Set them to "".
+
 2003-04-24  Milan Zamazal  <pdm@brailcom.org>
 
 	* dtk-interp.el (dtk-interp-queue-set-rate): Just call
