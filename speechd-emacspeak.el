@@ -51,6 +51,10 @@
 
 (setq emacspeak-directory
       (expand-file-name "../" (file-name-directory load-file-name)))
+(setq emacspeak-unibyte nil)
+(setq dtk-speech-rate-base -99
+      dtk-speech-rate-step 22
+      dtk-speech-rate 0)
 (load "emacspeak-setup.el")
 
 ;;; Redefine some Emacspeak functions
@@ -109,10 +113,15 @@ Pronounces character phonetically unless called with a PREFIX arg."
 (speechd-protect-against-dtk-process-errors dtk-interp-pause)
 (speechd-protect-against-dtk-process-errors dtk-interp-resume)
 
-(setq dtk-speech-rate-base -99
-      dtk-speech-rate-step 22)
-
 (define-key emacspeak-keymap "s" 'speechd-stop)	; stop, not cancel
+
+;;; Disable voice handling (can't work the Emacspeak way; has to be solved in a
+;;; better way in future)
+
+(clrhash dtk-voice-table)
+(setq dtk-family-table nil
+      dtk-default-voice-string ""
+      tts-voice-reset-code "")
 
 ;;; Start Emacspeak now
 
