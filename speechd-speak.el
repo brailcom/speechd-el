@@ -31,7 +31,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.8 2003-06-28 14:34:12 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.9 2003-06-29 19:40:57 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -88,17 +88,17 @@ Otherwise from the point to the end of line on movement by default."
 (defvar speechd-speak-quiet t
   "If non-nil in the current buffer, no speech output is produced.")
 
-(defun speechd-speak-toggle-quiet (&optional prefix quiet)
+(defun speechd-speak-toggle-quiet (&optional prefix speak)
   "Turn speaking on or off.
 Without the PREFIX argument, toggle speaking globally, except for the buffers
 with previously explicitly toggled speaking.
 With the universal PREFIX argument, toggle speaking in all buffers.
 With the PREFIX argument 1, toggle speaking in the current buffer only.
 
-If the optional argument QUIET is a positive number, turn speaking on; if it
+If the optional argument SPEAK is a positive number, turn speaking on; if it
 is a non-positive number, turn speaking off."
   (interactive "P")
-  (let ((new-state (if (numberp quiet) (<= quiet 0) (not speechd-speak-quiet)))
+  (let ((new-state (if (numberp speak) (<= speak 0) (not speechd-speak-quiet)))
 	prompt)
     (cond
      ((not prefix)
@@ -534,7 +534,7 @@ Level 1 is the slowest, level 9 is the fastest."
 		 (get-text-property (point) 'face)
 		 (or (> (previous-property-change (1+ (point)) nil position)
 			position)
-		     (<= (next-property-change (point) (1+ position))
+		     (<= (next-property-change (point) nil (1+ position))
 			 position)))
 	    (speechd-speak--uniform-text-around-point))
 	   (point-moved
@@ -649,7 +649,7 @@ Level 1 is the slowest, level 9 is the fastest."
   (speechd-reopen)
   (add-hook 'pre-command-hook 'speechd-speak--pre-command-hook)
   (add-hook 'post-command-hook 'speechd-speak--post-command-hook)
-  (speechd-speak-toggle-quiet nil 'on)
+  (speechd-speak-toggle-quiet nil 1)
   (run-hooks 'speechd-speak-startup-hook)
   (message "Speechd-speak %s"
 	   (if speechd-speak--started "restarted" "started"))
