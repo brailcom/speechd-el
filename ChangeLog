@@ -1,3 +1,18 @@
+2003-10-29  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-cancel): Numeric prefix argument supported.
+	* speechd-speak.el (speechd-speak--dont-cancel-on-commands): New
+	constant.
+	(speechd-speak--pre-command-hook): Cancel messages of all
+	connections.
+
+	* speechd-bug.el (speechd-bug--insert-logs): Don't match output if
+	accept-process-output returns nil.
+	(speechd-bug--insert-logs): Use find-file-noselect instead of
+	find-file.
+	(speechd-bug--insert-logs): Look for configuration in
+	/usr/local/etc/ too.
+
 2003-10-27  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-speak.el (speechd-speak--command-keys): Take one
