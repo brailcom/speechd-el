@@ -1,3 +1,26 @@
+2004-07-24  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd--with-connection-parameters): Message
+	priority setting bug fixed. 
+
+2004-07-23  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-bug.el (speechd-bug--dotconf-option): New function.
+	(speechd-bug--insert-logs): Use it; insert Festival output module
+	log.
+
+2004-07-23  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-bug.el (speechd-bug-packages): New variable.
+	(speechd-bug): Use it.
+
+2004-07-20  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-say-text): Set priority only if something is
+	going to be spoken.
+	(speechd--with-connection-parameters): Don't restore
+	message-priority at the end.
+
 2004-07-16  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-speak.el (speechd-speak--maybe-speak*): New macro.

@@ -244,7 +244,7 @@ language.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd-el-version "2004-07-15 15:05 pdm"
+(defconst speechd-el-version "2004-07-24 06:45 pdm"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -391,7 +391,8 @@ Useful only for diagnosing problems.")
                  (when (and (not (equal ,$v ,$orig-v))
                             (or ,$v
                                 (not (memq ,$p '(language)))))
-                   (when (plist-member ,$cparameters ,$p)
+                   (when (and (plist-member ,$cparameters ,$p)
+                              (not (memq ,$p '(message-priority))))
                      (push (cons ,$p ,$orig-v) ,$orig-parameters))
                    (speechd--set-parameter ,$p ,$v)))
                (setq ,$parameters (nthcdr 2 ,$parameters)))
@@ -954,9 +955,9 @@ of the symbols `important', `message', `text', `notification' or
 The key argument SAY-IF-EMPTY is non-nil, TEXT is sent through SSIP even if it
 is empty."
   (interactive "sText: ")
-  (speechd--set-parameter 'message-priority priority)
   (when (or say-if-empty
             (not (string= text "")))
+    (speechd--set-parameter 'message-priority priority)
     (flet ((properties (point)
              (let ((voice (cdr (assq (get-text-property point 'face text)
                                      speechd-face-voices)))

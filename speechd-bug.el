@@ -27,13 +27,18 @@
 (require 'speechd-speak)
 
 
-(defconst speechd-bug-version "2004-07-15 18:32 pdm"
-  "Version of the speechd-bug.el file.")
+(defconst speechd-bug-version "2004-07-23 10:27 pdm"
+  "Version of the speechd-bug.el file.")  
 
 (defvar speechd-bug--log-extractor "speechd-log-extractor")
 
 (defvar speechd-bug--finish-repro-key "\C-f")
 
+(defvar speechd-bug-packages
+  '(("festival-czech") ("festival-freebsoft-utils") ("sbts")
+    ("speech-dispatcher") ("speechd-el") ("unknown")))
+
+  
 (defvar speechd-bug--repro-id nil)
 
 (defvar speechd-bug--marker nil)
@@ -128,6 +133,15 @@
    t)
   (speechd-bug--insert "===" file-name ":logend==="))
 
+(defun speechd-bug--dotconf-option (file-name option)
+  (save-excursion
+    (set-buffer (find-file-noselect file-name))
+    (save-match-data
+      (goto-char (point-min))
+      (when (re-search-forward (concat "^[ \t]*" option "[ \t]+\"\\(.*\\)\"")
+                               nil t)
+        (match-string 1)))))
+
 (defun speechd-bug--insert-logs ()
   ;; speechd
   (let ((file-name (speechd-bug--look-for-file
@@ -135,42 +149,29 @@
                     '("/etc/speechd" "/etc/speech-dispatcher"
                       "/usr/local/etc/speechd"))))
     (when file-name
-      (let ((log-files ()))
-        (save-excursion
-          (set-buffer (find-file-noselect file-name))
-          (save-match-data
-            (goto-char (point-min))
-            (when (re-search-forward "^[ \t]*LogFile[ \t]+\"\\(.*\\)\"" nil t)
-              (push (match-string 1) log-files))
-            (goto-char (point-min))
-            (when (re-search-forward
-                   "^[ \t]*CustomLogFile[ \t]+\"protocol\"[ \t]+\"\\(.*\\)\""
-                   nil t)
-              (push (match-string 1) log-files))))
-        (save-match-data
-          (dolist (f log-files)
-            (when (string-match "^/" f)
-              (speechd-bug--insert-log-file f))))))
+      (dolist (option '("LogFile" "CustomLogFile[ \t]+\"protocol\""))
+        (let ((f (speechd-bug--dotconf-option file-name option)))
+          (when f
+            (save-match-data
+              (when (string-match "^/" f)
+                (speechd-bug--insert-log-file f)))))))
     ;; Festival
-    (let ((file-name (speechd-bug--look-for-file
-                      "festival.conf"
-                      '("/etc/speechd/modules"
-                        "/etc/speech-dispatcher/modules"
-                        "/usr/local/etc/speechd/modules")))
-          (festival-server "localhost")
-          (festival-port 1314))
-      (when file-name
-        (save-excursion
-          (set-buffer (find-file-noselect file-name))
-          (save-match-data
-            (goto-char (point-min))
-            (when (re-search-forward
-                   "^[ \t]*FestivalServerHost[ \t]*\"\\([^\"\n]+\\)\"" nil t)
-              (setq festival-server (match-string 1)))
-            (goto-char (point-min))
-            (when (re-search-forward
-                   "^[ \t]*FestivalServerPort[ \t]*\"\\([0-9]+\\)\"" nil t)
-              (setq festival-port (string-to-number (match-string 1)))))))
+    (let* ((file-name (speechd-bug--look-for-file
+                       "festival.conf"
+                       '("/etc/speechd/modules"
+                         "/etc/speech-dispatcher/modules"
+                         "/usr/local/etc/speechd/modules")))
+           (festival-server (or (speechd-bug--dotconf-option
+                                 file-name "FestivalServerHost")
+                                "localhost"))
+           (festival-port (string-to-number
+                           (or (speechd-bug--dotconf-option
+                                file-name "FestivalServerPort")
+                               "1314")))
+           (festival-module-log (speechd-bug--dotconf-option
+                                 file-name "DebugFile")))
+      (when festival-module-log
+        (speechd-bug--insert-log-file festival-module-log))
       (let ((process (open-network-stream "speechd-festival" nil
                                           festival-server festival-port))
             (output "")
@@ -249,7 +250,7 @@ generating new bug report."
   "Send a bug report on speechd-el or Speech Dispatcher."
   (interactive)
   (require 'reporter)
-  (let ((package (completing-read "Package: " '(("speechd") ("speechd-el"))))
+  (let ((package (completing-read "Package: " speechd-bug-packages))
         (reporter-prompt-for-summary-p t))
     (reporter-submit-bug-report
      (format "%s@bugs.freebsoft.org" package)
