@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.34 2003-07-31 08:55:09 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.35 2003-07-31 12:08:22 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -54,7 +54,7 @@
   :group 'speechd-speak)
 
 (defcustom speechd-speak-auto-speak-buffers '("*Help*")
-  "List of names of other-window buffers to speak is nothing else fits.
+  "List of names of other-window buffers to speak if nothing else fits.
 If nothing else is to be spoken after a command and a visible window in the
 current frame displaying a buffer with a name contained in this list is
 changed, the contents of the window buffer is spoken."
@@ -914,10 +914,11 @@ FUNCTION is invoked interactively."
                    (not (memq this-command
                               speechd-speak-by-properties-never))
                    point-moved
-                   (get-char-property (point) 'face)
+                   (or (get-char-property (point) 'face)
+                       (overlays-at (point)))
                    (let ((position (getinfo point)))
                      (or (> (speechd-speak--previous-property-change
-                             (point) position)
+                             (1+ (point)) position)
                             position)
                          (<= (speechd-speak--next-property-change
                               (point) (1+ position))
@@ -1025,29 +1026,44 @@ FUNCTION is invoked interactively."
 
 (define-prefix-command 'speechd-speak-prefix-command 'speechd-speak-mode-map)
 
-(define-key speechd-speak-mode-map "a" 'speechd-speak-last-message)
 (define-key speechd-speak-mode-map "b" 'speechd-speak-read-buffer)
 (define-key speechd-speak-mode-map "c" 'speechd-speak-read-char)
 (define-key speechd-speak-mode-map "l" 'speechd-speak-read-line)
-(define-key speechd-speak-mode-map "n" 'speechd-speak-read-rest-of-buffer)
+(define-key speechd-speak-mode-map "m" 'speechd-speak-last-message)
+(define-key speechd-speak-mode-map "o" 'speechd-speak-read-other-window)
 (define-key speechd-speak-mode-map "p" 'speechd-pause)
 (define-key speechd-speak-mode-map "q" 'speechd-speak-toggle-speaking)
 (define-key speechd-speak-mode-map "r" 'speechd-speak-read-region)
 (define-key speechd-speak-mode-map "s" 'speechd-stop)
 (define-key speechd-speak-mode-map "w" 'speechd-speak-read-word)
+(define-key speechd-speak-mode-map "x" 'speechd-cancel)
 (define-key speechd-speak-mode-map "{" 'speechd-speak-read-paragraph)
 (define-key speechd-speak-mode-map " " 'speechd-resume)
 (define-key speechd-speak-mode-map "'" 'speechd-speak-read-sexp)
 (define-key speechd-speak-mode-map "[" 'speechd-speak-read-page)
-(define-key speechd-speak-mode-map "\C-n" 'speechd-speak-read-other-window)
+(define-key speechd-speak-mode-map ">" 'speechd-speak-read-rest-of-buffer)
 (define-key speechd-speak-mode-map "\C-r" 'speechd-repeat)
-(define-key speechd-speak-mode-map "\C-s" 'speechd-reopen)
+(define-key speechd-speak-mode-map "\C-s" 'speechd-speak)
 (define-key speechd-speak-mode-map "\C-x" 'speechd-unspeak)
-(define-key speechd-speak-mode-map [down] 'speechd-speak-read-next-line)
-(define-key speechd-speak-mode-map [up] 'speechd-speak-read-previous-line)
+(define-key speechd-speak-mode-map "\C-n" 'speechd-speak-read-next-line)
+(define-key speechd-speak-mode-map "\C-p" 'speechd-speak-read-previous-line)
 (dotimes (i 9)
   (define-key speechd-speak-mode-map (format "%s" (1+ i))
               'speechd-speak-key-set-predefined-rate))
+(define-key speechd-speak-mode-map "d." 'speechd-set-punctuation-mode)
+(define-key speechd-speak-mode-map "dc" 'speechd-set-capital-character-mode)
+(define-key speechd-speak-mode-map "dl" 'speechd-set-language)
+(define-key speechd-speak-mode-map "do" 'speechd-set-output-module)
+(define-key speechd-speak-mode-map "dp" 'speechd-set-pitch)
+(define-key speechd-speak-mode-map "dr" 'speechd-set-rate)
+(define-key speechd-speak-mode-map "dv" 'speechd-set-voice)
+(define-key speechd-speak-mode-map "dt." 'speechd-set-punctuation-table)
+(define-key speechd-speak-mode-map "dt=" 'speechd-set-character-table)
+(define-key speechd-speak-mode-map "dtc" 'speechd-set-capital-character-table)
+(define-key speechd-speak-mode-map "dti" 'speechd-set-sound-table)
+(define-key speechd-speak-mode-map "dtk" 'speechd-set-key-table)
+(define-key speechd-speak-mode-map "dts" 'speechd-set-spelling-table)
+(define-key speechd-speak-mode-map "dtt" 'speechd-set-text-table)
 
 (defvar speechd-speak--mode-map (make-sparse-keymap))
 (defvar speechd-speak--prefix nil)
@@ -1146,17 +1162,6 @@ When prefix ARG is non-nil, toggle it locally, otherwise toggle it globally."
           (speechd-speak-mode t))
       (message "Speaking turned %s %s" state (if arg "locally" "globally")))))
 
-;;;###autoload
-(defun speechd-speak ()
-  "Start or restart speaking."
-  (interactive)
-  (speechd-reopen)
-  (setq speechd-speak--started t)
-  (global-speechd-speak-mode 1)
-  (global-speechd-speak-map-mode 1)
-  (message "Speechd-speak %s"
-	   (if speechd-speak--started "restarted" "started")))
-
 (defun speechd-unspeak ()
   "Try to avoid invoking any speechd-speak function.
 This command is useful as the last help in case speechd-speak gets crazy and
@@ -1170,7 +1175,22 @@ starts blocking your Emacs functions."
   (remove-hook 'minibuffer-setup-hook 'speechd-speak--minibuffer-setup-hook)
   (remove-hook 'minibuffer-exit-hook 'speechd-speak--minibuffer-exit-hook)
   (remove-hook 'kill-emacs-hook 'speechd-speak--shutdown)
+  (speechd-close)
   (global-speechd-speak-map-mode -1))
+
+;;;###autoload
+(defun speechd-speak (&optional arg)
+  "Start or restart speaking.
+With a prefix argument, close all open connections first."
+  (interactive "P")
+  (if arg
+      (speechd-unspeak)
+    (speechd-reopen))
+  (setq speechd-speak--started t)
+  (global-speechd-speak-mode 1)
+  (global-speechd-speak-map-mode 1)
+  (message "Speechd-speak %s"
+	   (if speechd-speak--started "restarted" "started")))
 
 
 ;;; Announce
