@@ -1,11 +1,22 @@
 2003-06-13  Milan Zamazal  <pdm@brailcom.org>
+	
+	* speechd-speak.el (speechd-speak--speak-new-message) 
+	(speechd-speak--post-command-hook): Speak message with the
+	priority :progress.
+	(speechd-speak--speak-new-message): Forgotten reference to `pokus'
+	removed.
+	(kill-sentence): speechd-speak-read-sentence call fixed.
+	(transpose-chars): Typo in following-char call fixed.
+	(speechd-speak--command-start-info): Moved before the first
+	reference.
+
+2003-06-13  Milan Zamazal  <pdm@brailcom.org>
 
 	* README: Rewritten.
 	* install-debian.sh: Removed.
 	* speechd-emacspeak.el: Removed.
 	* emacspeak.patch: Removed.
 	* dtk-interp.el: Removed.
-	* speechd-speak.el: New file.
 
 2003-06-10  Milan Zamazal  <pdm@brailcom.org>
 
