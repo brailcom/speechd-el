@@ -1,10 +1,23 @@
 2003-07-15  Milan Zamazal  <pdm@brailcom.org>
 
+	* speechd.el (speechd-connection-parameters): Customization
+	interface improved -- :type changed and :set and :get defined.
+	(speechd--punctuation-modes, speechd--capital-character-modes):
+	New constants.
+	(speechd--keyword->nonkeyword): New function.
+	(speechd--iterate-connections): New macro.
+	(speechd--control-command): If not ALL, apply the command to all
+	speechd connections.
+
 	* speechd-speak.el (speechd-speak-connections): :minibuffer
 	allowed as the value (docstring change only).
 	(speechd-speak-connection-name): Consider the previous change.
 	(speechd-speak--last-connections): New variable.
 	(speechd-speak--connection-name): Use it.
+	(speechd-speak-connections): Functional matcher support added;
+	customization overall improved.
+	(speechd-speak--connection-name): Function invocation support
+	added.
 
 2003-07-09  Milan Zamazal  <pdm@brailcom.org>
 
