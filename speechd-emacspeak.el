@@ -28,6 +28,67 @@
 
 (require 'speechd)
 
+;;; Handle auditory icons
+
+(defvar speechd-emacspeak-auditory-icon-mapping
+  '((alarm . "bell")
+    (alert-user . "bell")
+    (ask-question . "bell")
+    (ask-short-question . "bell")
+    (button . "bell")
+    (center . "bell")
+    (close-object . "bell")
+    (delete-object . "bell")
+    (deselect-object . "bell")
+    (ellipses . "bell")
+    (fill-object . "bell")
+    (full . "bell")
+    (help . "bell")
+    (item . "bell")
+    (large-movement . "bell")
+    (left . "bell")
+    (mark-object . "bell")
+    (modified-object . "bell")
+    (n-answer . "bell")
+    (new-mail . "bell")
+    (news . "bell")
+    (no-answer . "bell")
+    (off . "bell")
+    (on . "bell")
+    (open-object . "bell")
+    (paragraph . "bell")
+    (progress . "bell")
+    (quit . "bell")
+    (right . "bell")
+    (save-object . "bell")
+    (scroll . "bell")
+    (search-hit . "bell")
+    (search-miss . "bell")
+    (section . "bell")
+    (select-object . "bell")
+    (shutdown . "bell")
+    (task-done . "bell")
+    (unmodified-object . "bell")
+    (warn-user . "warning")
+    (window-resize . "bell")
+    (y-answer . "bell")
+    (yank-object . "bell")
+    (yes-answer . "bell"))
+  "Mapping of Emacspeak auditory icons to speechd auditory icons.
+Alist with elements of the form (EMACSPEAK-NAME . SPEECHD-STRING).")
+
+(defvar speechd-emacspeak-default-auditory-icon "click"
+  "Name of the speechd auditory icon to play by default.
+The icon is played when no corresponding entry is found in
+`speechd-emacspeak-auditory-icon-mapping' for a requested icon.")
+
+(defun speechd-emacspeak-auditory-icon (icon)
+  (speechd-say-sound (or (cdr (assoc icon
+				     speechd-emacspeak-auditory-icon-mapping))
+			 speechd-emacspeak-default-auditory-icon)))
+(setq emacspeak-auditory-icon-function 'speechd-emacspeak-auditory-icon)
+(setq emacspeak-use-auditory-icons t)
+
 ;;; Ensure dtk-* variables are set properly, otherwise Emacspeak will complain
 
 (setq dtk-speak-server-initialized t)
