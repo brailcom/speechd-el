@@ -31,6 +31,10 @@
 (require 'speechd-speak)
 
 
+(defconst speechd-bug--version "$Id: speechd-bug.el,v 1.4 2003-10-27 16:11:43 pdm Exp $"
+  "Version of the speechd-bug.el file.")
+
+
 ;;; Utility functions
 
 
@@ -121,8 +125,10 @@
                    "^[ \t]*CustomLogFile[ \t]+\"protocol\"[ \t]+\"\\(.*\\)\""
                    nil t)
               (push (match-string 1) log-files))))
-        (dolist (f log-files)
-          (speechd-bug--insert-log-file f))))
+        (save-match-data
+          (dolist (f log-files)
+            (when (string-match "^/" f)
+              (speechd-bug--insert-log-file f))))))
     ;; Festival
     (let ((file-name (speechd-bug--look-for-file
                       "festival.conf"
@@ -163,9 +169,9 @@
             (delete-process process))
           (save-match-data
             (when (and log-file
-                       (string-match "\"\\(/.*\\)\"" log-file)))
-            (speechd-bug--insert-log-file
-             (concat (match-string 1 log-file) "-e"))))))))
+                       (string-match "\"\\(/.*\\)\"" log-file))
+              (speechd-bug--insert-log-file
+               (concat (match-string 1 log-file) "-e")))))))))
 
 
 ;;; Reproducing bug
@@ -196,8 +202,8 @@
                      :priority 'important)
   (define-key speechd-speak-mode-map speechd-bug--finish-repro-key 'undefined)
   (sit-for 1)
-  (speechd-bug--insert-logs)
   (switch-to-buffer (marker-buffer speechd-bug--marker))
+  (speechd-bug--insert-logs)
   (goto-char (marker-position speechd-bug--marker))
   (setq speechd-bug--marker nil)
   (setq speechd-bug--repro-id nil)
@@ -212,12 +218,13 @@
   "Send a bug report on speechd-el or Speech Dispatcher."
   (interactive)
   (require 'reporter)
-  (let ((package (completing-read "Package: " '(("speechd-el" "speechd"))))
+  (let ((package (completing-read "Package: " '(("speechd") ("speechd-el"))))
         (reporter-prompt-for-summary-p t))
     (reporter-submit-bug-report
      (format "%s@bugs.freebsoft.org" package)
      package
-     '(speechd-speak-version
+     '(speechd-bug--version
+       speechd-speak-version
        speechd--el-version
        speechd-speak--debug
        speechd-connection-parameters
@@ -247,7 +254,7 @@
     (if (y-or-n-p "Can you reproduce the bug now? ")
         (progn
           (message "Reproduce the bug now and finish it with `%s .'"
-                   speechd-speak-prefix)
+                   "C-e") ;speechd-speak-prefix)
           (speechd-bug--start-repro))
       (save-excursion
         (speechd-bug--ensure-empty-line)
