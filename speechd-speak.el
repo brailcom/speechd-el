@@ -1,8 +1,6 @@
 ;;; speechd-speak.el --- simple speechd-el based Emacs client
 
 ;; Copyright (C) 2003 Brailcom, o.p.s.
-;; Copyright (C) 1995 -- 2002, T. V. Raman 
-;; Copyright (C) 1994, 1995 by Digital Equipment Corporation.
 
 ;; COPYRIGHT NOTICE
 ;;
@@ -22,9 +20,9 @@
 
 ;;; Commentary:
 
-;; This is a simple experimental Emacs client to speechd.  It is based on the
-;; code and ideas taken from the Emacspeak (http://emacspeak.sourceforge.net)
-;; package by T. V. Raman.
+;; This is a simple experimental Emacs client to speechd.  Many ideas taken
+;; from the Emacspeak package (http://emacspeak.sourceforge.net) by
+;; T. V. Raman.
 
 ;;; Code:
 
@@ -33,7 +31,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.5 2003-06-25 20:16:16 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.6 2003-06-26 11:03:44 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -59,27 +57,51 @@
   :type 'boolean
   :group 'speechd-speak)
 
+(defcustom speechd-speak-prefix "\C-e"
+  "Default prefix key used for speechd-speak commands."
+  :type 'sexp
+  :group 'speechd-speak)
+
 
 ;;; Control functions
 
-
 (defvar speechd-speak-quiet t
-  "If non-nil, no speech output is produced.")
-(make-variable-buffer-local 'speechd-speak-quiet)
+  "If non-nil in the current buffer, no speech output is produced.")
 
-(defun speechd-speak-toggle-quiet (&optional prefix)
+(defun speechd-speak-toggle-quiet (&optional prefix quiet)
   "Turn speaking on or off.
-If the optional PREFIX argument is non-nil, toggle speaking globally, otherwise
-toggle it in the current buffer only."
+Without the PREFIX argument, toggle speaking globally, except for the buffers
+with previously explicitly toggled speaking.
+With the universal PREFIX argument, toggle speaking in all buffers.
+With the PREFIX argument 1, toggle speaking in the current buffer only.
+
+If the optional argument QUIET is a positive number, turn speaking on; if it
+is a non-positive number, turn speaking off."
   (interactive "P")
-  (if prefix
-      (progn
-	(setq-default speechd-speak-quiet (not speechd-speak-quiet))
-	(set (make-local-variable 'speechd-speak-quiet)
-	     (default-value 'speechd-speak-quiet)))
-    (setq speechd-speak-quiet (not speechd-speak-quiet)))
-  (when speechd-speak-quiet
-    (speechd-cancel)))
+  (let ((new-state (if (numberp quiet) (<= quiet 0) (not speechd-speak-quiet)))
+	prompt)
+    (cond
+     ((not prefix)
+      (setq-default speechd-speak-quiet new-state)
+      (setq speechd-speak-quiet new-state
+	    prompt "globally"))
+     ((listp prefix)
+      (save-excursion
+	(mapc #'(lambda (buffer)
+		  (when (local-variable-p 'speechd-speak-quiet buffer)
+		    (set-buffer buffer)
+		    (kill-local-variable 'speechd-speak-quiet)))
+	      (buffer-list)))
+      (setq speechd-speak-quiet new-state
+	    prompt "everywhere"))
+     (t
+      (make-local-variable 'speechd-speak-quiet)
+      (setq speechd-speak-quiet new-state
+	    prompt "in the current buffer")))
+    (when speechd-speak-quiet
+      (speechd-cancel))
+    (let ((speechd-speak-quiet nil))
+      (message "Speaking turned %s %s" (if new-state "off" "on") prompt))))
 
 (defvar speechd-speak--predefined-rates
   '((1 . -100)
@@ -91,23 +113,26 @@ toggle it in the current buffer only."
     (7 . 50)
     (8 . 75)
     (9 . 100)))
-(defun speechd-speak-set-predefined-rate ()
+(defun speechd-speak-set-predefined-rate (level)
   "Set speech rate to one of nine predefined levels.
 Level 1 is the slowest, level 9 is the fastest."
+  (interactive "nSpeech rate level (1-9): ")
+  (setq level (min (max level 1) 9))
+  (let ((rate (cdr (assoc level speechd-speak--predefined-rates))))
+    (speechd-set-rate rate)
+    (message "Speech rate set to %d" rate)))
+
+(defvar speechd-speak--char-to-number
+  '((?1 . 1) (?2 . 2) (?3 . 3) (?4 . 4) (?5 . 5)
+    (?6 . 6) (?7 . 7) (?8 . 8) (?9 . 9)))
+(defun speechd-speak-key-set-predefined-rate ()
+  "Set speech rate to one of nine predefined levels via a key binding.
+Level 1 is the slowest, level 9 is the fastest."
   (interactive)
-  (let ((level (condition-case nil
-		   (read (format "%c" last-input-char))
-		 (error nil))))
-    (or (numberp level)
-        (setq level
-              (read-minibuffer
-	       "Enter level between 1 and 9 to set speech rate:")))
-    (when (or (not (numberp level))
-	      (< level 1)
-	      (> level 9))
-      (error "Invalid level %s" level))
-    (speechd-set-rate (cdr (assoc level speechd-speak--predefined-rates)))))
-  
+  (let ((level (cdr (assoc last-input-char speechd-speak--char-to-number))))
+    (when level
+      (speechd-speak-set-predefined-rate level))))
+
 
 ;;; Supporting functions and options
 
@@ -416,7 +441,9 @@ Level 1 is the slowest, level 9 is the fastest."
 (speechd-speak--defadvice y-or-n-p before
   (speechd-speak--text (concat (ad-get-arg 0) "(y or n)") :priority :message))
 (speechd-speak--defadvice read-key-sequence before
-  (speechd-speak--text (ad-get-arg 0) :priority :message))
+  (let ((prompt (ad-get-arg 0)))
+    (when prompt
+      (speechd-speak--text prompt :priority :message))))
 
 
 ;;; Commands
@@ -481,7 +508,7 @@ Level 1 is the slowest, level 9 is the fastest."
   ad-do-it)
 
 
-;;; Completion
+;;; Completions, menus, etc.
 
 
 (defun speechd-speak--speak-completion ()
@@ -512,6 +539,14 @@ Level 1 is the slowest, level 9 is the fastest."
 
 (speechd-speak--command-feedback choose-completion before
   (speechd-speak--speak-completion))
+
+;; The `widget-choose' function is written in a non-extensible way.  So before
+;; this is fixed, we have to use some dirty hacks.
+(defconst speechd-speak--widget-choose-buffer-name " widget-choose")
+(speechd-speak--defadvice scroll-other-window after
+  (when (string= (buffer-name (window-buffer (next-window)))
+		 speechd-speak--widget-choose-buffer-name)
+    (speechd-speak-read-buffer speechd-speak--widget-choose-buffer-name)))
 
 
 ;;; Other functions and packages
@@ -550,21 +585,18 @@ Level 1 is the slowest, level 9 is the fastest."
 
 
 (defun speechd-speak ()
-  "Start speaking."
+  "Start or restart speaking."
   (interactive)
+  (speechd-reopen)
   (add-hook 'pre-command-hook 'speechd-speak--pre-command-hook)
   (add-hook 'post-command-hook 'speechd-speak--post-command-hook)
-  (setq-default speechd-speak-quiet nil)
-  (setq speechd-speak-quiet nil)
+  (speechd-speak-toggle-quiet nil 'on)
   (run-hooks 'speechd-speak-startup-hook)
   (message "Speechd-speak started"))
 
 
 ;;; Keymap
 
-
-(defvar speechd-speak-prefix "\C-e"
-  "Default prefix key used for speechd-speak commands.")
 
 (defvar speechd-speak-keymap nil
   "Keymap used by speechd-speak.")
@@ -594,41 +626,9 @@ Level 1 is the slowest, level 9 is the fastest."
 (define-key speechd-speak-keymap "\M-\C-k" 'kill-emacs)
 (define-key speechd-speak-keymap '[down] 'speechd-speak-read-next-line)
 (define-key speechd-speak-keymap '[up]  'speechd-speak-read-previous-line)
-;(define-key speechd-speak-keymap "W" 'speechd-speak-speak-spell-current-word)
-;(define-key speechd-speak-keymap "R" 'speechd-speak-speak-rectangle)
-;(define-key speechd-speak-keymap "m" 'speechd-speak-speak-mode-line)
-;(define-key speechd-speak-keymap "\C-l" 'speechd-speak-speak-line-number)
-;; (define-key speechd-speak-keymap "|"
-;;   'speechd-speak-speak-line-set-column-filter)
-;(define-key speechd-speak-keymap "^" 'speechd-speak-filtertext)
-;(define-key speechd-speak-keymap "k" 'speechd-speak-speak-current-kill)
-;(define-key speechd-speak-keymap "\C-@" 'speechd-speak-speak-current-mark)
-;; (define-key speechd-speak-keymap "\M-\C-@"
-;;   'speechd-speak-speak-spaces-at-point)
-;; (define-key speechd-speak-keymap "i" 'speechd-speak-tabulate-region)
-;; (define-key speechd-speak-keymap "j" 'speechd-speak-hide-or-expose-block)
-;; (define-key speechd-speak-keymap "\C-j"
-;;   'speechd-speak-hide-speak-block-sans-prefix)
-;(define-key speechd-speak-keymap "\C-m" 'speechd-speak-speak-continuously)
-;(define-key speechd-speak-keymap "\C-i" 'speechd-speak-table-display-table-in-region)
-;(define-key speechd-speak-keymap "\C-b" 'speechd-speak-daisy-open-book)
-;(define-key speechd-speak-keymap "M" 'speechd-speak-speak-minor-mode-line)
-;(define-key speechd-speak-keymap "," 'speechd-speak-speak-browse-buffer)
-;(define-key speechd-speak-keymap "C" 'speechd-speak-customize)
-;(define-key speechd-speak-keymap "\C-c" 'speechd-speak-clipboard-copy)
-;; (define-key speechd-speak-keymap "\C-y" 'speechd-speak-clipboard-paste)
-;; (define-key speechd-speak-keymap "\C-p" 'speechd-speak-speak-previous-window)
-;; (define-key speechd-speak-keymap "=" 'speechd-speak-speak-current-column)
-;; (define-key speechd-speak-keymap "%" 'speechd-speak-speak-current-percentage)
-;; (define-key speechd-speak-keymap "<" 'speechd-speak-speak-previous-field)
-;; (define-key speechd-speak-keymap "." 'speechd-speak-speak-current-field)
-;; (define-key speechd-speak-keymap ">"  'speechd-speak-speak-next-field)
-;; (define-key speechd-speak-keymap "\C-w"
-;;   'speechd-speak-speak-window-information)
-(dotimes (i 10)
-  (define-key speechd-speak-keymap
-    (format "%s" i)
-    'speechd-speak-set-predefined-rate))
+(dotimes (i 9)
+  (define-key speechd-speak-keymap (format "%s" (1+ i))
+              'speechd-speak-key-set-predefined-rate))
 
 
 ;;; Announce
