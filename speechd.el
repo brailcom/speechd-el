@@ -215,7 +215,7 @@ language.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.75 2003-10-29 10:33:48 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.76 2003-10-29 16:53:30 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -352,6 +352,7 @@ macro."
 (defmacro speechd--with-connection-parameters (parameters &rest body)
   (let (($parameters (gensym))
         ($orig-parameters (gensym))
+        ($cparameters (gensym))
         ($p (gensym))
         ($v (gensym))
         ($orig-v (gensym))
@@ -363,13 +364,14 @@ macro."
              (while ,$parameters
                (let* ((,$p (first ,$parameters))
                       (,$v (second ,$parameters))
-                      (,$orig-v (plist-get
-                                 (speechd--connection-parameters connection)
-                                 ,$p)))
+                      (,$cparameters
+                       (speechd--connection-parameters connection))
+                      (,$orig-v (plist-get ,$cparameters ,$p)))
                  (when (and (not (equal ,$v ,$orig-v))
                             (or ,$v
                                 (not (memq ,$p '(language)))))
-                   (push (cons ,$p ,$orig-v) ,$orig-parameters)
+                   (when (plist-member ,$cparameters ,$p)
+                     (push (cons ,$p ,$orig-v) ,$orig-parameters))
                    (speechd--set-parameter ,$p ,$v)))
                (setq ,$parameters (nthcdr 2 ,$parameters)))
              ,@body)
@@ -767,13 +769,10 @@ Return the opened connection on success, nil otherwise."
                     (error "Invalid parameter value: %s=%s" parameter value))
                   (list "SET" "self" p v)))))
 	  (setq connection (speechd--connection))
-	  (setf (speechd--connection-parameters connection)
-		(plist-put (speechd--connection-parameters connection)
-			   parameter
-			   (cond
-			    ((not answer) 'unknown)
-			    ((first answer) value)
-			    (t orig-value)))))))))
+          (when (first answer)
+            (setf (speechd--connection-parameters connection)
+                  (plist-put (speechd--connection-parameters connection)
+                             parameter value))))))))
 
 (defun speechd--set-connection-name (name)
   (speechd--set-parameter
