@@ -1,5 +1,10 @@
 2004-09-22  Milan Zamazal  <pdm@brailcom.org>
 
+	* speechd-speak.el (buffer-name): Missing FORMAT call in
+	speechd-speak--text added.
+
+2004-09-22  Milan Zamazal  <pdm@brailcom.org>
+
 	* speechd.el (speechd--open-connection): Clear the query-on-exit
 	flag of the new process.
 

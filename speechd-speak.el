@@ -1617,8 +1617,8 @@ When the mode is enabled, all spoken text is spelled."
 
 (speechd-speak--watch buffer-name #'buffer-name
   :on-change #'(lambda (old new)
-                 (speechd-speak--text "Old buffer: %s; new buffer: %s"
-                                      old new)))
+                 (speechd-speak--text
+                  (format "Old buffer: %s; new buffer: %s" old new))))
 
 (speechd-speak--watch buffer-modified #'buffer-modified-p
   :on-change #'(lambda (old new)
