@@ -1,5 +1,11 @@
 2003-06-03  Milan Zamazal  <pdm@brailcom.org>
 
+	* speechd.el (speechd-say-char): Handle linefeed in a special way
+	too.
+
+	* dtk-tcl.el (dtk-speak): Some text processing removed.
+	* install-debian.sh: Patch test updated.
+
 	* dtk-interp.el (dtk-interp-set-rate) 
 	(dtk-interp-set-punctuations): Do nothing.
 
