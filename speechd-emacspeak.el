@@ -122,6 +122,10 @@ Pronounces character phonetically unless called with a PREFIX arg."
 (setq dtk-family-table nil
       dtk-default-voice-string ""
       tts-voice-reset-code "")
+;; TODO: Just a hack, fix it!
+(voice-lock-mode -1)
+(defun voice-lock-mode (&optional arg)
+  (setq voice-lock-mode nil))
 
 ;;; Start Emacspeak now
 
