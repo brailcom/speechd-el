@@ -1,7 +1,12 @@
 # Makefile for speechd-el
 # Copyright (C) 2003 Brailcom, o.p.s.
 
-EMACS=emacs
+EMACS = emacs
+
+NAME = speechd-el
+VERSION = 0.1
+DISTDIR = $(NAME)-$(VERSION)
+TARFILE = $(NAME)-$(VERSION).tar
 
 .PHONY: all install install-strip uninstall clean distclean mostlyclean \
 	maintainer-clean TAGS info dvi dist check
@@ -22,12 +27,13 @@ install-strip:
 uninstall:
 
 mostlyclean:
-	rm -f *.aux *.cp *.cps *.fn *.ky *.log *.pg *.toc *.tp *.vr
+	rm -f *.aux *.cp *.cps *.fn *.ky *.log *.pg *.toc *.tp *.vr *~
 
 clean: mostlyclean
 	rm -f *.dvi *.elc speechd-el.pdf *.ps
 
 distclean: clean
+	rm -rf $(DISTDIR) $(TARFILE)*
 
 maintainer-clean: distclean
 	rm -f *.info*
@@ -49,7 +55,12 @@ ps: speechd-el.ps
 %.ps: %.texi
 	texi2ps $<
 
-dist:
+dist: maintainer-clean info
+	mkdir $(DISTDIR)
+	install -m 644 `find . -maxdepth 1 -type f` $(DISTDIR)
+	(cd $(DISTDIR); $(MAKE) distclean)
+	tar cvf $(TARFILE) $(DISTDIR)
+	gzip -9 $(TARFILE)
 
 check:
 
