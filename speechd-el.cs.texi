@@ -204,7 +204,7 @@ kdy¾ je restartováno Speech Dispatcher.
 Je-li pøíkaz zavolán s@tie{}prefixovým argumentem, jsou pøed jeho
 provedením nejprve uzavøena v¹echna spojení na Speech Dispatcher.  To
 je u¾iteèné v@tie{}pøípadì, kdy potøebujete zresetovat parametry v¹ech
-spojení, viz @ref{Parametry hlasù}.
+spojení, viz @ref{Hlasy spojení}.
 
 Po svém prvním zavolání se pøíkaz stane dostupným pod klávesou
 @kbd{C-e C-s}.
@@ -253,7 +253,7 @@ C-e}.
 * Ostatní pøíkazy::               Pomocné pøíkazy.
 @end menu
 
-@node Pøíkazy pro ètení, Øídící pøíkazy, Pøíkazy, Pøíkazy
+@node Pøíkazy pro ètení, Informující pøíkazy, Pøíkazy, Pøíkazy
 @subsection Pøíkazy pro ètení
 
 @table @kbd
@@ -349,8 +349,8 @@ Tento pøíkaz funguje jen v@tie{}Emacsu verze 21.4 nebo vy¹¹í.
 @findex speechd-speak-last-insertions
 Pøeèti poslední pøeètený vlo¾ený text
 (@code{speechd-speak-last-insertions}).  To znamená text pøeètený
-v@tie{}automaticky mluvících bufferech, viz @xref{Automaticky mluvící
-buffery}.
+v@tie{}automaticky mluvících bufferech, viz @xref{Automatické mluvení
+bufferù}.
 @end table
 
 @cindex prompty po¾adující znak
@@ -381,7 +381,7 @@ Je-li hodnotou promìnné nìco jiného ne¾ @code{nil}, povol ve znakových
 promptech vý¹e uvedené klávesové pøíkazy.
 @end vtable
 
-@node Informující pøíkazy
+@node Informující pøíkazy, Øídící pøíkazy, Pøíkazy pro ètení, Pøíkazy
 @subsection Informující pøíkazy
 
 @table @kbd
@@ -428,7 +428,7 @@ Pøeèti stav procesu asociovaného s@tie{}aktuálním bufferem
 (@code{speechd-speak-process-info}).
 @end table
 
-@node Øídící pøíkazy, Pøíkazy nastavující parametry, Pøíkazy pro ètení, Pøíkazy
+@node Øídící pøíkazy, Pøíkazy nastavující parametry, Informující pøíkazy, Pøíkazy
 @subsection Øídící pøíkazy
 
 @table @kbd
@@ -502,14 +502,14 @@ nejni¾¹í rychlost, @kbd{C-e 5} nastaví støední rychlost a @kbd{C-e 9}
 nastaví nejvy¹¹í rychlost.
 @end table
 
-@node Pøíkazy nastavující parametry, Ostatní pøíkazy, Øídící pøíkazy, Pøíkazy
+@node Pøíkazy nastavující parametry, Hláskování, Øídící pøíkazy, Pøíkazy
 @subsection Pøíkazy pro nastavení parametrù
 @cindex parametry
 
 Tyto pøíkazy nastavují rùzné vlastnosti øeèového výstupu.  V¹echny
 jsou aplikovány pouze na aktuální spojení do Speech Dispatcher (více
 informací o@tie{}spojeních do Speech Dispatcher naleznete
-v@tie{}@pxref{Parametry hlasù}), pokud nejsou vyvolány
+v@tie{}@pxref{Hlasy spojení}), pokud nejsou vyvolány
 s@tie{}prefixovým argumentem.  Pøi vyvolání s@tie{}èíselným prefixovým
 argumentem jsou aplikovány na v¹echna spojení speechd-el, pøi vyvolání
 s@tie{}univerzálním prefixovým argumentem jsou aplikována na v¹echna
@@ -606,7 +606,7 @@ Pøepni Speech Dispatcher na zadaný výstupní modul
 ¾ádaného výstupního modulu.
 @end table
 
-@node Hláskování
+@node Hláskování, Ostatní pøíkazy, Pøíkazy nastavující parametry, Pøíkazy
 @subsection Hláskování
 @cindex hláskování
 
@@ -626,7 +626,7 @@ Pøinu» následující pøíkaz hláskovat jím ètený text
 za kurzorem, mù¾ete pou¾ít klávesový pøíkaz @kbd{C-e C-l C-e w}.
 @end table
 
-@node Ostatní pøíkazy,  , Pøíkazy nastavující parametry, Pøíkazy
+@node Ostatní pøíkazy,  , Hláskování, Pøíkazy
 @subsection Ostatní pøíkazy
 
 @kindex C-x C-c
@@ -827,7 +827,7 @@ aktuální hlá¹ení stejné jako hlá¹ení pøedchozí, není pøeøíkáno, pokud
 neuplynul aspoò zde definovaný èas od posledního pøeøíkaného hlá¹ení.
 @end vtable
 
-@node Automatické mluvení bufferù, Signalizace, Základní mluvení, Konfigurace
+@node Automatické mluvení bufferù, Oznamování stavu, Základní mluvení, Konfigurace
 @subsection Automatické mluvení bufferù
 @cindex buffery
 @cindex vkládaný text
@@ -907,7 +907,7 @@ promìnné @code{read-only}, èti jej jen v@tie{}read-only bufferech.
 Je-li hodnotou @code{nil}, neèti jej.
 @end vtable
 
-@node Oznamování stavu
+@node Oznamování stavu, Signalizace, Automatické mluvení bufferù, Konfigurace
 @subsection Oznamování zmìn stavu
 
 speechd-el mù¾e èíst informaci o@tie{}aktuálním stavu Emacsu, jako
@@ -947,7 +947,7 @@ je zobrazený øetìzec struènìj¹í ne¾ jméno módu nebo kdy¾ je zobrazený
 øetìzec zmìnìn, ani¾ by byl zmìnìn samotný mód.
 @end vtable
 
-@node Signalizace, Vlastnosti textu, Automatické mluvení bufferù, Konfigurace
+@node Signalizace, Vlastnosti textu, Oznamování stavu, Konfigurace
 @subsection Signalizace
 
 Nìkteré situace mohou být signalizovány zvukovými ikonami.
@@ -988,7 +988,7 @@ Následují hlá¹ení v@tie{}echo area.
 @end table
 @end vtable
 
-@node Vlastnosti textu, Parametry spojení, Signalizace, Konfigurace
+@node Vlastnosti textu, Jazyky, Signalizace, Konfigurace
 @subsection Vlastnosti textu
 @cindex vlastnosti textu
 @cindex faces
@@ -1053,7 +1053,7 @@ definovat, je toto face pøemluveno aktuálním hlasem.
 Pozor, toto mapování se uplatní jen tehdy, je-li zapnut font lock mód.
 @end vtable
 
-@node Jazyky
+@node Jazyky, Hlasy, Vlastnosti textu, Konfigurace
 @subsection Pou¾ívání více jazykù
 @cindex jazyky
 
@@ -1103,13 +1103,13 @@ je aktuální vstupní metoda v@tie{}seznamu pøítomna, je vybrán
 odpovídající jazyk, není-li pøebit jiným nastavením.
 @end vtable
 
-@node Hlasy
+@node Hlasy, Hlasy spojení, Jazyky, Konfigurace
 @subsection Definice hlasù
 @cindex parametry
 
 Ve speechd-el lze definovat speciální hlasy, které pak mohou být
 vyu¾ívány v@tie{}rùzných situacích, napøíklad pro pøemlouvání rùzných
-faces rùznými hlasy (@pxref{Text Properties}) nebo pro nastavení
+faces rùznými hlasy (@pxref{Vlastnosti textu}) nebo pro nastavení
 rùzných re¾imù ètení interpunkce pro rùzné druhy bufferù (@pxref{Více
 spojení}).  Hlasy ve speechd-el neurèují jen základní charakteristiku
 hlasu, ale také vlastnosti øeèi jako vý¹ku èi rychlost a zvlá¹tní
@@ -1151,7 +1151,7 @@ Hlas pojmenovaný @code{nil} je zvlá¹tní, definuje implicitní hlas.
 Explicitní definice jeho parametrù je nepovinná.
 @end vtable
 
-@node Hlasy spojení
+@node Hlasy spojení, Více spojení, Hlasy, Konfigurace
 @subsection Hlasy spojení
 @cindex hlasy
 
@@ -1195,7 +1195,7 @@ Nezapomeòte, ¾e pokud chcete zachovat nový obsah tìchto promìnných,
 musíte si je sami ulo¾it, pøíkaz to nedìlá.
 @end table
 
-@node Více spojení, Klávesy, Parametry spojení, Konfigurace
+@node Více spojení, Klávesy, Hlasy spojení, Konfigurace
 @subsection Více spojení
 @cindex spojení
 
@@ -1203,7 +1203,7 @@ speechd-el mù¾ete øíct, aby pro urèité buffery nebo hlavní módy
 pou¾ívalo oddìlená spojení na Speech Dispatcher.  To v@tie{}zásadì umo¾òuje
 nezávislé nastavení rùzných parametrù øeèového výstupu pro tyto
 buffery a hlavní módy, jak ruèní, tak prostøednictvím konfigurace
-(@pxref{Parametry hlasù}).
+(@pxref{Hlasy spojení}).
 
 Ka¾dé spojení na Speech Dispatcher má své vlastní jedineèné jméno.
 speechd-el implicitnì pou¾ívá spojení nazvané @code{"default"}.  Pro
@@ -1284,7 +1284,7 @@ pøiøadí pøíkaz @code{'speechd-say-text} klávese @code{C-e t} (je-li
 prefixovou klávesou @code{C-e}).
 @end vtable
 
-@node Módy,  , Klávesy, Konfigurace
+@node Módy, Debugger, Klávesy, Konfigurace
 @subsection Háèky ve vedlej¹ích módech
 @cindex vedlej¹í módy
 @cindex háèky
@@ -1298,7 +1298,7 @@ si mù¾ete nechat provést vlastní akce pøi vstupu do tohoto módu:
 Háèek spu¹tìný pøi zapnutí vedlej¹ího módu speechd-speak.
 @end vtable
 
-@node Debugger
+@node Debugger,  , Módy, Konfigurace
 @subsection Ladìní speechd-el
 @cindex debugger
 @cindex ladìní
@@ -1375,7 +1375,7 @@ opatøení.  Pokud tato makra nepou¾íváte, musíte si tato opatøení
 zajistit sami.
 @end itemize
 
-@node Potí¾e,  , Pokroèilá konfigurace, U¾ivatelská pøíruèka
+@node Potí¾e, Tipy, Pokroèilá konfigurace, U¾ivatelská pøíruèka
 @section Potí¾e, se kterými se mù¾ete setkat
 @cindex potí¾e
 
@@ -1457,7 +1457,7 @@ sní¾it rychlost autorepeatu nebo poøídit rychlej¹í poèítaè.
 Samozøejmì jsou vítány jakékoliv tipy, jak zvý¹it rychlost speechd-el.
 @end itemize
 
-@node Tipy
+@node Tipy, Oznamování chyb, Potí¾e, U¾ivatelská pøíruèka
 @section U¾iteèné emacsové tipy
 
 Nezapomeòte, ¾e Elisp vám umo¾òuje definovat si spoustu u¾iteèných
@@ -1490,7 +1490,7 @@ Nìkolik pøíkladù:
 @end lisp
 @end itemize
 
-@node Oznamování chyb
+@node Oznamování chyb,  , Tipy, U¾ivatelská pøíruèka
 @section Jak oznamovat chyby speechd-el nebo Speech Dispatcher
 @cindex chyby
 
@@ -1613,7 +1613,7 @@ o@tie{}chybì na adresu @email{speechd-el@@bugs.freebsoft.org}.  Pokud
 nám chcete poslat záplatu speechd-el, mù¾ete pou¾ít tuté¾ adresu.
 
 @emph{Prosíme}, pøed zasláním oznámení o@tie{}chybì si pøeètìte pokyny
-pro oznamování chyb, see @ref{Bug Reporting}.  Budete-li se dr¾et
+pro oznamování chyb, see @ref{Oznamování chyb}.  Budete-li se dr¾et
 uvedenými radami, umo¾níte nám zpracovat va¹e oznámení o@tie{}chybì
 efektivnìji a tím pádem s@tie{}lep¹í a rychlej¹í odezvou.
 
