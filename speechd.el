@@ -34,6 +34,7 @@
 
 
 (eval-when-compile (require 'cl))
+(require 'queue-f)
 
 
 ;;; User variables
@@ -98,7 +99,7 @@
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.10 2003-05-14 19:07:04 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.11 2003-05-15 17:51:39 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -156,7 +157,7 @@ Useful only for diagnosing problems.")
   (failure-p nil)
   process
   (process-output nil)
-  (command-queue (speechd--make-queue))
+  (command-queue (queue-create))
   (paused-p nil)
   (sending-data-p nil)
   (reading-answer-p nil)
@@ -175,32 +176,20 @@ Useful only for diagnosing problems.")
   `(let ((connection (speechd--connection)))
      ,@body))
 
-(defun speechd--make-queue ()
-  ())
-
-(defun speechd--queue-empty-p (queue)
-  (null queue))
-
 (defconst speechd--maximum-queue-length 10)
 (defun speechd--queue-too-long-p (queue)
-  (>= (length queue) speechd--maximum-queue-length))
-
-(defun speechd--enqueue (element queue)
-  (if queue
-      (progn
-	(setcdr (last queue) (list element))
-	queue)
-    (list element)))
-
-(defun speechd--dequeue (queue)
-  (values (pop queue) queue))
+  (>= (queue-length queue) speechd--maximum-queue-length))
 
 
 ;;; Process handling functions
 
 
-(defun* speechd--connection (&optional (name speechd-client-name))
-  (gethash name speechd--connections))
+(defun* speechd--connection (&optional (name speechd-client-name)
+				       (create-if-needed t))
+  (or (gethash name speechd--connections)
+      (and create-if-needed
+	   (let ((speechd-client-name name))
+	     (speechd-open)))))
 
 (defun speechd--process-name ()
   (process-name (speechd--connection-process (speechd--connection))))
@@ -252,7 +241,7 @@ for closer description of those arguments."
 (defun* speechd-close (&optional (name speechd-client-name))
   "Close connection named NAME to speechd."
   (interactive)
-  (let ((connection (speechd--connection name)))
+  (let ((connection (speechd--connection name nil)))
     (when connection
       (let ((process (speechd--connection-process connection)))
 	(ignore-errors
@@ -283,17 +272,20 @@ for closer description of those arguments."
 (defconst speechd--success-regexp
   (format "^[1-2][0-9][0-9] .*%s" speechd--eol))
 
-(defun speechd--send-string (string)
+(defvar pokus ())
+(defun speechd--send-string (string &optional expect-answer)
   (speechd--with-current-connection
     (if (speechd--connection-reading-answer-p connection)
 	(let ((queue (speechd--connection-command-queue connection)))
 	  (when (or (speechd--connection-sending-data-p connection)
 		    (not (speechd--queue-too-long-p queue)))
-	    (speechd--enqueue string queue)))
+	    (queue-enqueue queue (cons string expect-answer))))
       (let ((process (speechd--connection-process connection)))
 	(when process
 	  (unwind-protect
-	      (process-send-string process string)
+	      (progn
+		(process-send-string process string)
+		(push (cons 'w string) pokus))
 	    (unless (speechd-running-p)
 	      (setf (speechd--connection-process connection) nil))))))))
 
@@ -310,54 +302,63 @@ for closer description of those arguments."
   ;; reading the process output until `speechd-command-answer' is called,
   ;; either explicitly or automatically before sending next command.
   (speechd--with-current-connection
-    ;; If we're within another speechd--command-answer, i.e. the command to
-    ;; be answered waits in the queue and the answer isn't available.  So we
-    ;; simply return nil.
-    (unless (speechd--connection-reading-answer-p connection)
-      (while (let ((output (speechd--connection-process-output connection)))
-	       (and output
-		    (not (string-match speechd--end-regexp output))))
-	(let ((output (speechd--connection-process-output connection)))
-	  ;; We have to be very careful with accept-process-output -- it can
-	  ;; invoke another speechd-el functions in various places.
-	  (setf (speechd--connection-reading-answer-p connection) t)
-	  (unwind-protect
-	      (accept-process-output (speechd--connection-process connection)
-				     speechd-timeout)
-	    (setf (speechd--connection-reading-answer-p connection) nil))
-	  (when (string= (speechd--connection-process-output connection)
-			 output)
-	    (push "Timeout" speechd--debug-info)
-	    (speechd-close)
-	    (error "Timeout during communication with speechd."))))
-      ;; Process the answer
-      (let ((answer (speechd--connection-process-output connection))
-	    (data '())
-	    success
-	    result)
-	(while (string-match speechd--result-regexp answer)
-	  (push (match-string 1 answer) data)
-	  (setq answer (substring answer (match-end 0))))
-	(setq success (string-match speechd--success-regexp answer))
-	(unless success
-	  (setq data nil))
-	(setf (speechd--connection-process-output connection) nil)
-	(setq result (list data
-			   success
-			   (substring answer 0 3)
-			   (substring answer 4)))
-	;; Free the commands blocked by this speechd--command-answer
-	(let ((queue (speechd--connection-command-queue connection)))
-	  (unwind-protect
-	      (while (not (speechd--queue-empty-p queue))
-		(multiple-value-bind (request queue) (speechd--dequeue queue)
-		  (if request
-		      (speechd--send-string request)
-		    (speechd--command-answer))))
-	    (setf (speechd--connection-command-queue connection)
-		  (speechd--make-queue))))
-	;; Return result
-	result))))
+    (flet ((read-command-answer ()
+             (while (let ((output (speechd--connection-process-output
+				   connection)))
+		      (and output
+			   (not (string-match speechd--end-regexp output))))
+	       (let ((output (speechd--connection-process-output connection)))
+		 ;; We have to be very careful with accept-process-output -- it
+		 ;; can invoke another speechd-el functions in various places.
+		 (let ((reading (speechd--connection-reading-answer-p
+				 connection)))
+		   (setf (speechd--connection-reading-answer-p connection) t)
+		   (unwind-protect
+		       (accept-process-output (speechd--connection-process
+					       connection)
+					      speechd-timeout)
+		     (setf (speechd--connection-reading-answer-p connection)
+			   reading)))
+		 (when (string= (speechd--connection-process-output connection)
+				output)
+		   (push "Timeout" speechd--debug-info)
+		   (speechd-close)
+		   (error "Timeout during communication with speechd."))))
+	     ;; Process the answer
+	     (let ((answer (speechd--connection-process-output connection))
+		   (data '())
+		   success
+		   result)
+	       (while (and answer (string-match speechd--result-regexp answer))
+		 (push (match-string 1 answer) data)
+		 (setq answer (substring answer (match-end 0))))
+	       (setq success (and answer
+				  (string-match speechd--success-regexp
+						answer)))
+	       (unless success
+		 (setq data nil))
+	       (setf (speechd--connection-process-output connection) nil)
+	       (setq result (list data
+				  success
+				  (and answer (substring answer 0 3))
+				  (and answer (substring answer 4))))
+	       (push (cons 'r answer) pokus)
+	       answer)))
+      ;; If we're within another speechd--command-answer, i.e. the command to
+      ;; be answered waits in the queue and the answer isn't available.  So we
+      ;; simply return nil.
+      (unless (speechd--connection-reading-answer-p connection)
+	(prog1
+	    (read-command-answer)
+	  ;; Free the commands blocked by this speechd--command-answer
+	  (let ((queue (speechd--connection-command-queue connection)))
+	    (while (not (queue-empty queue))
+	      (destructuring-bind
+		  (request . expect-answer) (queue-dequeue queue)
+		(speechd--send-string request)
+		(when expect-answer
+		  (setf (speechd--connection-process-output connection) "")
+		  (read-command-answer))))))))))
 
 (defun speechd--send-command (command &optional delay-answer)
   (speechd--with-current-connection
@@ -375,21 +376,18 @@ for closer description of those arguments."
 		   (speechd-open (speechd--connection-host connection)
 				 (speechd--connection-port connection))))
       (let ((string-to-send (concat (mapconcat #'identity command " ")
-				  speechd--eol)))
+				    speechd--eol)))
 	(when speechd-debug
 	  (display-buffer (process-buffer
 			   (speechd--connection-process connection))))
 	(funcall (if speechd-debug #'message #'ignore)
-		 (speechd--send-string string-to-send))
-	(setf (speechd--connection-process-output connection) "")))
+		 (speechd--send-string string-to-send t))
+	(unless (speechd--connection-reading-answer-p connection)
+	  (setf (speechd--connection-process-output connection) ""))))
     ;; Read answer
-    (cond
-     ((speechd--connection-reading-answer-p connection)
-      (speechd--enqueue nil (speechd--connection-command-queue connection)))
-     (delay-answer
-      nil)
-     (t
-      (speechd--command-answer)))))
+    (unless (or (speechd--connection-reading-answer-p connection)
+		delay-answer)
+      (speechd--command-answer))))
 
 (defun speechd--send-data (text)
   (speechd--with-current-connection
@@ -451,10 +449,12 @@ for closer description of those arguments."
 
 (defun speechd--set-parameter (parameter value)
   (speechd--with-current-connection
-    (unless (eq (plist-get (speechd--connection-parameters connection)
-			   parameter)
-		value)
-      (plist-put (speechd--connection-parameters connection) parameter value)
+    (unless (equal (plist-get (speechd--connection-parameters connection)
+			      parameter)
+		   value)
+      (setf (speechd--connection-parameters connection)
+	    (plist-put (speechd--connection-parameters connection)
+		       parameter value))
       (speechd--send-command
        (list "SET" "self"
 	     (cdr (assoc parameter speechd--parameter-names))
@@ -526,12 +526,13 @@ for closer description of those arguments."
 
 (defun* speechd-say-char (char &key (priority speechd-default-char-priority))
   (speechd--set-parameter :message-priority priority)
-  (speechd--send-command (list "CHAR" (char-to-string char))))
+  (speechd--send-command
+   (list "CHAR" (format "\"%s\"" (char-to-string char)))))
 
 (defun* speechd-say-key (key &key (priority speechd-default-key-priority))
   (speechd--set-parameter :message-priority priority)
   ;; TODO: Implement real key handling
-  (speechd--send-command (list "KEY" (format "%s" key))))
+  (speechd--send-command (list "KEY" (format "\"%s\"" key))))
 
 
 ;;; Control functions
