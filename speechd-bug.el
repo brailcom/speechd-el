@@ -152,6 +152,7 @@
 ;;; The command
 
 
+;;;###autoload
 (defun speechd-bug ()
   "Send a bug report on speechd-el or Speech Dispatcher."
   (interactive)
