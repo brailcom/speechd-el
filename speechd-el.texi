@@ -343,7 +343,7 @@ auto-speaking buffers, see @xref{Auto-Speaking Buffers}.
 
 @cindex character reading prompts
 @cindex read-char
-A few Emacs commands get you stuck in a character reading prompt, a
+A few Emacs commands get you stuck in a character reading prompt, a
 typical example is @code{ispell-word}.  If you miss what was spoken
 before you are prompted for action, you can use the following
 keystrokes at the prompt to repeat the spoken texts:
