@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.46 2003-10-13 19:26:51 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.47 2003-10-13 19:31:58 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -972,7 +972,7 @@ connections, otherwise create completely new connection."
                 ((and (looking-at "$")
                       (memq 'end-of-line speechd-speak-signal-events))
                  (speechd-speak-report
-                  speechd-speak--end-of-line-message))
+                  (speechd-speak--event-mapping 'end-of-line)))
                 (t
                  (speechd-speak-read-char)))))
              ;; Buffer switch
