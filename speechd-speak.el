@@ -31,7 +31,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.24 2003-07-22 13:32:06 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.25 2003-07-24 14:43:05 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -170,6 +170,11 @@ processed in a different way by speechd-speak or user definitions."
   :type '(choice (const :tag "Never" nil)
                  (const :tag "One-line changes only" 'one-line)
                  (const :tag "Always" t))
+  :group 'speechd-speak)
+
+(defcustom speechd-speak-align-buffer-insertions t
+  "If non-nil, read insertions aligned to the beginning of the first word."
+  :type 'boolean
   :group 'speechd-speak)
 
 (defcustom speechd-speak-signal-empty t
@@ -730,12 +735,27 @@ FUNCTION is invoked interactively."
                    text)
     (push text (speechd-speak--command-info-struct-changes info))))
 
+(defun speechd-speak--buffer-substring (beg end)
+  (buffer-substring
+   (if (and speechd-speak-align-buffer-insertions
+            (not (eq this-command 'self-insert-command)))
+       (save-excursion
+         (goto-char beg)
+         (when (and (looking-at "\\w")
+                    (not (looking-at "\\<")))
+           (backward-word 1))
+         (point))
+     beg)
+   end))
+
 (defun speechd-speak--minibuffer-update-report (info old new)
   (speechd-speak--add-command-text
    info
    (if (and (<= (length old) (length new))
             (string= old (substring new 0 (length old))))
-       (substring new (length old))
+       (speechd-speak--buffer-substring
+        (+ (minibuffer-prompt-end) (length old))
+        (point-max))
      new)))
 
 (defun speechd-speak--minibuffer-update (beg end len)
@@ -758,8 +778,9 @@ FUNCTION is invoked interactively."
                  (not (= beg end)))
         (if (speechd-speak--in-minibuffer-p)
             (speechd-speak--minibuffer-update beg end len)
-          (speechd-speak--add-command-text info
-                                           (buffer-substring beg end)))))))
+          (speechd-speak--add-command-text
+           info
+           (speechd-speak--buffer-substring beg end)))))))
 
 (defun speechd-speak--pre-command-hook ()
   (speechd-speak--set-command-start-info)
@@ -808,18 +829,19 @@ FUNCTION is invoked interactively."
             (cond
              ;; Speak commands that can't speak in a regular way
              ((memq this-command '(forward-char backward-char))
-              (cond
-               ((looking-at "^")
-                (when speechd-speak-signal-beginning-of-line
-                  (speechd-speak-report
-                   speechd-speak--beginning-of-line-message
-                   :priority speechd-default-char-priority)))
-               ((looking-at "$")
-                (when speechd-speak-signal-end-of-line
-                  (speechd-speak-report
-                   speechd-speak--end-of-line-message
-                   :priority speechd-default-char-priority))))
-              (speechd-speak-read-char))
+              (speechd-block (:priority speechd-default-char-priority)
+               (cond
+                ((looking-at "^")
+                 (when speechd-speak-signal-beginning-of-line
+                   (speechd-speak-report
+                    speechd-speak--beginning-of-line-message))
+                 (speechd-speak-read-char))
+                ((and (looking-at "$")
+                      speechd-speak-signal-end-of-line)
+                 (speechd-speak-report
+                  speechd-speak--end-of-line-message))
+                (t
+                 (speechd-speak-read-char)))))
              ;; Buffer switch
              (buffer-changed
               (if speechd-speak-buffer-name
