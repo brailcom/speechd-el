@@ -31,7 +31,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.29 2003-07-27 16:25:04 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.30 2003-07-27 18:00:51 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -165,6 +165,13 @@ processed in a different way by speechd-speak or user definitions."
   :type '(choice (const :tag "Never" nil)
                  (const :tag "One-line changes only" 'one-line)
                  (const :tag "Always" t))
+  :group 'speechd-speak)
+
+(defcustom speechd-speak-insertions-in-buffers
+  '(" widget-choose" "*Choices*")
+  "List of names of buffers, in which insertions are automatically spoken.
+See also `speechd-speak-buffer-insertions'."
+  :type '(repeat string)
   :group 'speechd-speak)
 
 (defcustom speechd-speak-align-buffer-insertions t
@@ -703,6 +710,7 @@ FUNCTION is invoked interactively."
   (speechd-speak--prompt (minibuffer-contents)))
 
 (defun speechd-speak--minibuffer-setup-hook ()
+  (speechd-speak--enforce-speak-mode)
   (speechd-speak--with-command-start-info
    (setf (speechd-speak--command-info-struct-minibuffer-contents info)
          (minibuffer-contents)))
@@ -772,16 +780,22 @@ FUNCTION is invoked interactively."
         info old-content new-content)))))
 
 (defun speechd-speak--after-change-hook (beg end len)
+  (speechd-speak--enforce-speak-mode)
   (when speechd-speak-mode
     (speechd-speak--with-command-start-info
-      (when (and (eq (current-buffer)
-                     (speechd-speak--command-info-struct-buffer info))
-                 (not (= beg end)))
-        (if (speechd-speak--in-minibuffer-p)
-            (speechd-speak--minibuffer-update beg end len)
-          (speechd-speak--add-command-text
-           info
-           (speechd-speak--buffer-substring beg end)))))))
+      (unless (= beg end)
+        (cond
+         ((eq (current-buffer)
+              (speechd-speak--command-info-struct-buffer info))
+          (if (speechd-speak--in-minibuffer-p)
+              (speechd-speak--minibuffer-update beg end len)
+            (speechd-speak--add-command-text
+             info
+             (speechd-speak--buffer-substring beg end))))
+         ((member (buffer-name (current-buffer))
+                  speechd-speak-insertions-in-buffers)
+          (speechd-speak--text (speechd-speak--buffer-substring beg end)
+                               :priority :message)))))))
 
 (defun speechd-speak--pre-command-hook ()
   (speechd-speak--set-command-start-info)
@@ -797,16 +811,7 @@ FUNCTION is invoked interactively."
   (add-hook 'pre-command-hook 'speechd-speak--pre-command-hook))
 
 (defun speechd-speak--post-command-hook ()
-  ;; global-speechd-speak-map-mode is not enabled until
-  ;; kill-all-local-variables is called.  So we have to be a bit more
-  ;; aggressive about it.  The same applies to global-speechd-speak-mode.
-  (flet ((enforce-mode (global-mode local-mode-var)
-           (when (and global-mode
-                      (not (symbol-value local-mode-var))
-                      (not (local-variable-p local-mode-var)))
-             (funcall local-mode-var 1))))
-    (enforce-mode global-speechd-speak-map-mode 'speechd-speak-map-mode)
-    (enforce-mode global-speechd-speak-mode 'speechd-speak-mode))
+  (speechd-speak--enforce-speak-mode)
   ;; Now, try to speak something useful
   (when speechd-speak-mode
     ;; Messages should be handled by an after change function.  Unfortunately,
@@ -1094,6 +1099,18 @@ the value of the `speechd-speak-prefix' variable:
  global-speechd-speak-mode speechd-speak-mode
  (lambda () (speechd-speak-mode 1))
  :group 'speechd-speak)
+
+;; global-speechd-speak-map-mode is not enabled until kill-all-local-variables
+;; is called.  So we have to be a bit more aggressive about it sometimes.  The
+;; same applies to global-speechd-speak-mode.
+(defun speechd-speak--enforce-speak-mode ()
+  (flet ((enforce-mode (global-mode local-mode-var)
+           (when (and global-mode
+                      (not (symbol-value local-mode-var))
+                      (not (local-variable-p local-mode-var)))
+             (funcall local-mode-var 1))))
+    (enforce-mode global-speechd-speak-map-mode 'speechd-speak-map-mode)
+    (enforce-mode global-speechd-speak-mode 'speechd-speak-mode)))
 
 (defun speechd-speak-toggle-speaking (arg)
   "Toggle speaking.
