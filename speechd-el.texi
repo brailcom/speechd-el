@@ -166,8 +166,8 @@ Add the following line to your @file{~/.emacs}:
 @end lisp
 @end enumerate
 
-To run speechd-el, Speech Dispatcher 0.5 or higher must be installed
-and running.
+To run speechd-el, Speech Dispatcher must be installed and running.
+Speech Dispatcher version 0.5 or higher is recommended.
 
 @node Starting Speech Output, Commands, Installation, speechd-el User Manual
 @section Starting Speech Output
@@ -332,7 +332,7 @@ Read last seen Emacs message (@code{speechd-speak-last-message}).
 @kindex C-e RET
 @findex speechd-speak-read-mode-line
 Read the mode line (@code{speechd-speak-read-mode-line}).  Note: This
-function works only in Emacs 21.4 or higher.
+command works only in Emacs 21.4 or higher.
 
 @item C-e i
 @kindex C-e i
@@ -388,7 +388,9 @@ Speak information about current frame (@code{speechd-speak-frame-info}).
 @item C-e C-i h
 @findex speechd-speak-header-line-info
 @cindex header line
-Speak contents of the header line (@code{speechd-speak-header-line-info}).
+Speak contents of the header line
+(@code{speechd-speak-header-line-info}).  Note: This command works
+only in Emacs 21.4 or higher.
 
 @item C-e C-i m
 @findex speechd-speak-mode-info
@@ -440,7 +442,7 @@ connection.
 @findex speechd-cancel
 @cindex stop
 Stop speaking all the queued messages of the current connection.  If
-the universal numeric argument is given, stop speaking all the
+the universal prefix argument is given, stop speaking all the
 messages of all connections.  If a numeric prefix argument is given,
 stop all the messages of the current Emacs session.
 
@@ -673,14 +675,14 @@ running on a remote host or a non-default port.
 @item speechd-host
 @cindex host
 Name of the host running Speech Dispatcher to connect to, given as a
-string.  Default is either the contents of the @code{SPEECHD_HOST}
-variable if set, or @code{"localhost"}.
+string.  Default is either the contents of the shell variable
+@code{SPEECHD_HOST} variable if set, or @code{"localhost"}.
 
 @item speechd-port
 @cindex port
 Port number to connect to.  Default is either the contents of the
-@code{SPEECHD_PORT} variable if set, or the default Speech Dispatcher
-port.
+shell variable @code{SPEECHD_PORT} if set, or the default Speech
+Dispatcher port.
 
 @item speechd-timeout
 @cindex timeout
@@ -764,7 +766,7 @@ is nothing else to speak.
 @cindex command keys
 @cindex keys
 This variable defines in which situations command keys should be read
-after their command is performed.  If @code{t}, the command keys are
+when their command is performed.  If @code{t}, the command keys are
 always read.  If @code{nil}, they are never read.  If list, it may
 contain one or more of the following symbols describing the situations
 in which the keys should be read:
@@ -1112,7 +1114,7 @@ and @code{style} are considered to select a Speech Dispatcher voice.
 be one of the numbers @code{1}, @code{2}, @code{3} (@code{style}
 values are likely to be changed in future).
 
-The @code{message-priority} parameter sets priority of amy message of
+The @code{message-priority} parameter sets priority of any message of
 the voice.  Its value is any of the message priority symbols.
 
 See the corresponding @code{speechd-set-*} functions for valid values
@@ -1468,7 +1470,7 @@ this section to allow handling your bug report in a more efficient way.
 Report a speechd-el or Speech Dispatcher bug.  The command asks you
 for some information and then asks you whether you can reproduce the
 bug.  If you can, answer @kbd{y} and start reproducing the bug
-immediately.  As soon as the bug is reproduced, type @kbd{C-e .}.
+immediately.  As soon as the bug is reproduced, type @kbd{C-e C-f}.
 Then you can (and should) further edit the generated mail and send it
 in the usual way.
 
@@ -1476,7 +1478,7 @@ in the usual way.
 @findex speechd-bug-reproduce
 @kindex C-e C-f
 Start reproducing a speechd-el or Speech Dispatcher bug.  All user and
-speechd actions are watched from this moment.
+Speech Dispatcher actions are watched from this moment.
 
 Bug reproduction is finished by pressing the @kbd{C-e C-f} keys.
 After the bug reproduction is finished, information about it is
@@ -1517,7 +1519,7 @@ enabled to the highest level --- set the @code{LogLevel} option to
 
 @item
 When reproducing the bug, don't do any extra actions and invoke
-@kbd{C-e .} as soon as the bug is reproduce.  Thus you avoid losing
+@kbd{C-e C-f} as soon as the bug is reproduce.  Thus you avoid losing
 the relevant information of the automatically extracted log files in
 an unnecessary garbage.
 
