@@ -1,3 +1,27 @@
+2003-10-13  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak--last-report): New variable.
+	(speechd-speak-report): Use it.
+	(speechd-speak--pre-command-hook): Reset it.
+	(speechd-speak): Use speechd-speak--start-message instead of
+	"startup" text.
+
+2003-10-11  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak--start-message) 
+	(speechd-speak--finish-message) 
+	(speechd-speak--minibuffer-message) 
+	(speechd-speak--message-message): New variables.
+	(speechd-speak--minibuffer-setup-hook) 
+	(speechd-speak--current-message): Signal sound icon.
+
+	* speechd-el.texi (Contact Information): E-mail addresses updated.
+
+2003-10-10  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd--volatile-parameters): New constant.
+	(speechd--set-parameter): Consider it.
+
 2003-10-09  Hynek Hanke  <hanke@volny.cz>
 
 	* speechd.el (speechd--parameter-names): Added PAUSE_CONTEXT.
