@@ -368,6 +368,9 @@ Level 1 is the slowest, level 9 is the fastest."
 ;;; Supporting functions and options
 
 
+(defun speechd-speak--name (&rest args)
+  (intern (mapconcat #'symbol-name args "-")))
+
 (defvar speechd-speak-mode nil)   ; forward definition to make everything happy
 
 (defvar speechd-speak--started nil)
@@ -614,12 +617,11 @@ This function works only in Emacs 21.4 or higher."
   (speechd-speak--text (format "Column %d" (current-column))))
 
 (defmacro speechd-speak--def-speak-object (type)
-  (let* ((name (symbol-name type))
-	 (function-name (intern (format "speechd-speak-read-%s" name)))
-	 (backward-function (intern (format "backward-%s" name)))
-	 (forward-function (intern (format "forward-%s" name))))
+  (let* ((function-name (speechd-speak--name 'speechd-speak-read type))
+	 (backward-function (speechd-speak--name 'backward type))
+	 (forward-function (speechd-speak--name 'forward type)))
     `(defun ,function-name ()
-       ,(format "Speak current %s." name)
+       ,(format "Speak current %s." type)
        (interactive)
        (speechd-speak--interactive
         (save-excursion
@@ -649,7 +651,7 @@ This function works only in Emacs 21.4 or higher."
   minibuffer-contents)
 
 (defmacro speechd-speak--cinfo (slot)
-  `(,(intern (concat "speechd-speak--command-info-struct-" (symbol-name slot)))
+  `(,(speechd-speak--name 'speechd-speak--command-info-struct slot)
     info))
 
 (defun speechd-speak--command-info-struct-buffer (info)
@@ -1237,8 +1239,7 @@ Only single characters are allowed in the keymap.")
   (add-hook 'pre-command-hook 'speechd-speak--pre-command-hook))
 
 (defmacro speechd-speak--post-defun (name shy new-state guard &rest body)
-  (let* ((name (intern (concat "speechd-speak--post-read-"
-                               (symbol-name name))))
+  (let* ((name (speechd-speak--name 'speechd-speak--post-read name))
          (state-condition (case shy
                             ((t) `(eq state nil))
                             (sometimes `(not (eq state t)))

@@ -1,3 +1,9 @@
+2004-09-21  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak--name): New function.
+	(speechd-speak--def-speak-object, speechd-speak--cinfo)
+	(speechd-speak--post-defun): 
+
 2004-09-20  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-speak.el (speechd-speak-quiet-functions): Removed.
