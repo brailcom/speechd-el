@@ -31,7 +31,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.19 2003-07-16 17:51:33 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.20 2003-07-19 11:17:20 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -158,22 +158,19 @@ created."
                        (string :tag "Connection name")))
   :group 'speechd-speak)
 
-(defcustom speechd-speak-empty-message "empty"
-  "Message to say on empty lines.
-If the value starts with a star, it names a sound icon, without the star."
-  :type 'string
+(defcustom speechd-speak-signal-empty t
+  "If non-nil, signal empty lines with a standard sound icon."
+  :type 'boolean
   :group 'speechd-speak)
 
-(defcustom speechd-speak-beginning-of-line-message "beginning of line"
-  "Message to say on a beginning of line.
-If the value starts with a star, it names a sound icon, without the star."
-  :type 'string
+(defcustom speechd-speak-signal-beginning-of-line t
+  "If non-nil, signal beginning of lines with a standard sound icon."
+  :type 'boolean
   :group 'speechd-speak)
 
-(defcustom speechd-speak-end-of-line-message "end of line"
-  "Message to say on an end of line.
-If the value starts with a star, it names a sound icon, without the star."
-  :type 'string
+(defcustom speechd-speak-signal-end-of-line t
+  "If non-nil, signal ends of lines with a standard sound icon."
+  :type 'boolean
   :group 'speechd-speak)
 
 (defcustom speechd-speak-prefix "\C-e"
@@ -185,13 +182,21 @@ If the value starts with a star, it names a sound icon, without the star."
   :group 'speechd-speak)
 
 
+;;; Internal constants
+
+
+(defvar speechd-speak--empty-message "*empty-text")
+(defvar speechd-speak--beginning-of-line-message "*beginning-of-line")
+(defvar speechd-speak--end-of-line-message "*end-of-line")
+
+
 ;;; Control functions
 
 
 (defvar speechd-speak-quiet t
   "If non-nil in the current buffer, no speech output is produced.")
 
-(defun speechd-speak-toggle-quiet (&optional prefix speak)
+(defun speechd-speak-toggle-quiet (&optional prefix speak silently)
   "Turn speaking on or off.
 Without the PREFIX argument, toggle speaking globally, except for the buffers
 with previously explicitly toggled speaking.
@@ -199,7 +204,9 @@ With the universal PREFIX argument, toggle speaking in all buffers.
 With the PREFIX argument 1, toggle speaking in the current buffer only.
 
 If the optional argument SPEAK is a positive number, turn speaking on; if it
-is a non-positive number, turn speaking off."
+is a non-positive number, turn speaking off.
+
+If the optional argument SILENTLY is non-nil, don't report switching the mode."
   (interactive "P")
   (let ((new-state (if (numberp speak) (<= speak 0) (not speechd-speak-quiet)))
 	prompt)
@@ -223,8 +230,9 @@ is a non-positive number, turn speaking off."
 	    prompt "in the current buffer")))
     (when speechd-speak-quiet
       (speechd-cancel))
-    (let ((speechd-speak-quiet nil))
-      (message "Speaking turned %s %s" (if new-state "off" "on") prompt))))
+    (unless silently
+      (let ((speechd-speak-quiet nil))
+        (message "Speaking turned %s %s" (if new-state "off" "on") prompt)))))
 
 (defvar speechd-speak--predefined-rates
   '((1 . -100)
@@ -341,7 +349,10 @@ Level 1 is the slowest, level 9 is the fastest."
   (interactive "r")
   (let ((text (buffer-substring (or beg (mark)) (or end (point)))))
     (if (string= text "")
-        (speechd-speak-report (or empty-text speechd-speak-empty-message)
+        (speechd-speak-report (or empty-text
+                                  (if speechd-speak-signal-empty
+                                      speechd-speak--empty-message
+                                    ""))
                               :priority :message)
       (speechd-speak--text text :priority :text))))
 
@@ -754,13 +765,15 @@ FUNCTION is invoked interactively."
              ((memq this-command '(forward-char backward-char))
               (cond
                ((looking-at "^")
-                (speechd-speak-report
-                 speechd-speak-beginning-of-line-message
-                 :priority speechd-default-char-priority))
+                (when speechd-speak-signal-beginning-of-line
+                  (speechd-speak-report
+                   speechd-speak--beginning-of-line-message
+                   :priority speechd-default-char-priority)))
                ((looking-at "$")
-                (speechd-speak-report
-                 speechd-speak-end-of-line-message
-                 :priority speechd-default-char-priority)))
+                (when speechd-speak-signal-end-of-line
+                  (speechd-speak-report
+                   speechd-speak--end-of-line-message
+                   :priority speechd-default-char-priority))))
               (speechd-speak-read-char))
              ;; Buffer switch
              (buffer-changed
@@ -914,8 +927,11 @@ FUNCTION is invoked interactively."
 
 
 
-;;; The startup function
+;;; The startup and shutdown functions
 
+
+(defun speechd-speak--shutdown ()
+  (speechd-speak-toggle-quiet '(4) 0 t))
 
 (defvar speechd-speak--started nil)
 (defun speechd-speak ()
@@ -924,6 +940,7 @@ FUNCTION is invoked interactively."
   (speechd-reopen)
   (add-hook 'pre-command-hook 'speechd-speak--pre-command-hook)
   (add-hook 'post-command-hook 'speechd-speak--post-command-hook)
+  (add-hook 'kill-emacs-hook 'speechd-speak--shutdown)
   (speechd-speak-toggle-quiet nil 1)
   (run-hooks 'speechd-speak-startup-hook)
   (message "Speechd-speak %s"
