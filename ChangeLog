@@ -1,3 +1,8 @@
+2004-11-12  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak-ignore-command-keys): Type
+	changed from the non-existent type COMMAND to FUNCTION.
+
 2004-10-19  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-el 0.5 released.
