@@ -208,7 +208,7 @@ locally through `let'.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.42 2003-07-30 19:38:43 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.43 2003-07-31 08:55:07 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -442,7 +442,9 @@ Return the opened connection on success, nil otherwise."
                                   (cdr (assoc t
                                               speechd-connection-parameters))))
 	     (parameters (if connection
-                             (speechd--connection-parameters connection)
+                             (append
+                              (speechd--connection-parameters connection)
+                              default-parameters)
                            default-parameters))
              (forced-priority (plist-get default-parameters 'message-priority))
 	     (process (when (or
@@ -473,14 +475,16 @@ Return the opened connection on success, nil otherwise."
 	(puthash name connection speechd--connections)
 	(when process
 	  (speechd--set-connection-name name)
-          (speechd-set-voice speechd--default-voice)
-          (when speechd--default-language
-            (speechd-set-language speechd--default-language))
-	  (while parameters
-	    (destructuring-bind (parameter value . next) parameters
-	      (when (not (eq parameter 'client-name))
-		(speechd--set-parameter parameter value))
-	      (setq parameters next))))
+          (setq parameters (append parameters
+                                   (list 'language speechd--default-language
+                                         'voice speechd--default-voice)))
+          (let ((already-set '(client-name)))
+            (while parameters
+              (destructuring-bind (parameter value . next) parameters
+                (unless (memq parameter already-set)
+                  (push parameter already-set)
+                  (speechd--set-parameter parameter value))
+                (setq parameters next)))))
         (let ((priority (and
                          connection
                          (plist-get default-parameters 'message-priority))))
