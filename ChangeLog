@@ -1,5 +1,10 @@
 2004-10-01  Milan Zamazal  <pdm@brailcom.org>
 
+	* speechd-speak.el (text-property-movement): Consider all text
+	properties.
+
+2004-10-01  Milan Zamazal  <pdm@brailcom.org>
+
 	* speechd-speak.el (speechd-speak-priority-insertions-in-buffers):
 	"*shell*" added.
 	(speechd-speak-insertions-in-buffers): "*shell*" removed.

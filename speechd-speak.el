@@ -1404,6 +1404,7 @@ Only single characters are allowed in the keymap.")
            (memq (get-char-property (point) 'face)
                  speechd-speak-by-properties-on-movement))
        (or (get-char-property (point) 'face)
+           (text-properties-at (point))
            (overlays-at (point)))
        (let ((position (speechd-speak--cinfo point)))
          (or (> (speechd-speak--previous-property-change
