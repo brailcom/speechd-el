@@ -1620,6 +1620,16 @@ When the mode is enabled, all spoken text is spelled."
                  (speechd-speak--text
                   (format "Old buffer: %s; new buffer: %s" old new))))
 
+(speechd-speak--watch buffer-identification
+  #'(lambda ()
+      (when (fboundp 'format-mode-line)
+        (let ((ident (format-mode-line mode-line-buffer-identification)))
+          (set-text-properties 0 (length ident) nil ident)
+          ident)))
+  :on-change #'(lambda (old new)
+                 (speechd-speak--text
+                  (format "New buffer identification: %s" new))))
+
 (speechd-speak--watch buffer-modified #'buffer-modified-p
   :on-change #'(lambda (old new)
                  (speechd-speak--text
@@ -1631,21 +1641,46 @@ When the mode is enabled, all spoken text is spelled."
                   (if new "Buffer writable" "Buffer read-only"))))
 
 (defun speechd-speak-buffer-info ()
-  "Speak current buffer name."
+  "Speak current buffer information."
   (interactive)
   (speechd-speak--text
-   (format "Buffer %s, %s %s %s" (speechd-speak--get-buffer-name)
+   (format "Buffer %s, %s %s %s; %s"
+           (speechd-speak--get-buffer-name)
            (or vc-mode "")
            (if (speechd-speak--get-buffer-read-only) "read only" "")
-           (if (speechd-speak--get-buffer-modified) "modified" ""))))
+           (if (speechd-speak--get-buffer-modified) "modified" "")
+           (let ((ident (speechd-speak--get-buffer-identification)))
+             (if ident
+                 (format "buffer identification: %s" ident)
+               "")))))
 (define-key speechd-speak-info-map "b" 'speechd-speak-buffer-info)
 
-(speechd-speak--watch frame #'(lambda () (frame-parameter nil 'name))
+(speechd-speak--watch frame-name #'(lambda () (frame-parameter nil 'name))
   :on-change #'(lambda (old new)
                  (speechd-speak--text
-                  (format "Old frame: %s; new frame: %s" old new)))
-  :info-string "Frame %s"
-  :key "f")
+                  (format "Old frame: %s; new frame: %s" old new))))
+
+(speechd-speak--watch frame-identification
+  #'(lambda ()
+      (when (fboundp 'format-mode-line)
+        (let ((ident (format-mode-line mode-line-frame-identification)))
+          (set-text-properties 0 (length ident) nil ident)
+          ident)))
+  :on-change #'(lambda (old new)
+                 (speechd-speak--text
+                  (format "New frame identification: %s" new))))
+
+(defun speechd-speak-frame-info ()
+  "Speak current frame information."
+  (interactive)
+  (speechd-speak--text
+   (format "Frame: %s; %s"
+           (speechd-speak--get-frame-name)
+           (let ((ident (speechd-speak--get-frame-identification)))
+             (if ident
+                 (format "frame identification: %s" ident)
+               "")))))
+(define-key speechd-speak-info-map "f" 'speechd-speak-frame-info)
 
 (speechd-speak--watch header-line
   #'(lambda ()

@@ -1,5 +1,13 @@
 2004-09-22  Milan Zamazal  <pdm@brailcom.org>
 
+	* speechd-speak.el (buffer-identification, frame-identification):
+	New watchers.
+	(speechd-speak-buffer-info): Report buffer identification.
+	(frame): Don't assign info-string and key; renamed to frame-name.
+	(speechd-speak-frame-info): New function.
+
+2004-09-22  Milan Zamazal  <pdm@brailcom.org>
+
 	* speechd-speak.el (buffer-name): Missing FORMAT call in
 	speechd-speak--text added.
 
