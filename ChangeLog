@@ -1,3 +1,16 @@
+2003-06-03  Milan Zamazal  <pdm@brailcom.org>
+
+	* dtk-interp.el (dtk-interp-set-rate) 
+	(dtk-interp-set-punctuations): Do nothing.
+
+2003-05-30  Milan Zamazal  <pdm@brailcom.org>
+
+	* dtk-interp.el (dtk-interp-stop): Do nothing.
+	(speechd-emacspeak-no-stop, speechd-send-command): Removed.
+	(dtk-interp-queue, dtk-interp-speak): Call speechd-say-text with
+	:priority :medium.
+	(dtk-interp-say): Call speechd-say-text with :priority.
+
 2003-05-29  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd.el (speechd-set-punctuation-mode): Use `assoc', not
