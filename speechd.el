@@ -293,7 +293,7 @@ language.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "2004-05-11 11:22 pdm"
+(defconst speechd--el-version "2004-05-11 16:49 pdm"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -1022,8 +1022,7 @@ of the symbols `important', `message', `text', `notification' or
 `progress'."
   (interactive "sText: ")
   (speechd--set-parameter 'message-priority priority)
-  (if (string= text "")
-      (speechd--send-text text)
+  (unless (string= text "")
     (flet ((properties (point)
              (let ((voice (cdr (assq (get-text-property point 'face text)
                                      speechd-face-voices)))
