@@ -8,6 +8,7 @@
 	(speechd--iterate-connections): New macro.
 	(speechd--control-command): If not ALL, apply the command to all
 	speechd connections.
+	(speechd-connection-parameters): Don't call speechd-reopen.
 
 	* speechd-speak.el (speechd-speak-connections): :minibuffer
 	allowed as the value (docstring change only).
