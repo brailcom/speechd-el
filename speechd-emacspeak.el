@@ -109,6 +109,9 @@ Pronounces character phonetically unless called with a PREFIX arg."
 (speechd-protect-against-dtk-process-errors dtk-interp-pause)
 (speechd-protect-against-dtk-process-errors dtk-interp-resume)
 
+(setq dtk-speech-rate-base -99
+      dtk-speech-rate-step 22)
+
 ;;; Start Emacspeak now
 
 (setq speechd-emacspeak-start-allowed-p t)
