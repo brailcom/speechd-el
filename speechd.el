@@ -211,7 +211,7 @@ locally through `let'.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.65 2003-10-13 13:58:29 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.66 2003-10-17 17:41:29 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -959,15 +959,17 @@ of the symbols `important', `message', `text', `notification' or
 `progress'."
   (let* ((modifiers (event-modifiers key))
          (character (event-basic-type key))
-         (string (cond
-                  ((< character 32)
-                   (push 'control modifiers)
-                   (format "%c" (+ ?a (1- character))))
-                  ((and (>= character 128) (< character 160)) "?")
-                  ((eql character ? ) "space")
-                  ((eql character ?_) "underscore")
-                  ((eql character ?_) "double-quote")
-                  (t (format "%c" character)))))
+         (string (if (numberp character)
+                     (cond
+                      ((< character 32)
+                       (push 'control modifiers)
+                       (format "%c" (+ ?a (1- character))))
+                      ((and (>= character 128) (< character 160)) "?")
+                      ((eql character ? ) "space")
+                      ((eql character ?_) "underscore")
+                      ((eql character ?_) "double-quote")
+                      (t (format "%c" character)))
+                   (format "%s" character))))
     (dolist (m modifiers)
       (setq string (concat (symbol-name m) "_" string)))
     (speechd--set-parameter 'message-priority priority)
