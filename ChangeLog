@@ -1,4 +1,11 @@
 2003-10-13  Milan Zamazal  <pdm@brailcom.org>
+	
+	* speechd-speak.el (speechd-speak--current-message) 
+	(speechd-speak--minibuffer-setup-hook): Don't enclose new sound
+	icon in blocks, use normal priorities instead.
+
+	* speechd.el (speechd-say-key): KEY type defined; true key
+	handling partially implemented.
 
 	* speechd-speak.el (speechd-speak--last-report): New variable.
 	(speechd-speak-report): Use it.
