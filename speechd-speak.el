@@ -33,7 +33,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.4 2003-06-25 13:18:38 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.5 2003-06-25 20:16:16 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -391,9 +391,12 @@ Level 1 is the slowest, level 9 is the fastest."
 ;;; Minibuffer
 
 
+(defun speechd-speak--prompt (prompt)
+  (speechd-speak--text prompt :priority :message))
+
 (defun speechd-speak--speak-minibuffer-prompt ()
-  (speechd-speak--text (minibuffer-prompt) :priority :message)
-  (speechd-speak--text (minibuffer-contents) :priority :message))
+  (speechd-speak--prompt (minibuffer-prompt))
+  (speechd-speak--prompt (minibuffer-contents)))
 (add-hook 'minibuffer-setup-hook 'speechd-speak--speak-minibuffer-prompt)
 
 (defun speechd-speak--speak-minibuffer ()
@@ -421,6 +424,13 @@ Level 1 is the slowest, level 9 is the fastest."
 
 (defun speechd-speak--pre-command-hook ()
   (speechd-speak--set-command-start-info)
+  ;; Some parameters of interactive commands don't set up the minibuffer, so we
+  ;; have to speak the prompt in an extra way.
+  (let ((interactive (cadr (interactive-form this-command))))
+    (when (and (stringp interactive)
+	       (string-match "^[@*]*\\([eipPmnr]\n\\)*[ckK]\\(.+\\)"
+			     interactive))
+      (speechd-speak--prompt (match-string 2 interactive))))
   (add-hook 'pre-command-hook 'speechd-speak--pre-command-hook))
 
 (defun speechd-speak--post-command-hook ()
