@@ -400,8 +400,8 @@ You can also set a separate connection for a buffer using the
 following command:
 
 @table @kbd
-@item C-e C-s
-@kindex C-e C-s
+@item C-e C-c
+@kindex C-e C-c
 @findex speechd-speak-new-connection
 @cindex connection
 Set a given connection for the current buffer
