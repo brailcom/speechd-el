@@ -33,6 +33,16 @@
 	(speechd-speak--def-speak-object, speechd-speak-last-message): Use
 	it.
 	(speechd-speak-mode-map): Don't bind kill-emacs.
+	(speechd-speak--def-speak-object): Generate docstrings too.
+	(speechd-speak-last-message): Docstring added.
+	(speechd-speak-toggle): Renamed to speechd-speak-toggle-speaking.
+	(speechd-speak-read-region): Send empty text signalization with
+	speechd-default-priority, not :message priority.
+	(speechd-speak-map-mode): New minor mode.
+	(speechd-speak-mode): Turn it on.
+	(global-speechd-speak-map-mode): New global minor mode.
+	(speechd-speak): Turn it on.
+	(global-speechd-speak-mode): TURN-ON argument fixed.
 
 2003-07-24  Milan Zamazal  <pdm@brailcom.org>
 
