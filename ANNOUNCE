@@ -37,9 +37,18 @@ The Free(b)soft project is pleased to announce speechd-el 0.3.
 
 * What is new in the 0.3 version?
 
-  - Bug fixes.
+  - Connection parameters and voice handling configuration was
+    simplified and made more flexible.
 
-  - Some performance improvements.
+  - The *Completion* buffer is spoken now.
+
+  - Volume setting added.
+
+  - You can shut up speechd-el in Elisp debuggers.
+
+  - Bug reporting improvements.
+
+  - Bug fixes.
 
   See the NEWS file for more details.
 
