@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.63 2003-11-04 10:30:37 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.64 2003-11-04 17:12:20 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -920,6 +920,12 @@ connections, otherwise create completely new connection."
         (speechd-speak--emulate-minibuffer t))
     (when prompt
       (speechd-speak--minibuffer-prompt prompt :priority 'message))))
+(speechd-speak--defadvice read-event before
+  (let ((prompt (ad-get-arg 0)))
+    (when prompt
+      (let ((speechd-speak--emulate-minibuffer t)
+            (speechd-language (if (ad-get-arg 1) speechd-language "en")))
+        (speechd-speak--minibuffer-prompt prompt :priority 'message)))))
 
 
 ;;; Commands
