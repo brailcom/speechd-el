@@ -1616,7 +1616,7 @@ When the mode is enabled, all spoken text is spelled."
 (defvar speechd-speak-spell-command nil)
 
 (defun speechd-speak-spell ()
-  "Let the very next command to be spell the text it reads."
+  "Let the very next command to spell the text it reads."
   (interactive)
   (unless speechd-speak-spell-mode
     (setq speechd-speak-spell-command t)))
