@@ -215,9 +215,13 @@ Pronounces character phonetically unless called with a PREFIX arg."
 (defun voice-lock-mode (&optional arg)
   (setq voice-lock-mode nil))
 
+;;; Start Emacspeak now
+
+(setq speechd-emacspeak-start-allowed-p t)
+(emacspeak)
+
 ;;; Disable other Emacspeak features
 
-(require 'emacspeak-advice)
 (defadvice message (around emacspeak pre act)
   ad-do-it
   (setq emacspeak-last-message ad-return-value)
@@ -225,11 +229,6 @@ Pronounces character phonetically unless called with a PREFIX arg."
 	     ad-return-value)
     (tts-with-punctuations "all"
       (speechd-say-text ad-return-value :priority :progress))))
-
-;;; Start Emacspeak now
-
-(setq speechd-emacspeak-start-allowed-p t)
-(emacspeak)
 
 ;;; Announce
 
