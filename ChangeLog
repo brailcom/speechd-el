@@ -7,6 +7,15 @@
 	searches.
 	(speechd-speak--current-message): The argument REPEATABLE changed
 	to RESET-LAST-SPOKEN.
+	(speechd-speak--next-property-change)
+	(speechd-speak--previous-property-change): New functions.
+	(speechd-speak--post-command-hook): Use them.  Use
+	get-char-property instead of get-text-property.
+	(speechd-speak-force-auto-speak-buffers): New user option.
+	(speechd-speak--post-command-hook): Consider it.
+	(speechd-speak--next-property-change) 
+	(speechd-speak--previous-property-change): Use
+	*-char-property-change functions.
 
 2003-07-01  Milan Zamazal  <pdm@brailcom.org>
 
