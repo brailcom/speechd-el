@@ -1,3 +1,17 @@
+2003-06-09  Milan Zamazal  <pdm@brailcom.org>
+
+	* dtk-interp.el (dtk-interp-say): Use priority :important
+	unconditionally.
+	(dtk-interp-current-priority): New function.
+	(dtk-interp-queue, dtk-interp-speak): Use it.
+	* speechd.el (speechd-priority-tags): Changed to new speechd
+	priorities.
+	(speechd-default-text-priority, speechd-default-sound-priority) 
+	(speechd-default-char-priority, speechd-default-key-priority):
+	Values changed to the new priority values.
+	(speechd--parameter-value-mappings): Updated to the new priority
+	values.
+
 2003-06-03  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd.el (speechd-say-char): Handle linefeed in a special way
