@@ -116,6 +116,11 @@ The icon is played when no corresponding entry is found in
 (defun dtk-initialize ()
   nil)
 
+(defun tts-restart ()
+  "Use this to nuke the currently running TTS server and restart it."
+  (interactive)
+  (speechd-reopen))
+
 ;; Avoid transformation of characters (unfortunately, `dtk-char-to-speech' is
 ;; an inline function).
 (defun emacspeak-speak-char (&optional prefix)
