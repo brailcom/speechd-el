@@ -1,3 +1,14 @@
+2003-04-16  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-priority-tags): New constant.
+	(speechd-default-text-priority): Use it.
+	(speechd-default-letter-priority): Use it.  Renamed to
+	speechd-default-char-priority.
+	(speechd-default-sound-priority, speechd-default-key-priority):
+	New options.
+	(speechd-say-char): Use the CHAR command.
+	(speechd-say-sound): New functon.
+
 2003-04-15  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-emacspeak.el (emacspeak-keymap): Assign "s" to
