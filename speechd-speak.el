@@ -218,7 +218,9 @@ Otherwise speak from the point to the end of line on movement by default."
 (defcustom speechd-speak-message-time-interval 30
   "Minimum time in seconds, after which the same message may be repeated.
 If the message is the same as the last one, it is not spoken unless the number
-of seconds defined here has passed from the last spoken message.")
+of seconds defined here has passed from the last spoken message."
+  :type 'integer
+  :group 'speechd-speak)
 
 (defcustom speechd-speak-connections '()
   "Alist mapping major modes and buffers to speechd connection.
