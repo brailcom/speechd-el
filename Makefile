@@ -13,11 +13,13 @@ TARFILE = $(NAME)-$(VERSION).tar
 
 all: compile info
 
-compile: speechd.elc speechd-speak.elc
+compile: speechd.elc speechd-speak.elc speechd-bug.elc
 speechd.elc: speechd.el
 	$(EMACS) --batch -l speechd.el -f batch-byte-compile $<
 speechd-speak.elc: speechd-speak.el speechd.elc
 	$(EMACS) --batch -l speechd.elc -l speechd-speak.el -f batch-byte-compile $<
+speechd-bug.elc: speechd-bug.el speechd-speak.elc speechd.elc
+	$(EMACS) --batch -l speechd.elc -l speechd-speak.elc -l speechd-bug.el -f batch-byte-compile $<
 
 install:
 
