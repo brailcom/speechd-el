@@ -216,7 +216,7 @@ language.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.80 2003-12-16 17:08:45 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.81 2003-12-30 12:13:26 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -298,7 +298,8 @@ Useful only for diagnosing problems.")
   (new-state nil)
   (reading-answer-p nil)
   (parameters ())
-  (forced-priority nil))
+  (forced-priority nil)
+  (last-command nil))
 
 (defstruct speechd--request
   string
@@ -329,16 +330,15 @@ macro."
 (defmacro speechd--iterate-connections (&rest body)
   `(maphash #'(lambda (_ connection) ,@body) speechd--connections))
 
-(defun speechd--iterate-connections-collect (function)
-  (let ((result '()))
-    (speechd--iterate-connections
-     (push (funcall function) result))
-    result))
+(defmacro speechd--iterate-clients (&rest body)
+  `(maphash #'(lambda (speechd-client-name _) ,@body) speechd--connections))
 
 (defun speechd-connection-names ()
   "Return the list of all present connection names."
-  (speechd--iterate-connections-collect
-   #'(lambda () (speechd--connection-name connection))))
+  (let ((names '()))
+    (speechd--iterate-clients
+      (push speechd-client-name names))
+    names))
 
 (defmacro speechd--with-current-connection (&rest body)
   `(let ((connection (speechd--connection)))
@@ -687,17 +687,39 @@ Return the opened connection on success, nil otherwise."
 	  nil)
       (speechd--process-request request))))
 
+(defconst speechd--block-commands
+  '(("speak")
+    ("sound_icon")
+    ("char")
+    ("key")
+    ("quit")
+    ("block" ("end"))
+    ("set" ("self" ("rate" "pitch" "voice" "language")))))
+
+(defun speechd--block-command-p (command &optional allowed)
+  (unless allowed
+    (setq allowed speechd--block-commands))
+  (let* ((match (assoc (downcase (first command)) allowed))
+         (rest-allowed (cdr match)))
+    (and match
+         (or (not rest-allowed)
+             (speechd--block-command-p (rest command) rest-allowed)))))
+
 (defun* speechd--send-command (command &optional delay-answer
 				       (transaction-state '(nil nil))
 				       &key now)
   (unless (listp command)
     (setq command (list command)))
-  (speechd--send-request
-   (make-speechd--request :string (concat (mapconcat #'identity command " ")
-					  speechd--eol)
-			  :answer-type (if delay-answer 'delayed 'required)
-			  :transaction-state transaction-state)
-   now))
+  (speechd--with-current-connection
+    (setf (speechd--connection-last-command connection) command)
+    (when (or (not (speechd--connection-in-block connection))
+              (speechd--block-command-p command))
+      (speechd--send-request
+        (make-speechd--request
+         :string (concat (mapconcat #'identity command " ") speechd--eol)
+         :answer-type (if delay-answer 'delayed 'required)
+         :transaction-state transaction-state)
+        now))))
 
 (defun speechd--send-data-begin (&optional now)
   (speechd--send-command "SPEAK" nil '(nil in-data) :now now))
@@ -1003,11 +1025,18 @@ of the symbols `important', `message', `text', `notification' or
 ;;; Control functions
 
 
-(defun speechd--control-command (command all)
-  (if all
-      (speechd--send-command (list command "all"))
-    (speechd--iterate-connections
-      (speechd--send-command (list command "self")))))
+(defun speechd--control-command (command all &optional repeatable)
+  (cond
+   ((not all)
+    (when (or repeatable
+              (not (equal (first (speechd--connection-last-command
+                                  (speechd--connection)))
+                          command)))
+      (speechd--send-command (list command "self"))))
+   ((numberp all)
+    (speechd--iterate-clients (speechd--control-command command nil)))
+   (t
+    (speechd--send-command (list command "all")))))
 
 ;;;###autoload
 (defun speechd-cancel (&optional all)
@@ -1016,12 +1045,7 @@ If the universal argument is given, stop speaking messages of all clients.
 If a numeric argument is given, stop speaking messages of all current Emacs
 session clients."
   (interactive "P")
-  (if (numberp all)
-      (mapcar #'(lambda (name)
-                  (let ((speechd-client-name name))
-                    (speechd-cancel)))
-              (speechd-connection-names))
-    (speechd--control-command "CANCEL" all)))
+  (speechd--control-command "CANCEL" all))
 
 ;;;###autoload
 (defun speechd-stop (&optional all)
@@ -1029,15 +1053,18 @@ session clients."
 If the optional argument ALL is non-nil, stop speaking the currently spoken
 messages of all clients."
   (interactive "P")
-  (speechd--control-command "STOP" all))
+  (speechd--control-command "STOP" all t))
 
 ;;;###autoload
 (defun speechd-pause (&optional all)
   "Pause speaking in the current client.
 If the optional argument ALL is non-nil, pause speaking in all clients."
   (interactive "P")
-  (setf (speechd--connection-paused-p (speechd--connection)) t)
-  (speechd--control-command "PAUSE" all))
+  (if all
+      (speechd--iterate-connections
+        (setf (speechd--connection-paused-p connection) t))
+    (setf (speechd--connection-paused-p (speechd--connection)) t))
+  (speechd--control-command "PAUSE" (not (not all))))
 
 ;;;###autoload
 (defun speechd-resume (&optional all)
@@ -1045,11 +1072,12 @@ If the optional argument ALL is non-nil, pause speaking in all clients."
 If the optional argument ALL is non-nil, resume speaking messages of all
 clients."
   (interactive "P")
-  (speechd--with-current-connection
-    (when (speechd--connection-paused-p connection)
-      (speechd--control-command "RESUME" all)
-      (setq connection (speechd--connection))
-      (setf (speechd--connection-paused-p connection) nil))))
+  (when (or all (speechd--connection-paused-p (speechd--connection)))
+    (speechd--control-command "RESUME" (not (not all)))
+    (if all
+        (setf (speechd--connection-paused-p (speechd--connection)) nil)
+      (speechd--iterate-connections
+        (setf (speechd--connection-paused-p connection) nil)))))
 
 ;;;###autoload
 (defun speechd-repeat ()
