@@ -209,6 +209,11 @@ If ACTION is a function, it is invoked, with no arguments."
                                  :match #'(lambda (w val) (commandp val)))))
   :group 'speechd-speak)
 
+(defcustom speechd-speak-display-modes '(gnus-agent-mode)
+  "List of minor modes to be spoken by their display string rather than name."
+  :type '(repeat symbol)
+  :group 'speechd-speak)
+
 (defcustom speechd-speak-whole-line nil
   "If non-nil, speak whole line on movement by default.
 Otherwise speak from the point to the end of line on movement by default."
@@ -1719,9 +1724,12 @@ When the mode is enabled, all spoken text is spelled."
 
 (speechd-speak--watch minor-modes
   #'(lambda ()
-      (loop for mode in (mapcar #'car minor-mode-alist)
+      (loop for mode-spec in minor-mode-alist
+            for mode = (car mode-spec)
             when (and (boundp mode) (symbol-value mode))
-            collect mode))
+            collect (if (memq mode speechd-speak-display-modes)
+                        (cadr mode-spec)
+                      mode)))
   :on-change #'(lambda (old new)
                  (flet ((set-difference (x y)
                           (loop for i in x

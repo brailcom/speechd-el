@@ -1,3 +1,8 @@
+2004-09-27  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak-display-modes): New user option.
+	(minor-modes): Honor it.
+
 2004-09-26  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-speak.el (info-change): Use EQUAL, not EQUALP.
