@@ -1,44 +1,31 @@
-This is an Emacs client to Speech Daemon.
+This is an Emacs client to Speech Dispatcher.
 
 It consists of two parts:
 
 - The library file speechd.el implementing access functions to the Speech
-  Daemon protocol.
+  Dispatcher protocol.
 
-- The files speechd-emacspeak.el and dtk-interp.el to access Speech Daemon from
-  Emacspeak.
+- The file speechd-speak.el that makes Emacs speak.
 
 Prerequisites:
 
 - The Elib Elisp library is required (available in Debian as `elib').
 
-If you want to use Emacspeak with Speech Daemon, you must perform the following
-installation steps:
+Installation:
 
-- Copy all the *.el files to your Emacspeak lisp source directory.  The file
-  dtk-interp.el here replaces the original Emacspeak dtk-interp.el file.
+- Copy the *.el files somewhere to your Emacs load path.
 
-- Apply the patch `emacspeak.patch' in the emacspeak/lisp/ directory.
+- If you like, byte compile them.
 
-- Recompile Emacspeak (this step is necessary!).
+- Start speechd.
 
-- Byte compile the files speechd.el and speechd-emacspeak.el, e.g.:
+- Start Emacs and apply the commands
 
-  $ rm *.elc
-  $ emacs -q -no-site-file -batch -l speechd.el -f batch-byte-compile speechd*.el
+   M-x load-library RET speechd-speak RET
+   
+   M-x speechd-speak RET
 
-- Copy the compiled *.elc files to your Emacspeak compiled lisp files
-  directory.
-
-(On Debian systems, you can use the script `install-debian.sh'.)
-
-Then start `speechd' and run Emacs as
-
-  $ emacs -l YOUR-EMACSPEAK-SOURCE-DIRECTORY/speechd-emacspeak.el
-
-It should start Emacspeak connected to Speech Daemon.
-
-This interface has been tested with Emacspeak 17.
+Now, your Emacs should start speaking.
 
 You can send your bug reports, patches, suggestions, etc. to the mailing list
 speechd-devel@freebsoft.org.
