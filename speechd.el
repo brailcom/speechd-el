@@ -274,17 +274,6 @@ current voice."
   :type '(alist :key-type face :value-type (speechd-voice-tag :tag "Voice"))
   :group 'speechd)
 
-(defcustom speechd-input-method-languages '()
-  "Alist mapping input methods to languages.
-Each of the alist element is of the form (INPUT-METHOD-NAME . LANGUAGE), where
-INPUT-METHOD-NAME is a string naming the input method and LANGUAGE is an ISO
-language code accepted by SSIP.
-If the current input method is present in the alist, the corresponding language
-is selected unless overridden by another setting."
-  :type '(alist :key-type (string :tag "Input method")
-                :value-type (string :tag "Language code"))
-  :group 'speechd)
-
 
 ;;; External variables
 
@@ -308,7 +297,7 @@ language.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "2004-05-18 14:42 pdm"
+(defconst speechd--el-version "2004-05-20 13:44 pdm"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -516,10 +505,7 @@ code."
   string)
 
 (defun speechd--current-language ()
-  (or (and speechd-input-method-languages
-           current-input-method
-           (cdr (assoc current-input-method speechd-input-method-languages)))
-      speechd-language))
+  speechd-language)
 
 
 ;;; Process management functions

@@ -14,7 +14,7 @@ For instance, it is possible to repeat Ispell choices in ispell-word now.
 
 ** Language selection based on currently selected input method is possible.
 
-See the new variable speechd-input-method-languages.
+See the new variable speechd-speak-input-method-languages.
 
 ** Performance improvement.
 

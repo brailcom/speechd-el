@@ -953,7 +953,7 @@ If nothing helps better, you can select languages according to the
 current input method:
 
 @vtable @code
-@item speechd-input-method-languages
+@item speechd-speak-input-method-languages
 Alist mapping input methods to languages.  Each of the alist element
 is of the form @code{(@var{input-method-name} . @var{language})},
 where @var{input-method-name} is a string naming the input method and

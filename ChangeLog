@@ -1,3 +1,17 @@
+2004-05-20  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak-last-message)
+	(speechd-speak--speak-minibuffer-prompt)
+	(speechd-speak--minibuffer-prompt, completions): Bind
+	speechd-speak-input-method-languages to nil.
+	(speechd-speak--maybe-speak): Honor
+	speechd-speak-input-method-languages.
+
+	* speechd.el (speechd-input-method-languages): Moved to
+	speechd-speak.el and renamed to
+	speechd-speak-input-method-languages.
+	(speechd--current-language): Don't check input methods.
+
 2004-05-18  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd.el (speechd-input-method-languages): New user option.

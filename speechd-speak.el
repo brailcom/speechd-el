@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "2004-05-18 10:03 pdm"
+(defconst speechd-speak-version "2004-05-20 13:46 pdm"
   "Version of the speechd-speak file.")
 
 
@@ -268,6 +268,17 @@ The following actions are supported: `empty', `beginning-of-line',
               (const message))
   :group 'speechd-speak)
 
+(defcustom speechd-speak-input-method-languages '()
+  "Alist mapping input methods to languages.
+Each of the alist element is of the form (INPUT-METHOD-NAME . LANGUAGE), where
+INPUT-METHOD-NAME is a string naming the input method and LANGUAGE is an ISO
+language code accepted by SSIP.
+If the current input method is present in the alist, the corresponding language
+is selected unless overridden by another setting."
+  :type '(alist :key-type (string :tag "Input method")
+                :value-type (string :tag "Language code"))
+  :group 'speechd)
+
 (defcustom speechd-speak-in-debugger t
   "If nil, speechd-speak functions won't speak in Elisp debuggers.
 This may be useful when debugging speechd-el itself."
@@ -418,7 +429,13 @@ Level 1 is the slowest, level 9 is the fastest."
 (defmacro speechd-speak--maybe-speak (&rest body)
   `(when (and speechd-speak-mode
               (not (speechd-speak--in-debugger)))
-     (let ((speechd-client-name (speechd-speak--connection-name)))
+     (let ((speechd-client-name (speechd-speak--connection-name))
+           (speechd-language
+            (or (and speechd-speak-input-method-languages
+                     current-input-method
+                     (cdr (assoc current-input-method
+                                 speechd-speak-input-method-languages)))
+                speechd-language)))
        ,@body)))
 
 (defmacro speechd-speak--interactive (&rest body)
@@ -874,7 +891,8 @@ connections, otherwise create completely new connection."
   "Speak last message from the echo area."
   (interactive)
   (speechd-speak--interactive
-   (let ((speechd-language "en"))
+   (let ((speechd-speak-input-method-languages nil)
+         (speechd-language "en"))
      (speechd-speak--text speechd-speak--last-message))))
 
 (defun speechd-speak--current-message (&optional reset-last-spoken)
@@ -908,7 +926,8 @@ connections, otherwise create completely new connection."
   (speechd-speak--text prompt :priority 'message))
 
 (defun speechd-speak--speak-minibuffer-prompt ()
-  (let ((speechd-language "en"))
+  (let ((speechd-language "en")
+        (speechd-speak-input-method-languages nil))
     (speechd-speak--prompt (minibuffer-prompt)))
   (speechd-speak--prompt (minibuffer-contents)))
 
@@ -961,7 +980,8 @@ This command applies to buffers defined in
 
 (defun speechd-speak--minibuffer-prompt (prompt &rest args)
   (speechd-speak--read-other-changes)
-  (let ((speechd-language "en"))
+  (let ((speechd-language "en")
+        (speechd-speak-input-method-languages nil))
     (apply #'speechd-speak--text prompt args)))
                           
 (speechd-speak--command-feedback minibuffer-message after
@@ -1255,7 +1275,8 @@ Only single characters are allowed in the keymap.")
            (buffer-modified-tick (get-buffer speechd-speak--c-buffer-name))))
   (save-excursion
     (set-buffer speechd-speak--c-buffer-name)
-      (let ((speechd-language "en"))
+      (let ((speechd-language "en")
+            (speechd-speak-input-method-languages nil))
         (goto-char (point-min))
         (re-search-forward "\n\n+" nil t)
         (speechd-speak-read-region (point) (point-max) nil))))
