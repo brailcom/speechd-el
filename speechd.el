@@ -211,58 +211,6 @@ You must reopen the connections to apply the changes to this variable."
              (speechd-reopen)))           
   :group 'speechd)
 
-(defcustom speechd-connection-parameters '()
-  "This variable is obsolete.  Please use `speechd-connection-voices' instead."
-  :get #'(lambda (name)
-           (mapcar
-            #'(lambda (v)
-                (cons (car v)
-                      (let ((result '())
-                            (params (cdr v)))
-                        (while params
-                          (push (cons (car params) (cadr params)) result)
-                          (setq params (nthcdr 2 params)))
-                        (nreverse result))))
-            (symbol-value name)))
-  :set #'(lambda (name value)
-           (let ((real-value
-                  (mapcar
-                   #'(lambda (item)
-                       (cons (car item)
-                             (apply #'nconc
-                                    (mapcar #'(lambda (ival)
-                                                (list (car ival) (cdr ival)))
-                                            (cdr item)))))
-                   value)))
-             (set-default name real-value))
-           (when (fboundp 'speechd-reopen)
-             (speechd-reopen)))
-  :type `(repeat
-          (cons
-	   :tag "Connection"
-	   (choice (string :tag "Connection name")
-		   (const :tag "Default parameters" :value t))
-	   (set
-	    :tag "Parameters"
-	    (cons :tag "Language" (const :format "" language) string)
-	    (cons :tag "Messsage priority"
-		  (const :format "" message-priority)
-		  (speechd-priority-tag :value text))
-	    (cons :tag "Punctuation mode" (const :format "" punctuation-mode)
-		  ,(speechd--generate-customization-options
-		    speechd--punctuation-modes))
-	    (cons :tag "Capital character mode"
-		  (const :format "" capital-character-mode)
-		  ,(speechd--generate-customization-options
-		    speechd--capital-character-modes))
-	    (cons :tag "Voice" (const :format "" voice) string)
-	    (cons :tag "Rate" (const :format "" rate) integer)
-	    (cons :tag "Pitch" (const :format "" pitch) integer)
-	    (cons :tag "Volume" (const :format "" volume) integer)
-	    (cons :tag "Output module" (const :format "" output-module)
-		  string))))
-  :group 'speechd)
-
 (defcustom speechd-face-voices '()
   "Alist mapping faces to voices.
 Each of the alist element is of the form (FACE . VOICE) where FACE is a face
@@ -296,7 +244,7 @@ language.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "2004-05-25 15:19 pdm"
+(defconst speechd--el-version "2004-06-02 09:59 pdm"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -459,8 +407,8 @@ Useful only for diagnosing problems.")
             (age (cdr (assoc 'age parameters)))
             (style (cdr (assoc 'style parameters))))
         (format "%s%s%s"
-                (if (eq age 'child) "CHILD_" "")
-                (if (eq gender 'female) "FEMALE" "MALE")
+                (if (eq age 'child) "child_" "")
+                (if (eq gender 'female) "female" "male")
                 (or style "1")))))
 
 (defun speechd--voice-parameters (voice)
@@ -556,10 +504,6 @@ Return the opened connection on success, nil otherwise."
              (voice (cdr (assoc name speechd-connection-voices)))
              (default-parameters (append
                                   (speechd--voice-parameters voice)
-                                  (cdr (assoc speechd-client-name
-                                              speechd-connection-parameters))
-                                  (cdr (assoc t
-                                              speechd-connection-parameters))
                                   speechd--default-connection-parameters))
 	     (parameters (cond
                           ((and connection force-reopen)
@@ -939,16 +883,27 @@ If called with a prefix argument, set it for al connections."
                           (connection-parameters
                            (speechd--connection-parameters connection)))
                       (while connection-parameters
-                        (unless (memq (first connection-parameters)
-                                      '(client-name message-priority))
-                          (push (cons (first connection-parameters)
-                                      (second connection-parameters))
-                                voice-parameters))
-                        (setq connection-parameters
-                              (nthcdr 2 connection-parameters)))
+                        (destructuring-bind (p v . next) connection-parameters
+                          (unless (memq p '(client-name message-priority
+                                            spelling-mode))
+                            (push
+                             (cons
+                              (case p
+                                (voice 'name)
+                                (t p))
+                              (case p
+                                (punctuation-mode
+                                 (cdr (assoc
+                                       v speechd--punctuation-modes)))
+                                (capital-character-mode
+                                 (cdr (assoc
+                                       v speechd--capital-character-modes)))
+                                (t v)))
+                             voice-parameters))
+                          (setq connection-parameters next)))
                       (nreverse voice-parameters))))
-             (remove (assoc speechd-client-name speechd-connection-parameters)
-                     speechd-connection-parameters))
+             (remove (assoc speechd-client-name speechd-voices)
+                     speechd-voices))
             ;; the connection
             speechd-connection-voices
             (cons (cons speechd-client-name voice)

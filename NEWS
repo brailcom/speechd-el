@@ -1,6 +1,14 @@
 User-visible changes to speechd-el:
 
 
+* Changes in speechd-el 0.5
+
+** speechd-connection-parameters removed.
+
+This obsolete variable is no longer available, use speechd-connection-voices
+instead.
+
+
 * Changes in speechd-el 0.4
 
 ** Whitespace signalization added.

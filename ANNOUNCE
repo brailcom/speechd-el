@@ -35,6 +35,11 @@ The Free(b)soft project is pleased to announce speechd-el 0.4.
   with Speech Dispatcher, allowing you to write your own Emacs speech
   output extensions and your own Emacs interfaces to Speech Dispatcher.
 
+  speechd-el design is completely different from the design of
+  Emacspeak, another speech output package for Emacs.  Though both
+  speechd-el and Emacspeak serve a similar purpose, they differ in
+  their approach to the problem they address.
+
 * What is new in the 0.4 version?
 
   - Whitespace signalization.

@@ -1,3 +1,15 @@
+2004-06-02  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-add-connection-settings): Don't set
+	spelling-mode; set enumerated parameters properly.
+	(speechd--voice-name): Use lower case voice names.
+
+2004-05-28  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-connection-parameters): Removed.
+	(speechd-open, speechd-add-connection-settings): Honor the change
+	above.
+
 2004-05-27  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-el 0.4 released.
