@@ -1,3 +1,15 @@
+2003-10-27  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-repeat): Disabled.
+
+	* speechd-bug.el (speechd-bug): Completion list fixed.
+	(speechd-bug--version): New constant.
+	(speechd-bug): Add it to the report.
+	(speechd-bug--finish-repro): Switch to the mail buffer before
+	inserting logs.
+	(speechd-bug--insert-logs): Invalid parentheses fixed.  Exclude
+	log files not starting with slash.
+
 2003-10-24  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd.el (speechd-block): Use
