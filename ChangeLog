@@ -1,3 +1,10 @@
+2004-07-27  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak--command-feedback-region)
+	(delete-backward-char, backward-delete-char)
+	(backward-delete-char-untabify, delete-char, kill-region): Ensure
+	the around advices return original function return value.
+
 2004-07-24  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd.el (speechd--with-connection-parameters): Message

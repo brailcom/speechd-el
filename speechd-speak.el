@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "2004-07-16 13:27 pdm"
+(defconst speechd-speak-version "2004-07-27 07:37 pdm"
   "Version of the speechd-speak file.")
 
 
@@ -768,8 +768,8 @@ FUNCTION is invoked interactively."
 (defmacro speechd-speak--command-feedback-region (commands)
   `(speechd-speak--command-feedback ,commands around
      (let ((start (point)))
-       ad-do-it
-       (speechd-speak--speak-piece start))))
+       (prog1 ad-do-it
+         (speechd-speak--speak-piece start)))))
 
 (defun* speechd-speak--next-property-change (&optional (point (point))
                                                        (limit (point-max)))
@@ -864,16 +864,16 @@ connections, otherwise create completely new connection."
 				 around
   (when speechd-speak-deleted-char
     (speechd-speak-read-char (preceding-char)))
-  ad-do-it
-  (unless speechd-speak-deleted-char
-    (speechd-speak-read-char (preceding-char))))
+  (prog1 ad-do-it
+    (unless speechd-speak-deleted-char
+      (speechd-speak-read-char (preceding-char)))))
 
 (speechd-speak--command-feedback (delete-char) around
   (when speechd-speak-deleted-char
     (speechd-speak-read-char (following-char)))
-  ad-do-it
-  (unless speechd-speak-deleted-char
-    (speechd-speak-read-char (following-char))))
+  (prog1 ad-do-it
+    (unless speechd-speak-deleted-char
+      (speechd-speak-read-char (following-char)))))
 
 (speechd-speak--command-feedback (quoted-insert) after
   (speechd-speak-read-char (preceding-char)))
@@ -922,9 +922,9 @@ connections, otherwise create completely new connection."
 
 (speechd-speak--command-feedback (kill-region completion-kill-region) around
   (let ((nlines (count-lines (region-beginning) (region-end))))
-    ad-do-it
-    (speechd-speak--maybe-speak*
-     (message "Killed region containing %s lines" nlines))))
+    (prog1 ad-do-it
+      (speechd-speak--maybe-speak*
+        (message "Killed region containing %s lines" nlines)))))
 
 
 ;;; Messages
