@@ -1,3 +1,10 @@
+2003-07-27  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak--post-command-hook): Enforce
+	speechd-speak minor modes if needed.
+
+	* speechd.el (speechd-say-text): Don't process null properties.
+
 2003-07-25  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd.el (speechd-repeat): Made interactive and marked for
