@@ -1,3 +1,8 @@
+2004-03-17  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-bug.el (speechd-bug): reporter-submit-bug-report call
+	argument fixed.
+
 2004-02-24  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd.el (speechd--voice-parameters): Bug fixes.

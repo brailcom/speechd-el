@@ -27,7 +27,7 @@
 (require 'speechd-speak)
 
 
-(defconst speechd-bug-version "2004-02-18 12:42 pdm"
+(defconst speechd-bug-version "2004-03-17 07:51 pdm"
   "Version of the speechd-bug.el file.")
 
 (defvar speechd-bug--log-extractor "speechd-log-extractor")
@@ -208,7 +208,7 @@
   "Start reproducing a speechd-el or Speech Dispatcher bug.
 All user and speechd actions are watched from this moment.
 
-Bug reproduction is finished by pressing the `C-e C-z' keys.  After the bug
+Bug reproduction is finished by pressing the `C-e C-f' keys.  After the bug
 reproduction is finished, information about it is inserted into the buffer
 where the `speechd-bug-reproduce' command was invoked.
 
@@ -254,7 +254,7 @@ generating new bug report."
     (reporter-submit-bug-report
      (format "%s@bugs.freebsoft.org" package)
      package
-     (append (list speechd-speak--debug)
+     (append '(speechd-speak--debug)
              (apropos-internal "^speechd\\(-[a-z]+\\)+$" 'boundp)))
     (ignore-errors
       (save-excursion
