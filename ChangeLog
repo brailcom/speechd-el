@@ -1,3 +1,38 @@
+2003-07-24  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-connection-parameters): Special meaning of
+	:message-priority introduced (doc change).
+	(speechd--connection): New slot FORCED-PRIORITY.
+	(speechd-open): Assign it.
+	(speechd--set-parameter): Consider it.
+	(speechd-language): New function.
+	(speechd-say-text): Generalized, language property support added.
+	(speechd--with-connection-parameter): Renamed to
+	speechd--with-connection-parameters.
+	(speechd-default-language): New user option.
+	(speechd-open): Set the default language.
+	(speechd-block): Block support temporarily disabled.
+
+	* speechd-speak.el (speechd-speak-align-buffer-insertions): New
+	user option.
+	(speechd-speak--buffer-substring): New function.
+	(speechd-speak--after-change-hook) 
+	(speechd-speak--minibuffer-update-report): Use it.
+	(speechd-speak--post-command-hook): Don't read linefeed if sound
+	icon is used to signal end of line.
+
+2003-07-23  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak--post-command-hook): Enclose
+	forward/backward-char with a block.
+
+	* speechd.el (speechd-block): New macro.
+	(speechd-say-text): Use it.
+	(speechd--connection): New slot IN-BLOCK.
+	(speechd-block): Be reentrant.
+	(speechd-block): New argument PARAMETERS.
+	(speechd-say-text): Consider the previous change.
+
 2003-07-22  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-speak.el (speechd-speak--minibuffer-update): Forgotten
