@@ -1,3 +1,27 @@
+2003-10-21  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-language): New variable.
+	(speechd-say-char, speechd-say-key, speechd-say-text): Honor it.
+	(speechd--with-connection-parameters): Exclude `language' if nil.
+	(speechd-block): Likewise.
+
+	* speechd-speak.el (speechd-speak--minibuffer-prompt): Call the
+	speaking function with speechd-language set to "en".
+	(speechd-speak--speak-minibuffer-prompt): Likewise.
+	(buffer-modifications): Ignore
+	speechd-speak-movement-on-insertions.  Speak the last change of
+	self-insert-command if longer than 1 character.
+	(speechd-speak-movement-on-insertions): Default value changed to
+	nil.
+
+	* speechd.el (speechd-block): Evaluate parameters completely
+	instead of just expanding them.
+	* speechd-speak.el (special-commands, buffer-switch): Honor the
+	previous change.
+
+	* speechd.el (speechd--with-connection-setting): Use `defmacro'
+ 	instead of `defmacro*'.
+
 2003-10-20  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-el.texi: Previous changes documented.
