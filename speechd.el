@@ -220,7 +220,7 @@ locally through `let'.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.56 2003-09-24 16:15:51 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.57 2003-09-24 16:58:13 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -835,7 +835,7 @@ VALUE must be %s."
 	     (completing-read ,prompt*
 			      (mapcar #'list
                                       (speechd--list (quote ,argdesc*))))))))
-       (unless (equal value "")
+       (unless value
          (speechd--set-parameter (quote ,parameter) value)
          (message "%s set to %s." ,prompt value)))))
 
