@@ -293,7 +293,7 @@ language.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "2004-04-06 10:04 pdm"
+(defconst speechd--el-version "2004-05-03 18:07 pdm"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -1150,9 +1150,9 @@ of the symbols `important', `message', `text', `notification' or
                        (push 'control modifiers)
                        (format "%c" (+ ?a (1- character))))
                       ((and (>= character 128) (< character 160)) "?")
-                      ((eql character ? ) "space")
-                      ((eql character ?_) "underscore")
-                      ((eql character ?_) "double-quote")
+                      ((= character ? ) "space")
+                      ((= character ?_) "underscore")
+                      ((= character ?_) "double-quote")
                       (t (format "%c" character)))
                    (format "%s" character))))
     (dolist (m modifiers)

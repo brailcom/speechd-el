@@ -1,3 +1,10 @@
+2004-05-03  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-say-key): Don't use eql.
+
+	* speechd-speak.el (speechd-speak--command-keys, minibuffer-exit):
+	Don't use eql.
+
 2004-04-06  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd.el (speechd-open): Ensure the connection object is not

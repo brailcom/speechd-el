@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "2004-03-31 11:27 pdm"
+(defconst speechd-speak-version "2004-05-03 18:07 pdm"
   "Version of the speechd-speak file.")
 
 
@@ -973,7 +973,7 @@ connections, otherwise create completely new connection."
         (while (< i len)
           (let ((key (aref keys i)))
             (speechd-say-key key)
-            (let ((m-x-chars (and (eql (event-basic-type key) ?x)
+            (let ((m-x-chars (and (equal (event-basic-type key) ?x)
                                   (equal (event-modifiers key) '(meta))
                                   (let ((j (1+ i))
                                         (chars '("")))
@@ -1266,7 +1266,7 @@ connections, otherwise create completely new connection."
 
 (speechd-speak--post-defun minibuffer-exit t t
   (and speechd-speak-on-minibuffer-exit
-       (not (eql (minibuffer-depth) speechd-speak--last-minibuffer-depth)))
+       (/= (minibuffer-depth) speechd-speak--last-minibuffer-depth))
   (speechd-speak-read-line t))
                            
 (defvar speechd-speak--last-minibuffer-depth 0)

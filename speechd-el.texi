@@ -127,6 +127,7 @@ more information about Speech Dispatcher.
 * Commands::                    Usage.
 * Customization::               Basic customization.
 * Advanced Customization::      Writing your own command feedbacks.
+* Tips::                        Useful Emacs tips.
 * Problems::                    Strange behavior.
 * Bug Reporting::               speechd-el and Speech Dispatcher bugs.
 @end menu
@@ -1117,7 +1118,7 @@ can instruct speechd-el to be quiet in Elisp debuggers:
 If @code{nil}, speechd-speak functions won't speak in Elisp debuggers.
 @end vtable
 
-@node Advanced Customization, Problems, Customization, speechd-el User Manual
+@node Advanced Customization, Tips, Customization, speechd-el User Manual
 @section Defining Your Own Command Feedbacks
 @cindex extensions
 
@@ -1179,7 +1180,25 @@ precautions.  If you do not use them, you should make those
 precautions yourself.
 @end itemize
 
-@node Problems, Bug Reporting, Advanced Customization, speechd-el User Manual
+@node Tips, Problems, Advanced Customization, speechd-el User Manual
+@section Useful Emacs tips
+
+This section contains Emacs usage advices that are actually not
+directly related to speechd-el but which may be of special interest to
+speechd-el users.
+
+@table @emph
+@item How to avoid printing URL when moving through links in w3m-el?
+Add the following code to your @file{~/.emacs}:
+
+@lisp
+(defadvice w3m-print-this-url (around my-w3m-print-this-url activate)
+  (when (eq this-command 'w3m-print-this-url)
+    ad-do-it))
+@end lisp
+@end table
+
+@node Problems, Bug Reporting, Tips, speechd-el User Manual
 @section Problems You May Encounter
 @cindex problems
 
