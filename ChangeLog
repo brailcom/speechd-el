@@ -1,3 +1,14 @@
+2003-10-17  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd.el (speechd-say-key): Don't crash on symbolic key names.
+	
+	* speechd-speak.el (speechd-speak--shutdown): sit-for increased to
+	3.
+	(speechd-speak--post-command-hook): Log top level errors.
+
+	* speechd-bug.el: New file.
+	* speechd-speak.el (speechd-speak-bug): Moved to speechd-bug.el.
+
 2003-10-16  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-el.texi (Basic Speaking): Changes in user options
