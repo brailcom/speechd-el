@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "2004-05-03 18:07 pdm"
+(defconst speechd-speak-version "2004-05-03 21:03 pdm"
   "Version of the speechd-speak file.")
 
 
@@ -1067,26 +1067,33 @@ connections, otherwise create completely new connection."
     speechd-resume))
 
 (defun speechd-speak--pre-command-hook ()
-  (unless (memq this-command speechd-speak--dont-cancel-on-commands)
-    (speechd-cancel 1))
-  (speechd-speak--set-command-start-info)
-  (setq speechd-speak--last-report "")
-  (when speechd-speak-spell-command
-    (speechd-speak-spell-mode 1))
-  (speechd-speak--maybe-speak
-    (when (and (eq speechd-speak-read-command-keys t)
-               (not (memq this-command speechd-speak-ignore-command-keys)))
-      (speechd-speak--command-keys (if (eq this-command 'self-insert-command)
-                                       'notification
-                                     'message)))
-    ;; Some parameters of interactive commands don't set up the minibuffer, so
-    ;; we have to speak the prompt in a special way.
-    (let ((interactive (cadr (interactive-form this-command))))
-      (save-match-data
-        (when (and (stringp interactive)
-                   (string-match "^[@*]*\\([eipPmnr]\n\\)*[ckK]\\(.+\\)"
-                                 interactive))
-          (speechd-speak--prompt (match-string 2 interactive))))))
+  (condition-case err
+      (progn
+        (unless (memq this-command speechd-speak--dont-cancel-on-commands)
+          (speechd-cancel 1))
+        (speechd-speak--set-command-start-info)
+        (setq speechd-speak--last-report "")
+        (when speechd-speak-spell-command
+          (speechd-speak-spell-mode 1))
+        (speechd-speak--maybe-speak
+          (when (and (eq speechd-speak-read-command-keys t)
+                     (not (memq this-command
+                                speechd-speak-ignore-command-keys)))
+            (speechd-speak--command-keys
+             (if (eq this-command 'self-insert-command)
+                 'notification 'message)))
+          ;; Some parameters of interactive commands don't set up the
+          ;; minibuffer, so we have to speak the prompt in a special way.
+          (let ((interactive (and (commandp this-command)
+                                  (cadr (interactive-form this-command)))))
+            (save-match-data
+              (when (and (stringp interactive)
+                         (string-match "^[@*]*\\([eipPmnr]\n\\)*[ckK]\\(.+\\)"
+                                       interactive))
+                (speechd-speak--prompt (match-string 2 interactive)))))))
+    (error
+     (speechd-speak--debug (list 'pre-command-hook-error err))
+     (apply #'error (cdr err))))
   (add-hook 'pre-command-hook 'speechd-speak--pre-command-hook))
 
 (defmacro speechd-speak--post-defun (name shy new-state guard &rest body)

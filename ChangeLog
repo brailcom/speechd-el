@@ -1,5 +1,15 @@
 2004-05-03  Milan Zamazal  <pdm@brailcom.org>
 
+	* speechd-speak.el (speechd-speak--pre-command-hook): Don't crash
+	when this-command doesn't contain a command.
+
+2004-05-03  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak--pre-command-hook): Log a
+	debugging information on error.
+
+2004-05-03  Milan Zamazal  <pdm@brailcom.org>
+
 	* speechd.el (speechd-say-key): Don't use eql.
 
 	* speechd-speak.el (speechd-speak--command-keys, minibuffer-exit):
