@@ -1,5 +1,14 @@
+2004-02-19  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (command-keys): The command-key bug fix fixed.
+
 2004-02-18  Milan Zamazal  <pdm@brailcom.org>
 
+	* speechd.el (speechd--generate-set-command): Honor prefix arg for
+	all kinds of setting commands.
+
+2004-02-18  Milan Zamazal  <pdm@brailcom.org>
+	
 	* speechd-speak.el (command-keys): Wrong negation in the guard
 	fixed.
 

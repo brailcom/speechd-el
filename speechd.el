@@ -217,7 +217,7 @@ language.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd-el-version "2004-02-18 12:27 pdm"
+(defconst speechd-el-version "2004-02-18 14:57 pdm"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -865,8 +865,8 @@ If called with a prefix argument, set it for al connections."
 	   (concat "s" prompt* "\nP"))
           ((listp argdesc*)
             `(list
-              (cdr
-               (assoc (completing-read ,prompt* ,argdesc nil t) ,argdesc))))
+              (cdr (assoc (completing-read ,prompt* ,argdesc nil t) ,argdesc))
+              current-prefix-arg))
 	  (t
 	   `(list
 	     (completing-read ,prompt*

@@ -4,11 +4,15 @@ User-visible changes to speechd-el:
 * Changes in speechd-el 0.3
 
 ** Bug reporting changes.
+
 Bug reproduction finishing key was changed from `C-e C-z' to `C-e C-f'.
 New command speechd-bug-reproduce allowing to reproduce a bug any time.
 Log extraction speed up.
 
 ** Volume setting added.
+
+You can use the `C-e d V' command with Speech Dispatcher 0.3 or higher to
+adjust speech volume.
 
 
 * Changes in speechd-el 0.2
