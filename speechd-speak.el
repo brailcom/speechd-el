@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.45 2003-10-13 14:46:05 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.46 2003-10-13 19:26:51 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -240,6 +240,8 @@ The following actions are supported: `empty', `beginning-of-line',
     (finish . "*finish")
     (minibuffer . "*prompt")
     (message . "*message")))
+(defun speechd-speak--event-mapping (event)
+  (cdr (assq event speechd-speak--event-mapping)))
 
 
 ;;; Control functions
@@ -382,7 +384,7 @@ message argument."
 (defun speechd-speak--signal (event &rest args)
   (when (memq event speechd-speak-signal-events)
     (apply #'speechd-speak-report
-           (cdr (assq event speechd-speak--event-mapping))
+           (speechd-speak--event-mapping event)
            args)))
 
 (defun speechd-speak-read-char (&optional char)
@@ -404,9 +406,8 @@ played."
      (if (string= text "")
          (speechd-speak-report
           (or empty-text
-              (if (memq 'empty speechd-speak-signal-events)
-                  speechd-speak--empty-message
-                ""))
+              (speechd-speak--event-mapping 'empty)
+              "")
           :priority speechd-default-text-priority)
        (speechd-speak--text text)))))
 
@@ -428,7 +429,7 @@ If there is no such line, play the empty text icon."
    (save-excursion
      (if (= (forward-line 1) 0)
          (speechd-speak-read-line)
-       (speechd-speak-report speechd-speak--empty-message)))))
+       (speechd-speak-report (speechd-speak--event-mapping 'empty))))))
 
 (defun speechd-speak-read-previous-line ()
   "Speak the previous line before the current line.
@@ -438,7 +439,7 @@ If there is no such line, play the empty text icon."
    (save-excursion
      (if (= (forward-line -1) 0)
          (speechd-speak-read-line)
-       (speechd-speak-report speechd-speak--empty-message)))))
+       (speechd-speak-report (speechd-speak--event-mapping 'empty))))))
 
 (defun speechd-speak-read-buffer (&optional buffer)
   "Read BUFFER.
@@ -1305,7 +1306,7 @@ With a prefix argument, close all open connections first."
     (speechd-speak--build-mode-map)
     (global-speechd-speak-mode 1)
     (global-speechd-speak-map-mode 1)
-    (speechd-speak-report speechd-speak--start-message)))
+    (speechd-speak-report (speechd-speak--event-mapping 'start))))
 
 
 ;;; Announce
