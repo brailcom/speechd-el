@@ -209,11 +209,14 @@ locally through `let'.")
 If text is read and this variable is non-nil, the text is read in the given
 language.")
 
+(defvar speechd-spell nil
+  "If non-nil, any spoken text is spelled.")
+
 
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.78 2003-11-10 12:02:06 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.79 2003-11-13 10:07:11 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
@@ -248,6 +251,7 @@ Useful only for diagnosing problems.")
     (voice . "VOICE")
     (rate . "RATE")
     (pitch . "PITCH")
+    (spelling-mode . "SPELLING")
     (output-module . "OUTPUT_MODULE")	; TODO: to be removed sometimes
     ))
 
@@ -269,7 +273,10 @@ Useful only for diagnosing problems.")
     (capital-character-mode
      (none . "none")
      (spell . "spell")
-     (icon . "icon"))))
+     (icon . "icon"))
+    (spelling-mode
+     (t . "on")
+     (nil . "off"))))
 
 (defconst speechd--volatile-parameters '(output-module))
 
@@ -919,7 +926,8 @@ initiates sending text data to speechd immediately."
                    (language (get-text-property point 'language text)))
                (append (when voice (list 'voice voice))
                        (when language (list 'language language))))))
-      (speechd-block `(language ,speechd-language)
+      (speechd-block `(language ,speechd-language
+                       spelling-mode ,speechd-spell)
         (let* ((beg 0)
                (new-properties (properties beg)))
           (while beg

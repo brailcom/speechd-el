@@ -234,6 +234,7 @@ key, can be invoked as @kbd{C-e C-e}.
 * Reading Commands::            Reading pieces of text.
 * Control Commands::            Stopping, setting speech rate, etc.
 * Parameter Setting Commands::  Modifying speech output.
+* Spelling::                    How to spell a piece of text.
 * Other Commands::              Auxiliary commands.
 @end menu
 
@@ -387,7 +388,7 @@ slowest rate, @kbd{C-e 5} sets the medium rate, and @kbd{C-e 9} sets
 the fastest rate.
 @end table
 
-@node Parameter Setting Commands, Other Commands, Control Commands, Commands
+@node Parameter Setting Commands, Spelling, Control Commands, Commands
 @subsection Parameter Setting Commands
 @cindex parameters
 
@@ -481,56 +482,28 @@ Switch Speech Dispatcher to the given output module
 you are prompted for the argument.
 @end table
 
-The following commands set various text transformation tables.  Each
-of the commands prompts for a table name, that must be available in
-your Speech Dispatcher installation.  Refer to the Speech Dispatcher
-documentation for more information about particular tables.
+@node Spelling, Other Commands, Parameter Setting Commands, Commands
+@subsection Spelling
+@cindex spelling
+
+@cindex speechd-speak-spell-mode
+There are two ways to use spelling in speechd-el.  The first one is
+the @code{speechd-speak-spell-mode}, which is a minor mode that you
+can enable for a buffer.  The mode is useful if you want to spell more
+of the buffer contents.
+
+The second spelling method is using the following command:
 
 @table @kbd
-@item C-e d t s
-@kindex C-e d t s
-@findex speechd-speak-set-spelling-table
-@cindex spelling table
-Set spelling table (@code{speechd-speak-set-spelling-table}).
-
-@item C-e d t =
-@kindex C-e d t =
-@findex speechd-speak-set-character-table
-@cindex character table
-Set character table (@code{speechd-speak-set-character-table}).
-
-@item C-e d t c
-@kindex C-e d t c
-@findex speechd-speak-set-capital-character-table
-@cindex capital character table
-Set capital character table (@code{speechd-speak-set-capital-character-table}).
-
-@item C-e d t k
-@kindex C-e d t k
-@findex speechd-speak-set-key-table
-@cindex key table
-Set key table (@code{speechd-speak-set-key-table}).
-
-@item C-e d t .
-@kindex C-e d t .
-@findex speechd-speak-set-punctuation-table
-@cindex punctuation table
-Set punctuation table (@code{speechd-speak-set-punctuation-table}).
-
-@item C-e d t t
-@kindex C-e d t t
-@findex speechd-speak-set-text-table
-@cindex text table
-Set text table (@code{speechd-speak-set-text-table}).
-
-@item C-e d t i
-@kindex C-e d t i
-@findex speechd-speak-set-sound-table
-@cindex sound table
-Set sound table (@code{speechd-speak-set-sound-table}).
+@item C-e C-l
+@kindex C-e C-l
+@findex speechd-speak-spell
+Make the following command spell the text it reads
+(@code{speechd-speak-spell}).  For instance, if you want to spell the
+word after the cursor, you can type @kbd{C-e C-l C-e w}.
 @end table
-
-@node Other Commands,  , Parameter Setting Commands, Commands
+ 
+@node Other Commands,  , Spelling, Commands
 @subsection Other Commands
 
 @kindex C-x C-c
@@ -942,13 +915,10 @@ may have given the @code{t} symbol instead of connection name.
 
 Valid parameter identifiers are the following symbols:
 @code{language}, @code{message-priority}, @code{punctuation-mode},
-@code{important-punctuation}, @code{punctuation-table},
-@code{spelling-table}, @code{text-table}, @code{character-table},
-@code{key-table}, @code{sound-table}, @code{capital-character-table},
-@code{capital-character-mode}, @code{voice}, @code{rate},
-@code{pitch}, @code{output-module}.  See the corresponding
-@code{speechd-set-*} function docstrings for description of valid
-parameter values.
+@code{important-punctuation}, @code{capital-character-mode},
+@code{voice}, @code{rate}, @code{pitch}, @code{output-module}.  See
+the corresponding @code{speechd-set-*} function docstrings for
+description of valid parameter values.
 
 The @code{message-priority} parameter has a special meaning: It
 overrides the priority of all messages sent through the connection.

@@ -32,7 +32,7 @@
 (require 'speechd)
 
 
-(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.65 2003-11-05 11:25:58 pdm Exp $"
+(defconst speechd-speak-version "$Id: speechd-speak.el,v 1.66 2003-11-13 10:07:11 pdm Exp $"
   "Version of the speechd-speak file.")
 
 
@@ -850,7 +850,8 @@ connections, otherwise create completely new connection."
 	       (not (string= message speechd-speak--last-spoken-message)))
       (setq speechd-speak--last-message message
 	    speechd-speak--last-spoken-message message)
-      (let ((speechd-speak--special-area t))
+      (let ((speechd-speak--special-area t)
+            (speechd-spell nil))
         (speechd-speak--signal 'message :priority 'progress)
         (speechd-speak--minibuffer-prompt message :priority 'progress))))
   (when reset-last-spoken
@@ -1037,6 +1038,8 @@ connections, otherwise create completely new connection."
     (speechd-cancel 1))
   (speechd-speak--set-command-start-info)
   (setq speechd-speak--last-report "")
+  (when speechd-speak-spell-command
+    (speechd-speak-spell-mode 1))
   (when speechd-speak-mode
     (when (and (eq speechd-speak-read-command-keys t)
                (not (memq this-command speechd-speak-ignore-command-keys)))
@@ -1230,6 +1233,10 @@ connections, otherwise create completely new connection."
 
 (defun speechd-speak--post-command-hook ()
   (speechd-speak--enforce-speak-mode)
+  (when (and speechd-speak-spell-command speechd-speak-spell-mode)
+    ;; Only in spell mode to avoid disabling it after speechd-speak-spell
+    (setq speechd-speak-spell-command nil)
+    (speechd-speak-spell-mode 0))
   ;; Now, try to speak something useful
   (when speechd-speak-mode
     (condition-case err
@@ -1348,6 +1355,25 @@ connections, otherwise create completely new connection."
   (speechd-speak--speak-current-column))
 
 
+;;; Spelling
+
+
+(define-minor-mode speechd-speak-spell-mode
+  "Toggle spelling.
+When the mode is enabled, all spoken text is spelled."
+  nil " Spell" nil
+  (set (make-local-variable 'speechd-spell) speechd-speak-spell-mode))
+
+(defvar speechd-speak-spell-command nil)
+
+(defun speechd-speak-spell ()
+  "Let the very next command to be spell the text it reads."
+  (interactive)
+  (unless speechd-speak-spell-mode
+    (setq speechd-speak-spell-command t)))
+  
+
+
 ;;; Mode definition
 
 
@@ -1375,6 +1401,7 @@ connections, otherwise create completely new connection."
 (define-key speechd-speak-mode-map ">" 'speechd-speak-read-rest-of-buffer)
 (define-key speechd-speak-mode-map "\C-a" 'speechd-add-connection-settings)
 (define-key speechd-speak-mode-map "\C-c" 'speechd-speak-new-connection)
+(define-key speechd-speak-mode-map "\C-l" 'speechd-speak-spell)
 (define-key speechd-speak-mode-map "\C-n" 'speechd-speak-read-next-line)
 (define-key speechd-speak-mode-map "\C-p" 'speechd-speak-read-previous-line)
 (define-key speechd-speak-mode-map "\C-r" 'speechd-speak-read-rectangle)
@@ -1390,13 +1417,6 @@ connections, otherwise create completely new connection."
 (define-key speechd-speak-mode-map "dp" 'speechd-set-pitch)
 (define-key speechd-speak-mode-map "dr" 'speechd-set-rate)
 (define-key speechd-speak-mode-map "dv" 'speechd-set-voice)
-(define-key speechd-speak-mode-map "dt." 'speechd-set-punctuation-table)
-(define-key speechd-speak-mode-map "dt=" 'speechd-set-character-table)
-(define-key speechd-speak-mode-map "dtc" 'speechd-set-capital-character-table)
-(define-key speechd-speak-mode-map "dti" 'speechd-set-sound-table)
-(define-key speechd-speak-mode-map "dtk" 'speechd-set-key-table)
-(define-key speechd-speak-mode-map "dts" 'speechd-set-spelling-table)
-(define-key speechd-speak-mode-map "dtt" 'speechd-set-text-table)
 
 (defvar speechd-speak--mode-map (make-sparse-keymap))
 (defvar speechd-speak--prefix nil)
