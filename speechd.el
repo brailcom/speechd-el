@@ -173,8 +173,6 @@ You must reopen the connections to apply the changes to this variable."
 	    (cons :tag "Punctuation mode" (const :format "" punctuation-mode)
 		  ,(speechd--generate-customization-options
 		    speechd--punctuation-modes))
-	    (cons :tag "Important punctuation"
-		  (const :format "" important-punctuation) string)
 	    (cons :tag "Capital character mode"
 		  (const :format "" capital-character-mode)
 		  ,(speechd--generate-customization-options
@@ -215,7 +213,7 @@ language.")
 ;;; Internal constants and configuration variables
 
 
-(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.77 2003-11-05 11:26:02 pdm Exp $"
+(defconst speechd--el-version "speechd-el $Id: speechd.el,v 1.78 2003-11-10 12:02:06 pdm Exp $"
   "Version stamp of the source file.
 Useful only for diagnosing problems.")
 
