@@ -8,6 +8,10 @@
 	(message): New advice.
 	(speechd-speak--last-spoken-message): New variable.
 	(speechd-speak--post-command-hook): Set it.
+	(speechd-speak--prompt): New function.
+	(speechd-speak--speak-minibuffer-prompt): Use it.
+	(speechd-speak--pre-command-hook): Speak prompt of interactive
+	commands not setting minibuffer really.
 
 2003-06-24  Milan Zamazal  <pdm@brailcom.org>
 
