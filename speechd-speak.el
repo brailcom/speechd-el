@@ -1681,7 +1681,7 @@ When the mode is enabled, all spoken text is spelled."
 (speechd-speak--watch frame-name #'(lambda () (frame-parameter nil 'name))
   :on-change #'(lambda (old new)
                  (speechd-speak--text
-                  (format "Old frame: %s; new frame: %s" old new))))
+                  (format "Frame changed to: %s; was: %s" new old))))
 
 (speechd-speak--watch frame-identification
   #'(lambda ()
@@ -1691,7 +1691,7 @@ When the mode is enabled, all spoken text is spelled."
           ident)))
   :on-change #'(lambda (old new)
                  (speechd-speak--text
-                  (format "New frame identification: %s" new))))
+                  (format "Frame identification changed to: %s" new))))
 
 (defun speechd-speak-frame-info ()
   "Speak current frame information."
@@ -1713,14 +1713,14 @@ When the mode is enabled, all spoken text is spelled."
         "unknown"))
   :on-change #'(lambda (old new)
                  (speechd-speak--text
-                  (format "Header line: %s" new)))
+                  (format "Header line changed to: %s" new)))
   :info-string "Header line: %s"
   :key "h")
 
 (speechd-speak--watch major-mode #'(lambda () mode-name)
   :on-change #'(lambda (old new)
                  (speechd-speak--text
-                  (format "Major mode changed from %s to %s" old new))))
+                  (format "Major mode changed to: %s; was: %s" new old))))
 
 (speechd-speak--watch minor-modes
   #'(lambda ()
@@ -1737,12 +1737,12 @@ When the mode is enabled, all spoken text is spelled."
                                 collect i)))
                    (let ((disabled (set-difference old new))
                          (enabled (set-difference new old)))
-                     (when disabled
-                       (speechd-speak--text
-                        (format "Disabled minor modes: %s" disabled)))
                      (when enabled
                        (speechd-speak--text
-                        (format "Enabled minor modes: %s" enabled)))))))
+                        (format "Enabled minor modes: %s" enabled)))
+                     (when disabled
+                       (speechd-speak--text
+                        (format "Disabled minor modes: %s" disabled)))))))
 
 (defun speechd-speak-mode-info ()
   "Speak information about current major and minor modes."
@@ -1757,13 +1757,13 @@ When the mode is enabled, all spoken text is spelled."
   #'(lambda () buffer-file-coding-system)
   :on-change #'(lambda (old new)
                  (speechd-speak--text
-                  (format "Buffer file coding changed from %s to %s"
-                          old new))))
+                  (format "Buffer file coding changed to: %s; was %s"
+                          new old))))
 
 (speechd-speak--watch terminal-coding #'terminal-coding-system
   :on-change #'(lambda (old new)
                  (speechd-speak--text
-                  (format "Terminal coding changed from %s to %s" old new))))
+                  (format "Terminal coding changed to: %s; was: %s" new old))))
 
 (defun speechd-speak-coding-info ()
   "Speak information about current codings."
@@ -1778,7 +1778,7 @@ When the mode is enabled, all spoken text is spelled."
                                        (or current-input-method "none"))
   :on-change #'(lambda (old new)
                  (speechd-speak--text
-                  (format "Input method changed from %s to %s" old new)))
+                  (format "Input method changed to: %s; was: %s" new old)))
   :info-string "Input method %s"
   :key "i")
 
@@ -1788,7 +1788,7 @@ When the mode is enabled, all spoken text is spelled."
         (and process (process-status process))))
   :on-change #'(lambda (old new)
                  (speechd-speak--text
-                  (format "Process status changed from %s to %s" old new)))
+                  (format "Process status changed to: %s; was: %s" new old)))
   :info-string "Process status: %s"
   :key "p")
 

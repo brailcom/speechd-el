@@ -1,3 +1,10 @@
+2004-09-28  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (minor-modes): Report enabled modes first.
+	(frame-name, frame-identification, header-line, major-mode)
+	(buffer-file-coding, terminal-coding, input-method, process):
+	Report the new state first; message format unified.
+
 2004-09-27  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-speak.el (speechd-speak-display-modes): New user option.
