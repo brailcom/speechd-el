@@ -1,6 +1,6 @@
 ;;; speechd-speak.el --- simple speechd-el based Emacs client
 
-;; Copyright (C) 2003, 2004 Brailcom, o.p.s.
+;; Copyright (C) 2003, 2004, 2005 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -183,7 +183,7 @@ The elements of the list are command names, symbols.
 See `speechd-speak-by-properties-on-movement' for more information about
 property speaking."
   :type '(repeat
-          (function :tag "Command" :match #'(lambda (w val) (commandp val))))
+          (function :tag "Command" :match (lambda (w val) (commandp val))))
   :group 'speechd-speak)
 
 (defcustom speechd-speak-by-properties-never '()
@@ -193,7 +193,7 @@ The elements of the list are command names, symbols.
 See `speechd-speak-by-properties-on-movement' for more information about
 property speaking."
   :type '(repeat
-          (function :tag "Command" :match #'(lambda (w val) (commandp val))))
+          (function :tag "Command" :match (lambda (w val) (commandp val))))
   :group 'speechd-speak)
 
 (defcustom speechd-speak-faces '()
@@ -209,7 +209,7 @@ If ACTION is a function, it is invoked, with no arguments."
           :value-type (choice
                        (string :tag "String to speak")
                        (function :tag "Function to call"
-                                 :match #'(lambda (w val) (commandp val)))))
+                                 :match (lambda (w val) (commandp val)))))
   :group 'speechd-speak)
 
 (defcustom speechd-speak-display-modes '(gnus-agent-mode)
@@ -298,9 +298,9 @@ This may be useful when debugging speechd-el itself."
 
 (defcustom speechd-speak-prefix "\C-e"
   "Default prefix key used for speechd-speak commands."
-  :set #'(lambda (name value)
-	   (set-default name value)
-           (speechd-speak--build-mode-map))
+  :set (lambda (name value)
+         (set-default name value)
+         (speechd-speak--build-mode-map))
   :initialize 'custom-initialize-default
   :type 'sexp
   :group 'speechd-speak)
