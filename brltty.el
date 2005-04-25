@@ -175,26 +175,32 @@ The default value is taken from the environment variable CONTROLVT."
                         :key #'(lambda (data)
                                  (if (integerp data) 4 (length data)))))
         (process (brltty--connection-process connection)))
-    (flet ((send-integer (n reverse)
-             (process-send-string
-              process
-              (apply #'format "%c%c%c%c"
-                     (funcall (if reverse #'reverse #'identity)
-                              (loop for i from 1 to 4
-                                    for x = n then (/ x 256)
-                                    for rem = (% x 256)
-                                    collect rem))))))
-      (send-integer length t)
-      (send-integer (cdr (assoc packet-id brltty--packet-types)) t)
-      (dolist (data data-list)
-        (if (integerp data)
-            (send-integer (abs data) (>= data 0))
-          (process-send-string process data)))))
-  (when answer
-    (brltty--accept-process-output (brltty--connection-process connection))
-    (if (eq answer t)
-        (brltty--read-answer* connection '() 'ack)
-      (brltty--read-answer* connection answer packet-id))))
+    (when process
+      (condition-case _
+          (flet ((send-integer (n reverse)
+                   (process-send-string
+                    process
+                    (apply #'format "%c%c%c%c"
+                           (funcall (if reverse #'reverse #'identity)
+                                    (loop for i from 1 to 4
+                                          for x = n then (/ x 256)
+                                          for rem = (% x 256)
+                                          collect rem))))))
+            (send-integer length t)
+            (send-integer (cdr (assoc packet-id brltty--packet-types)) t)
+            (dolist (data data-list)
+              (if (integerp data)
+              (send-integer (abs data) (>= data 0))
+              (process-send-string process data)))
+            (when answer
+              (brltty--accept-process-output (brltty--connection-process connection))
+              (if (eq answer t)
+                  (brltty--read-answer* connection '() 'ack)
+                (brltty--read-answer* connection answer packet-id))))
+        (error
+          (delete-process process)
+          (setf (brltty--connection-process connection) nil)
+          (error "Error in communication with BrlTTY"))))))
 
 (defun brltty--authentication-key ()
   (with-temp-buffer

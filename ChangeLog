@@ -1,5 +1,10 @@
 2005-04-25  Milan Zamazal  <pdm@brailcom.org>
 
+	* brltty.el (brltty--send-packet): Don't try to send the packet if
+	connection is closed; catch communication failures.
+
+2005-04-25  Milan Zamazal  <pdm@brailcom.org>
+
 	* brltty.el (brltty-tty): New user option.
 	(brltty-open): Send TTY number with the getty command.
 
