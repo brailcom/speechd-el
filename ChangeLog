@@ -1,5 +1,10 @@
 2005-04-25  Milan Zamazal  <pdm@brailcom.org>
 
+	* speechd-out.el (speechd-out-keys): Missing argument added in the
+	speechd.text call.
+
+2005-04-25  Milan Zamazal  <pdm@brailcom.org>
+
 	* speechd-brltty.el (speechd-brltty-driver): Initial value of the
 	brltty-connection slot set to nil.
 	(speechd-brltty--connection): New function.

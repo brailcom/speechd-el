@@ -1,6 +1,6 @@
 ;;; speechd-out.el --- Alternative output interface
 
-;; Copyright (C) 2004 Brailcom, o.p.s.
+;; Copyright (C) 2004, 2005 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -175,7 +175,7 @@
       (dolist (k keys)
         (speechd.key driver k))
       (when text
-        (speechd.text driver text)))))
+        (speechd.text driver text nil)))))
 
 (defun* speechd-out-text (text &key (priority speechd-default-text-priority)
                                icon cursor)
