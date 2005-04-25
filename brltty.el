@@ -252,7 +252,9 @@ from 0."
                          -38
                          1 display-width
                          (encode-coding-string text* brltty-coding)
-                         (if cursor (1+ cursor) 0))))
+                         ;; Cursor position may not be too high, otherwise
+                         ;; BrlTTY breaks the connection
+                         (if cursor (1+ (min cursor display-width)) 0))))
 
 
 ;;; Announce
