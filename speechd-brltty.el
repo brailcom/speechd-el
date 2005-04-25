@@ -1,6 +1,6 @@
 ;;; speechd-brltty.el --- BrlTTY output driver
 
-;; Copyright (C) 2004 Brailcom, o.p.s.
+;; Copyright (C) 2004, 2005 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -37,18 +37,25 @@
     (mmanager-put manager 'braille-display #'brltty-write)
     manager))
 
+(defun speechd-brltty--connection (driver)
+  (let ((connection (slot-value driver 'brltty-connection)))
+    (unless connection
+      (setq connection (brltty-open))
+      (setf (slot-value driver 'brltty-connection) connection))
+    connection))
+
 
 (defclass speechd-brltty-driver (speechd-braille-emu-driver)
   ((name :initform 'brltty)
    (manager :initform (lambda () (speechd-brltty--create-manager)))
-   (brltty-connection :initform (lambda () (brltty-open)))))
+   (brltty-connection :initform nil)))
 
 (defmethod speechd-braille--make-message
     ((driver speechd-braille-emu-driver) text message)
-  (list (slot-value driver 'brltty-connection) text message))
+  (list (speechd-brltty--connection driver) text message))
 
 (defmethod speechd.shutdown ((driver speechd-brltty-driver))
-  (brltty-close (slot-value driver 'brltty-connection)))
+  (brltty-close (speechd-brltty--connection driver)))
 
 
 (speechd-out-register-driver (make-instance 'speechd-brltty-driver))

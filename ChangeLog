@@ -1,5 +1,12 @@
 2005-04-25  Milan Zamazal  <pdm@brailcom.org>
 
+	* speechd-brltty.el (speechd-brltty-driver): Initial value of the
+	brltty-connection slot set to nil.
+	(speechd-brltty--connection): New function.
+	(speechd-braille--make-message, speechd.shutdown): Use it.
+
+2005-04-25  Milan Zamazal  <pdm@brailcom.org>
+
 	* brltty.el (brltty-write): Let maximum cursor position be
 	display-width + 1.
 
