@@ -1,3 +1,8 @@
+2005-04-25  Milan Zamazal  <pdm@brailcom.org>
+
+	* brltty.el (brltty-tty): New user option.
+	(brltty-open): Send TTY number with the getty command.
+
 2004-12-11  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-braille.el (speechd-braille--stop): Cancel display timer.

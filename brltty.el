@@ -1,6 +1,6 @@
 ;;; brltty.el --- Interface to BrlTTY
 
-;; Copyright (C) 2004 Brailcom, o.p.s.
+;; Copyright (C) 2004, 2005 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -52,6 +52,12 @@
 (defcustom brltty-coding 'iso-8859-1
   "Coding in which texts should be sent to BrlTTY."
   :type 'coding-system
+  :group 'brltty)
+
+(defcustom brltty-tty (car (read-from-string (or (getenv "CONTROLVT") "0")))
+  "Number of the Linux console on which brltty.el runs.
+The default value is taken from the environment variable CONTROLVT."
+  :type 'integer
   :group 'brltty)
 
 
@@ -207,7 +213,7 @@ respectively."
     (brltty--send-packet connection t 'authkey
                          (- brltty--protocol-version)
                          (brltty--authentication-key))
-    (brltty--send-packet connection t 'gettty 0)
+    (brltty--send-packet connection t 'gettty brltty-tty 0)
     connection))
 
 (defun brltty-close (connection)
