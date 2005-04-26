@@ -39,7 +39,7 @@
 
 (defun speechd-brltty--connection (driver)
   (let ((connection (slot-value driver 'brltty-connection)))
-    (unless connection
+    (when (eq connection 'uninitialized)
       (setq connection (brltty-open))
       (setf (slot-value driver 'brltty-connection) connection))
     connection))
@@ -48,7 +48,7 @@
 (defclass speechd-brltty-driver (speechd-braille-emu-driver)
   ((name :initform 'brltty)
    (manager :initform (lambda () (speechd-brltty--create-manager)))
-   (brltty-connection :initform nil)))
+   (brltty-connection :initform 'uninitialized)))
 
 (defmethod speechd-braille--make-message
     ((driver speechd-braille-emu-driver) text message)

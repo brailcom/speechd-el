@@ -28,7 +28,7 @@
 (require 'cl)
 
 
-;;; Configuration
+;;; User configuration and commands
 
 
 (defgroup brltty ()
@@ -60,6 +60,26 @@ The default value is taken from the environment variable CONTROLVT."
   :type 'integer
   :group 'brltty)
 
+(defcustom brltty-key-functions '((1 . (lambda () (message "Hello!"))))
+  "Alist of Braille display key codes and corresponding Emacs functions.
+If the given key is pressed, the corresponding function is called with no
+arguments.
+Please note the functions may be called asynchronously any time.  So they
+shouldn't modify current environment in any inappropriate way.  Especially, it
+is not recommended to assign or call user commands here."
+  :type '(alist :key-type (integer :tag "Key code") :value-type function)
+  :group 'brltty)
+
+(defcustom brltty-show-unknown-keys t
+  "If non-nil, show Braille keys not assigned in `brltty-key-functions'."
+  :type 'boolean
+  :group 'brltty)
+
+(defcustom brltty-timeout 3
+  "Maximum number of seconds to wait for a BrlTTY answer."
+  :type 'integer
+  :group 'brltty)
+
 
 ;;; Internal functions and data
 
@@ -82,6 +102,15 @@ The default value is taken from the environment variable CONTROLVT."
     (ack . ?A)
     (err . ?e)
     (key . ?k)))
+
+(defvar brltty--answers '())
+
+(defun brltty--add-answer (answer)
+  (setq brltty--answers (append brltty--answers (list answer)))
+  answer)
+
+(defun brltty--next-answer ()
+  (pop brltty--answers))
 
 (defstruct brltty--connection
   process
@@ -107,68 +136,97 @@ The default value is taken from the environment variable CONTROLVT."
         (set-process-filter process #'brltty--process-filter)
         connection))))
 
-(defun brltty--process-filter (process output)
-  (let ((connection (if brltty--emacs-process-ok
-                        (process-get process 'brltty-connection)
-                      (cdr (assq process brltty--process-connections)))))
+(defun brltty--process-connection (process)
+  (if brltty--emacs-process-ok
+      (process-get process 'brltty-connection)
+    (cdr (assq process brltty--process-connections))))
+
+(defun brltty--disable-connection (connection error)
+  (let ((process (brltty--connection-process connection)))
+    (when process
+      (delete-process process)
+      (setf (brltty--connection-process connection) nil)))
+  (error "Error in communication with BrlTTY: %s" error))
+
+(defun brltty--process-filter* (process output)
+  (let ((connection (brltty--process-connection process)))
     (setf (brltty--connection-output connection)
           (concat (brltty--connection-output connection) output))))
 
+(defun brltty--process-filter (process output)
+  (set-process-filter process #'brltty--process-filter*)
+  (unwind-protect
+      (let ((connection (brltty--process-connection process)))
+        (brltty--process-filter* process output)
+        (while (not (string= (brltty--connection-output connection) ""))
+          (brltty--read-input connection)))
+    (set-process-filter process #'brltty--process-filter)))
+
 (defun brltty--accept-process-output (process)
   (if brltty--emacs-accept-ok
-      (accept-process-output process 1 nil 1)
-    (accept-process-output process 1)))
+      (accept-process-output process brltty-timeout nil 1)
+    (accept-process-output process brltty-timeout)))
 
 (defun brltty--read-integer (string)
   (+ (* 256 256 256 (aref string 0)) (* 256 256 (aref string 1))
      (* 256 (aref string 2)) (aref string 3)))
 
 (defun brltty--read-packet (connection)
-  (let ((process (brltty--connection-process connection)))
-    (flet ((read-enough-output (size)
-             (while (< (length (brltty--connection-output connection)) size)
-               (brltty--accept-process-output process)))
-           (read-integer ()
-             (let ((output (brltty--connection-output connection)))
-               (prog1 (brltty--read-integer output)
-                 (setf (brltty--connection-output connection)
-                       (substring output 4))))))
-      (read-enough-output 8)
-      (let* ((size (read-integer))
-             (type (car (rassoc (read-integer) brltty--packet-types)))
-             (data (progn
-                     (read-enough-output size)
-                     (let ((output (brltty--connection-output connection)))
-                       (setf (brltty--connection-output connection)
-                             (substring output size))
-                       (substring output 0 size)))))
-        (cons type data)))))
+  (condition-case err
+      (let ((process (brltty--connection-process connection)))
+        (flet ((read-enough-output (size)
+                 (while (< (length (brltty--connection-output connection)) size)
+                   (brltty--accept-process-output process)))
+               (read-integer ()
+                 (let ((output (brltty--connection-output connection)))
+                   (prog1 (brltty--read-integer output)
+                     (setf (brltty--connection-output connection)
+                           (substring output 4))))))
+          (read-enough-output 8)
+          (let* ((size (read-integer))
+                 (type (car (rassoc (read-integer) brltty--packet-types)))
+                 (data (progn
+                         (read-enough-output size)
+                         (let ((output (brltty--connection-output connection)))
+                           (setf (brltty--connection-output connection)
+                                 (substring output size))
+                           (substring output 0 size)))))
+            (cons type data))))
+    (error
+     (brltty--disable-connection connection err))))
 
-(defun brltty--read-answer (connection answer-spec packet-id)
-  (let ((answer 'unknown))
-    (while (eq answer 'unknown)
-      (destructuring-bind (type . data) (brltty--read-packet connection)
+(defun brltty--read-input (connection)
+  (destructuring-bind (type . data) (brltty--read-packet connection)
+    (case type
+     (err
+      (error (format "BrlTTY error %d: %s" (brltty--read-integer data) data)))
+     (key
+      (let* ((key (brltty--read-integer data))
+             (function (cdr (assoc key brltty-key-functions))))
         (cond
-         ((eq type 'err)
-          (setq answer (format "%d: %s" (brltty--read-integer data) data)))
-         ((eq type packet-id)
-          (setq answer (loop for output = data
-                                        then (substring output
-                                                        (if (eq spec 'integer)
-                                                            4
-                                                          (length output)))
-                             for spec in answer-spec
-                             for piece = (if (eq spec 'integer)
-                                             (brltty--read-integer output)
-                                           output)
-                             collect piece))))))
-    answer))
+         (function
+          (funcall function))
+         (brltty-show-unknown-keys
+          (message "Braille key pressed: %d" key)))))
+     (nil
+      ;; unknown packet type -- ignore
+      )
+     (getdisplaysize
+      (brltty--add-answer (list type
+                                (brltty--read-integer (substring data 0 4))
+                                (brltty--read-integer (substring data 4 8)))))
+     (t
+      (brltty--add-answer (list type data))))))
 
-(defun brltty--read-answer* (connection answer packet-id)
-  (let ((answer (brltty--read-answer connection answer packet-id)))
-    (when (stringp answer)
-      (error "BrlTTY error: %s" answer))
-    answer))
+(defun brltty--read-answer (connection packet-id)
+  (let ((connection (brltty--connection-process connection))
+        (answer '(nothing-yet)))
+    (while (and answer (not (eq (car answer) packet-id)))
+      (brltty--accept-process-output connection)
+      (setq answer (brltty--next-answer)))
+    (unless answer
+      (error "BrlTTY answer not received"))
+    (cdr answer)))
 
 (defun brltty--send-packet (connection answer packet-id &rest data-list)
   (let ((length (reduce #'+ data-list :initial-value 0
@@ -176,7 +234,7 @@ The default value is taken from the environment variable CONTROLVT."
                                  (if (integerp data) 4 (length data)))))
         (process (brltty--connection-process connection)))
     (when process
-      (condition-case _
+      (condition-case err
           (flet ((send-integer (n reverse)
                    (process-send-string
                     process
@@ -190,17 +248,12 @@ The default value is taken from the environment variable CONTROLVT."
             (send-integer (cdr (assoc packet-id brltty--packet-types)) t)
             (dolist (data data-list)
               (if (integerp data)
-              (send-integer (abs data) (>= data 0))
-              (process-send-string process data)))
+                  (send-integer (abs data) (>= data 0))
+                (process-send-string process data)))
             (when answer
-              (brltty--accept-process-output (brltty--connection-process connection))
-              (if (eq answer t)
-                  (brltty--read-answer* connection '() 'ack)
-                (brltty--read-answer* connection answer packet-id))))
+              (brltty--read-answer connection answer)))
         (error
-          (delete-process process)
-          (setf (brltty--connection-process connection) nil)
-          (error "Error in communication with BrlTTY"))))))
+         (brltty--disable-connection connection err))))))
 
 (defun brltty--authentication-key ()
   (with-temp-buffer
@@ -215,46 +268,53 @@ The default value is taken from the environment variable CONTROLVT."
   "Open and return connection to a BrlTTY server running on HOST and PORT.
 If HOST or PORT is nil, `brltty-default-host' or `brltty-default-port' is used
 respectively."
-  (let ((connection (brltty--open-connection host port)))
-    (brltty--send-packet connection t 'authkey
-                         (- brltty--protocol-version)
-                         (brltty--authentication-key))
-    (brltty--send-packet connection t 'gettty brltty-tty 0)
-    connection))
+  (condition-case err
+      (let ((connection (brltty--open-connection host port)))
+        (brltty--send-packet connection 'ack 'authkey
+                             (- brltty--protocol-version)
+                             (brltty--authentication-key))
+        (brltty--send-packet connection 'ack 'gettty brltty-tty 0)
+        connection)
+    (error
+     (message "Error on opening BrlTTY connection: %s" err)
+     nil)))
 
 (defun brltty-close (connection)
   "Close BrlTTY CONNECTION."
-  (brltty--send-packet connection t 'leavetty)
-  (let ((process (brltty--connection-process connection)))
-    (unless brltty--emacs-process-ok
-      (setq brltty--process-connections
-            (remove (assq process brltty--process-connections)
-                    brltty--process-connections)))
-    (delete-process process)))
+  (when connection
+    (brltty--send-packet connection 'ack 'leavetty)
+    (let ((process (brltty--connection-process connection)))
+      (unless brltty--emacs-process-ok
+        (setq brltty--process-connections
+              (remove (assq process brltty--process-connections)
+                      brltty--process-connections)))
+      (delete-process process))))
 
 (defun brltty-display-size (connection)
   "Return the size of the display as the list (WIDTH HEIGHT)."
-  (or (brltty--connection-display-width connection)
-      (setf (brltty--connection-display-width connection)
-            (brltty--send-packet connection '(integer integer)
-                                 'getdisplaysize))))
+  (when connection
+    (or (brltty--connection-display-width connection)
+        (setf (brltty--connection-display-width connection)
+              (brltty--send-packet connection 'getdisplaysize
+                                   'getdisplaysize)))))
 
 (defun brltty-write (connection text &optional cursor)
   "Display TEXT in BrlTTY accessed through CONNECTION.
 TEXT is encoded in the coding given by `brltty-coding' before it is sent.
 CURSOR, if non-nil, is a position of the cursor on the display, starting
 from 0."
-  (let* ((display-width (car (brltty-display-size connection)))
-         (text* (if (> (length text) display-width)
-                    (substring text 0 display-width)
-                  (format (format "%%-%ds" display-width) text))))
-    (brltty--send-packet connection nil 'write
-                         -38
-                         1 display-width
-                         (encode-coding-string text* brltty-coding)
-                         ;; Cursor position may not be too high, otherwise
-                         ;; BrlTTY breaks the connection
-                         (if cursor (1+ (min cursor display-width)) 0))))
+  (when connection
+    (let* ((display-width (car (brltty-display-size connection)))
+           (text* (if (> (length text) display-width)
+                      (substring text 0 display-width)
+                    (format (format "%%-%ds" display-width) text))))
+      (brltty--send-packet connection nil 'write
+                           -38
+                           1 display-width
+                           (encode-coding-string text* brltty-coding)
+                           ;; Cursor position may not be too high, otherwise
+                           ;; BrlTTY breaks the connection
+                           (if cursor (1+ (min cursor display-width)) 0)))))
 
 
 ;;; Announce

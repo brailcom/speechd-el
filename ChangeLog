@@ -1,3 +1,33 @@
+2005-04-26  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-brltty.el (speechd-brltty-driver): Set default value of
+	brltty-connection to 'unintialized.
+	(speechd-brltty--connection): Check for that value, not nil.
+	(with--speechd-brltty-connection): New macro.
+
+	* speechd-speak.el (speechd-speak--post-command-hook): Call
+	speechd-in--process-command-queue.
+
+	* brltty.el (brltty-key-functions): New user option.
+	(brltty-show-unknown-keys): New user option.
+	(brltty--process-filter): Renamed to brltty--process-filter*.
+	(brltty--process-filter): New function.
+	(brltty--process-connection): New function.
+	(brltty--process-filter*): Use it.
+	(brltty--read-input): New function.
+	(brltty--read-answer): Rewritten.
+	(brltty--answers): New variable.
+	(brltty--add-answer, brltty--next-answer): New functions.
+	(brltty-timeout): New user option.
+	(brltty--accept-process-output): Use it.
+	(brltty--send-packet): Don't call brltty--accept-process-output;
+	other answer related changes.
+	(brltty-display-size): brltty--send-packet arguments changed.
+	(brltty--disable-connection): New function.
+	(brltty--read-packet): Catch errors.
+	(brltty-close, brltty-display-size, brltty-write): Do nothing if
+	CONNECTION is nil.
+
 2005-04-25  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-out.el (speechd-out-keys): Missing argument added in the
