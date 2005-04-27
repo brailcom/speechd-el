@@ -61,21 +61,6 @@ The default value is taken from the environment variable CONTROLVT."
   :type 'integer
   :group 'brltty)
 
-(defcustom brltty-key-functions '((1 . (lambda () (message "Hello!"))))
-  "Alist of Braille display key codes and corresponding Emacs functions.
-If the given key is pressed, the corresponding function is called with no
-arguments.
-Please note the functions may be called asynchronously any time.  So they
-shouldn't modify current environment in any inappropriate way.  Especially, it
-is not recommended to assign or call user commands here."
-  :type '(alist :key-type (integer :tag "Key code") :value-type function)
-  :group 'brltty)
-
-(defcustom brltty-show-unknown-keys t
-  "If non-nil, show Braille keys not assigned in `brltty-key-functions'."
-  :type 'boolean
-  :group 'brltty)
-
 (defcustom brltty-timeout 3
   "Maximum number of seconds to wait for a BrlTTY answer."
   :type 'integer
@@ -116,12 +101,13 @@ is not recommended to assign or call user commands here."
 (defstruct brltty--connection
   process
   (display-width nil)
-  (output ""))
+  (output "")
+  (key-handler nil))
 
 (unless brltty--emacs-process-ok
   (defvar brltty--process-connections '()))
 
-(defun brltty--open-connection (host port)
+(defun brltty--open-connection (host port key-handler)
   (let ((process (open-network-stream "brltty" nil
                                       (or host brltty-default-host)
                                       (or port brltty-default-port))))
@@ -130,7 +116,8 @@ is not recommended to assign or call user commands here."
       (if (fboundp 'set-process-query-on-exit-flag)
           (set-process-query-on-exit-flag process nil)
         (process-kill-without-query process))
-      (let ((connection (make-brltty--connection :process process)))
+      (let ((connection (make-brltty--connection :process process
+                                                 :key-handler key-handler)))
         (if brltty--emacs-process-ok
             (process-put process 'brltty-connection connection)
           (push (cons process connection) brltty--process-connections))
@@ -202,13 +189,9 @@ is not recommended to assign or call user commands here."
      (err
       (error (format "BrlTTY error %d: %s" (brltty--read-integer data) data)))
      (key
-      (let* ((key (brltty--read-integer data))
-             (function (cdr (assoc key brltty-key-functions))))
-        (cond
-         (function
-          (funcall function))
-         (brltty-show-unknown-keys
-          (message "Braille key pressed: %d" key)))))
+      (let ((handler (brltty--connection-key-handler connection)))
+        (when handler
+          (funcall handler (brltty--read-integer data)))))
      (nil
       ;; unknown packet type -- ignore
       )
@@ -265,12 +248,12 @@ is not recommended to assign or call user commands here."
 ;;; Public functions and data
 
 
-(defun brltty-open (&optional host port)
+(defun brltty-open (&optional host port key-handler)
   "Open and return connection to a BrlTTY server running on HOST and PORT.
 If HOST or PORT is nil, `brltty-default-host' or `brltty-default-port' is used
 respectively."
   (condition-case err
-      (let ((connection (brltty--open-connection host port)))
+      (let ((connection (brltty--open-connection host port key-handler)))
         (brltty--send-packet connection 'ack 'authkey
                              (- brltty--protocol-version)
                              (brltty--authentication-key))

@@ -110,8 +110,8 @@
    (priority :initform (lambda () speechd-default-text-priority))))
 
 (defmethod speechd-braille--make-message
-    ((driver speechd-braille-emu-driver) text message)
-  (list text message))
+    ((driver speechd-braille-emu-driver) text cursor)
+  (list text cursor))
 
 (defmethod speechd.cancel ((driver speechd-braille-emu-driver))
   (mmanager-cancel (slot-value driver 'manager) speechd-client-name))

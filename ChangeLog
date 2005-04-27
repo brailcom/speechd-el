@@ -1,5 +1,24 @@
 2005-04-27  Milan Zamazal  <pdm@brailcom.org>
 
+	* brltty.el (brltty-open, brltty--open-connection): New optional
+	argument KEY-HANDLER.
+	(brltty--connection): New slot KEY-HANDLER.
+	(brltty-key-functions, brltty-show-unknown-keys): Removed.
+	(brltty--read-input): Don't process a pressed key itself, call key
+	handler if defined.
+
+	* speechd-brltty.el (speechd-brltty--handle-key): New function.
+	(speechd-brltty--connection): Call brltty-open with a key handler
+	as an argument.
+	(speechd-brltty): New customization group.
+	(speechd-brltty-key-functions, speechd-brltty-show-unknown-keys):
+	New user options.
+
+	* speechd-braille.el (speechd-braille--make-message): Argument
+	MESSAGE renamed to CURSOR.
+
+2005-04-27  Milan Zamazal  <pdm@brailcom.org>
+
 	* mmanager.el (mmanager--manager): New slots HISTORY and
 	HISTORY-CURSOR.
 	(mmanager-history): New function.

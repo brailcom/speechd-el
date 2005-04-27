@@ -32,15 +32,47 @@
 (require 'speechd-braille)
 
 
+(defgroup speechd-brltty ()
+  "speechd-el BrlTTY output driver."
+  :group 'speechd-el)
+
+(defcustom speechd-brltty-key-functions '((1 . (lambda (_) (message "Hello!"))))
+  "Alist of Braille display key codes and corresponding Emacs functions.
+If the given key is pressed, the corresponding function is called with a
+`speechd-brltty-driver' instance as its single argument.
+Please note the functions may be called asynchronously any time.  So they
+shouldn't modify current environment in any inappropriate way.  Especially, it
+is not recommended to assign or call user commands here."
+  :type '(alist :key-type (integer :tag "Key code") :value-type function)
+  :group 'speechd-brltty)
+
+(defcustom speechd-brltty-show-unknown-keys t
+  "If non-nil, show Braille keys not assigned in `speechd-brltty-key-functions'."
+  :type 'boolean
+  :group 'speechd-brltty)
+
+
 (defun speechd-brltty--create-manager ()
   (let ((manager (speechd-braille--create-manager)))
     (mmanager-put manager 'braille-display #'brltty-write)
     manager))
 
+(defun speechd-brltty--handle-key (driver key)
+  (let ((function (cdr (assoc key speechd-brltty-key-functions))))
+    (cond
+     (function
+      (funcall function driver))
+     (speechd-brltty-show-unknown-keys
+      (message "Braille key pressed: %d" key)))))
+
 (defun speechd-brltty--connection (driver)
   (let ((connection (slot-value driver 'brltty-connection)))
     (when (eq connection 'uninitialized)
-      (setq connection (brltty-open))
+      (lexical-let ((driver driver))
+        (setq connection (brltty-open
+                          nil nil
+                          (lambda (key)
+                            (speechd-brltty--handle-key driver key)))))
       (setf (slot-value driver 'brltty-connection) connection))
     connection))
 
