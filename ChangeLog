@@ -1,3 +1,11 @@
+2005-04-27  Milan Zamazal  <pdm@zamazal.org>
+
+	* speechd.el (speechd): Duplicate customization group definition
+	removed.
+
+	* brltty.el (brltty): Put the customization group into the
+	speechd-el group.
+
 2005-04-26  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-brltty.el (speechd-brltty-driver): Set default value of

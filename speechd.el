@@ -1,6 +1,6 @@
 ;;; speechd.el --- Library for accessing Speech Dispatcher
 
-;; Copyright (C) 2003, 2004 Brailcom, o.p.s.
+;; Copyright (C) 2003, 2004, 2005 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -46,10 +46,6 @@
 
 ;;; User variables
 
-
-(defgroup speechd ()
-  "SSIP interface."
-  :group 'speechd-el)
 
 (defgroup speechd ()
   "SSIP interface."
