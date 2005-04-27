@@ -1,6 +1,6 @@
 ;;; mmanager.el --- Message manager
 
-;; Copyright (C) 2004 Brailcom, o.p.s.
+;; Copyright (C) 2004, 2005 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -26,6 +26,17 @@
 (require 'cl)
 
 
+;;; User customization
+
+(defgroup message-manager ()
+  "Message queue management."
+  :group 'speechd-el)
+
+(defcustom mmanager-history-size 12
+  "Maximum number of message stored in the message history."
+  :type 'integer
+  :group 'message-manager)
+
 ;;; Data structures
 
 (defstruct mmanager--manager
@@ -39,7 +50,9 @@
   pause-f
   resume-f
   busy-f
-  properties)
+  properties
+  (history '())
+  (history-cursor nil))
 
 (defstruct mmanager--message
   messages
@@ -69,6 +82,7 @@
 
 (defun mmanager--display (manager message)
   (when message
+    (mmanager--add-history manager message)
     (funcall (mmanager--manager-display-f manager) manager message)))
 
 ;;; Utility functions
@@ -134,6 +148,12 @@
           #'(lambda (m) (eq (mmanager--message-priority m) 'progress))))))
     (mmanager--update-queue manager message* priority)
     (mmanager-next manager)))
+
+(defun mmanager--add-history (manager message)
+  (let ((history (mmanager--manager-history manager)))
+    (when (= (length history) mmanager-history-size)
+      (setq history (cdr history)))
+    (setq history (append history (list message)))))
 
 ;;; Public functions
 
@@ -207,10 +227,30 @@
 (defun mmanager-put (manager property value)
   (setf (mmanager--manager-properties manager)
         (plist-put (mmanager--manager-properties manager) property value)))
-  
+
+(defun mmanager-history (manager which)
+  (let ((history (mmanager--manager-history manager))
+        (cursor (mmanager--manager-history-cursor manager)))
+    (ecase which
+      (current
+       (find cursor history :test #'eq))
+      (next
+       (let ((next (rest (member* cursor history :test #'eq))))
+         (when next
+           (setf (mmanager--manager-history-cursor manager) (first next)))))
+      (previous
+       (let ((pos (position cursor history :test #'eq)))
+         (when (and pos (> pos 0))
+           (setf (mmanager--manager-history-cursor manager)
+                 (nth (1- pos) history)))))
+      (first
+       (setf (mmanager--manager-history-cursor manager) (first history)))
+      (last
+       (setf (mmanager--manager-history-cursor manager)
+             (car (last history)))))))
+
 ;;; Announce
 
 (provide 'mmanager)
-
 
 ;;; mmanager.el ends here

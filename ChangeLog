@@ -1,3 +1,13 @@
+2005-04-27  Milan Zamazal  <pdm@brailcom.org>
+
+	* mmanager.el (mmanager--manager): New slots HISTORY and
+	HISTORY-CURSOR.
+	(mmanager-history): New function.
+	(message-manager): New customization group.
+	(mmanager-history-size): New user option.
+	(mmanager--add-history): New function.
+	(mmanager--display): Call it.
+
 2005-04-27  Milan Zamazal  <pdm@zamazal.org>
 
 	* speechd.el (speechd): Duplicate customization group definition
