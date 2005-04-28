@@ -153,7 +153,8 @@
   (let ((history (mmanager--manager-history manager)))
     (when (= (length history) mmanager-history-size)
       (setq history (cdr history)))
-    (setq history (append history (list message)))))
+    (setf (mmanager--manager-history manager) (append history (list message)))
+    (setf (mmanager--manager-history-cursor manager) message)))
 
 ;;; Public functions
 

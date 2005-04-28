@@ -31,7 +31,15 @@
 (require 'speechd-out)
 
 
-(defvar speechd-braille-display-time 1)
+
+(defgroup speechd-braille ()
+  "speechd-el Braille output."
+  :group 'speechd-el)
+
+(defcustom speechd-braille-display-time 3
+  "How many seconds to display a message before displaying the next one."
+  :type 'integer
+  :group 'speechd-braille)
 
 
 (defconst speechd-braille--empty-message '("" nil))
@@ -55,14 +63,15 @@
                     (/ (or (nth 2 time) 0) 1000000.0))))
            (current-time)))
 
-(defun speechd-braille--display (manager message)
+(defun speechd-braille--display (manager message &optional sticky)
   (speechd-braille--stop manager)
   (apply (mmanager-get manager 'braille-display) message)
   (setq speechd-braille--last-message message)
   (setq speechd-braille--last-message-time (speechd-braille--time))
-  (setq speechd-braille--display-timer
-        (run-at-time speechd-braille-display-time nil
-                     #'mmanager-next manager)))
+  (unless sticky
+    (setq speechd-braille--display-timer
+          (run-at-time speechd-braille-display-time nil
+                       #'mmanager-next manager))))
 
 (defun speechd-braille--stop (manager)
   (when speechd-braille--display-timer
@@ -81,8 +90,8 @@
        (< (- (speechd-braille--time) speechd-braille--last-message-time)
           speechd-braille-display-time)))
 
-(defun speechd-braille--create-manager ()
-  (let ((manager (mmanager-create #'speechd-braille--display
+(defun speechd-braille--create-manager (display-func)
+  (let ((manager (mmanager-create display-func
                                   #'speechd-braille--stop
                                   #'speechd-braille--pause
                                   #'speechd-braille--resume
@@ -106,7 +115,8 @@
 
 (defclass speechd-braille-emu-driver (speechd-driver)
   ((name :initform 'braille-emu)
-   (manager :initform (lambda () (speechd-braille--create-manager)))
+   (manager :initform (lambda () (speechd-braille--create-manager
+                                  #'speechd-braille--display)))
    (priority :initform (lambda () speechd-default-text-priority))))
 
 (defmethod speechd-braille--make-message

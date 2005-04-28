@@ -1,5 +1,27 @@
 2005-04-27  Milan Zamazal  <pdm@brailcom.org>
 
+	* speechd-braille.el (speechd-braille): New customization group.
+	(speechd-braille-display-time): Changed to user options; default
+	value increased to 3.
+	(speechd-braille--display): New optional argument STICKY.
+	(speechd-braille--create-manager): New argument DISPLAY-FUNC.
+	(speechd-braille-emu-driver): Add it.
+
+	* speechd-brltty.el (speechd-brltty-finish-message)
+	(speechd-brltty-scroll-left, speechd-brltty-scroll-right)
+	(speechd-brltty-current-message, speechd-brltty-next-message)
+	(speechd-brltty-previous-message): New functions.
+	(speechd-brltty-key-functions): Renamed to
+	speechd-braille-key-functions; real functions assigned.
+	(speechd-brltty-show-unknown-keys): Renamed to
+	speechd-braille-show-unknown-keys.
+	(speechd-brltty): Removed.
+	(speechd-brltty-driver): New slot SCROLLING.
+	(speechd-brltty--write): New function.
+	(speechd-brltty--create-manager): Call it in the manager's writer.
+
+2005-04-27  Milan Zamazal  <pdm@brailcom.org>
+
 	* brltty.el (brltty-open, brltty--open-connection): New optional
 	argument KEY-HANDLER.
 	(brltty--connection): New slot KEY-HANDLER.
