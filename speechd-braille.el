@@ -38,7 +38,7 @@
 
 (defcustom speechd-braille-display-time 3
   "How many seconds to display a message before displaying the next one."
-  :type 'integer
+  :type 'number
   :group 'speechd-braille)
 
 

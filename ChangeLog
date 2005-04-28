@@ -1,3 +1,8 @@
+2005-04-28  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-braille.el (speechd-braille-display-time): Value type
+	changed to NUMBER.
+
 2005-04-27  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-braille.el (speechd-braille): New customization group.
