@@ -89,9 +89,10 @@ is not recommended to assign or call user commands here."
       (if scroll
           (let ((scrolling (mmanager-get manager 'scrolling)))
             (setq text (substring text scrolling))
-            (setq cursor (- cursor scrolling))
-            (when (or (< cursor 0) (> cursor display-width))
-              (setq cursor nil)))
+            (when cursor
+              (setq cursor (- cursor scrolling))
+              (when (or (< cursor 0) (> cursor display-width))
+                (setq cursor nil))))
         (mmanager-put manager 'scrolling 0)))
     (speechd-braille--display manager (list connection text cursor))))
 

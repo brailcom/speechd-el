@@ -1,5 +1,10 @@
 2005-04-28  Milan Zamazal  <pdm@brailcom.org>
 
+	* speechd-brltty.el (speechd-brltty--display): Check and update
+	cursor position only if it is non-nil.
+
+2005-04-28  Milan Zamazal  <pdm@brailcom.org>
+
 	* speechd-braille.el (speechd-braille-display-time): Value type
 	changed to NUMBER.
 
