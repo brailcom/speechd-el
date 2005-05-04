@@ -176,7 +176,8 @@
             (mmanager-next manager)))
       (let* ((queue (mmanager--manager-queue manager))
              (message (car queue)))
-        (if (and (mmanager--manager-paused manager)
+        (if (and message
+                 (mmanager--manager-paused manager)
                  (not (eq (mmanager--message-priority message) 'important)))
             (mmanager--resume manager)
           (setf (mmanager--manager-queue manager) (cdr queue))

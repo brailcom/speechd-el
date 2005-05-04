@@ -1,3 +1,10 @@
+2005-05-04  Milan Zamazal  <pdm@brailcom.org>
+
+	* mmanager.el (mmanager-next): Don't fail when the queue is empty.
+
+	* speechd-speak.el (speechd-speak-read-region): Ensure BEG and END
+	are non-nil before using them.
+
 2005-04-28  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-brltty.el (speechd-brltty--display): Check and update

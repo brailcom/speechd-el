@@ -504,7 +504,9 @@ EMPTY-TEXT is a text to output if the region is empty; if nil, empty text icon
 is output."
   (interactive "r")
   (speechd-speak--interactive
-   (let ((text (buffer-substring (or beg (mark)) (or end (point)))))
+   (let* ((beg (or beg (mark)))
+          (end (or end (point)))
+          (text (buffer-substring beg end)))
      (cond
       ((string= text "")
        (speechd-speak-report (or empty-text 'empty)
