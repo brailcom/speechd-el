@@ -1,5 +1,15 @@
 2005-05-05  Milan Zamazal  <pdm@brailcom.org>
 
+	* speechd-common.el (with-speechd-coding-protection): New macro.
+
+	* speechd.el (speechd--send-connection, speechd--call-spdsend):
+	Ensure last-coding-system-used is not changed during run of this
+	function.
+
+	* brltty.el (brltty-write, brltty--send-packet): Likewise.
+
+2005-05-05  Milan Zamazal  <pdm@brailcom.org>
+
 	* brltty.el (brltty--connection): New slot ANSWERS.
 	(brltty--answers): Removed.
 	(brltty--add-answer, brltty--next-answer): New argument

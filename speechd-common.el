@@ -1,6 +1,6 @@
 ;;; speechd-common.el --- Code common to all parts of speechd-el
 
-;; Copyright (C) 2004 Brailcom, o.p.s.
+;; Copyright (C) 2004, 2005 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -66,6 +66,12 @@ Language should be a string recognizable by Speech Dispatcher as a language
 code."
   (put-text-property 0 (length string) 'language language string)
   string)
+
+
+(defmacro with-speechd-coding-protection (&rest body)
+  "Ensure BODY doesn't mess with Emacs dirty coding hacks."
+  `(let ((last-coding-system-used last-coding-system-used))
+     ,@body))
 
 
 ;;; Announce

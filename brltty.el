@@ -27,6 +27,8 @@
 
 (require 'cl)
 
+(require 'speechd-common)
+
 
 ;;; User configuration and commands
 
@@ -222,26 +224,27 @@ The default value is taken from the environment variable CONTROLVT."
                                  (if (integerp data) 4 (length data)))))
         (process (brltty--connection-process connection)))
     (when process
-      (condition-case err
-          (flet ((send-integer (n reverse)
-                   (process-send-string
-                    process
-                    (apply #'format "%c%c%c%c"
-                           (funcall (if reverse #'reverse #'identity)
-                                    (loop for i from 1 to 4
-                                          for x = n then (/ x 256)
-                                          for rem = (% x 256)
-                                          collect rem))))))
-            (send-integer length t)
-            (send-integer (cdr (assoc packet-id brltty--packet-types)) t)
-            (dolist (data data-list)
-              (if (integerp data)
-                  (send-integer (abs data) (>= data 0))
-                (process-send-string process data)))
-            (when answer
-              (brltty--read-answer connection answer)))
-        (error
-         (brltty--disable-connection connection err))))))
+      (with-speechd-coding-protection
+        (condition-case err
+            (flet ((send-integer (n reverse)
+                     (process-send-string
+                      process
+                      (apply #'format "%c%c%c%c"
+                             (funcall (if reverse #'reverse #'identity)
+                                      (loop for i from 1 to 4
+                                            for x = n then (/ x 256)
+                                            for rem = (% x 256)
+                                            collect rem))))))
+              (send-integer length t)
+              (send-integer (cdr (assoc packet-id brltty--packet-types)) t)
+              (dolist (data data-list)
+                (if (integerp data)
+                    (send-integer (abs data) (>= data 0))
+                  (process-send-string process data)))
+              (when answer
+                (brltty--read-answer connection answer)))
+          (error
+           (brltty--disable-connection connection err)))))))
 
 (defun brltty--authentication-key ()
   (with-temp-buffer
@@ -299,7 +302,8 @@ from 0."
       (brltty--send-packet connection nil 'write
                            -38
                            1 display-width
-                           (encode-coding-string text* brltty-coding)
+                           (with-speechd-coding-protection
+                             (encode-coding-string text* brltty-coding))
                            ;; Cursor position may not be too high, otherwise
                            ;; BrlTTY breaks the connection
                            (if cursor (1+ (min cursor display-width)) 0)))))

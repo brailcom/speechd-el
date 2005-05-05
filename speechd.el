@@ -416,12 +416,11 @@ current voice."
 (defun speechd--call-spdsend (args &optional input)
   (with-temp-buffer
     (if input
-        (progn
+        (with-speechd-coding-protection
           (insert input)
           (let ((default-process-coding-system
                   (cons speechd--coding-system speechd--coding-system))
-                (process-coding-system-alist nil)
-                (last-coding-system-used nil))
+                (process-coding-system-alist nil))
             (apply #'call-process-region (point-min) (point-max)
                    speechd-spdsend t t nil args)))
       (apply #'call-process speechd-spdsend nil t nil args))
@@ -468,25 +467,26 @@ current voice."
 (defun speechd--send-connection (connection command)
   (let ((process (speechd--connection-process connection)))
     (when process
-      (condition-case _
-          (if (speechd--use-spdsend)
-              (speechd--call-spdsend (list "--send" process) command)
-            (process-send-string
-             process
-             (if speechd--advanced-apo
-                 command
-               (encode-coding-string command speechd--coding-system)))
-            (when speechd--advanced-apo
-              (while (not (string-match
-                           speechd--end-regexp
-                           (speechd--connection-process-output connection)))
-                (unless (accept-process-output process speechd-timeout nil 1)
-                  (error "Timeout in communication with Speech Dispatcher"))))
-            (prog1 (speechd--connection-process-output connection)
-              (setf (speechd--connection-process-output connection) "")))
-        (error
-         (speechd--permanent-connection-failure connection)
-         (error "Error in communication with Speech Dispatcher"))))))
+      (with-speechd-coding-protection
+        (condition-case _
+            (if (speechd--use-spdsend)
+                (speechd--call-spdsend (list "--send" process) command)
+              (process-send-string
+               process
+               (if speechd--advanced-apo
+                   command
+                 (encode-coding-string command speechd--coding-system)))
+              (when speechd--advanced-apo
+                (while (not (string-match
+                             speechd--end-regexp
+                             (speechd--connection-process-output connection)))
+                  (unless (accept-process-output process speechd-timeout nil 1)
+                    (error "Timeout in communication with Speech Dispatcher"))))
+              (prog1 (speechd--connection-process-output connection)
+                (setf (speechd--connection-process-output connection) "")))
+          (error
+           (speechd--permanent-connection-failure connection)
+           (error "Error in communication with Speech Dispatcher")))))))
   
 ;;;###autoload
 (defun* speechd-open (&optional host port &key quiet force-reopen)
