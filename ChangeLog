@@ -1,5 +1,17 @@
 2005-05-05  Milan Zamazal  <pdm@brailcom.org>
 
+	* brltty.el (brltty--connection): New slot ANSWERS.
+	(brltty--answers): Removed.
+	(brltty--add-answer, brltty--next-answer): New argument
+	CONNECTION.
+	(brltty--read-input, brltty--read-answer): Honor the change above.
+	(brltty--read-answer): Call the process variable PROCESS, not
+	CONNECTION.
+	(brltty--read-answer): Try to read the answer immediately, before
+	calling brltty--accept-process-output.
+
+2005-05-05  Milan Zamazal  <pdm@brailcom.org>
+
 	* mmanager.el (mmanager-cancel): Set current message to nil.
 
 	* speechd-brltty.el (speechd.shutdown): Call mmanager-cancel and

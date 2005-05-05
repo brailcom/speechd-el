@@ -89,20 +89,20 @@ The default value is taken from the environment variable CONTROLVT."
     (err . ?e)
     (key . ?k)))
 
-(defvar brltty--answers '())
-
-(defun brltty--add-answer (answer)
-  (setq brltty--answers (append brltty--answers (list answer)))
+(defun brltty--add-answer (connection answer)
+  (setf (brltty--connection-answers connection)
+        (append (brltty--connection-answers connection) (list answer)))
   answer)
 
-(defun brltty--next-answer ()
-  (pop brltty--answers))
+(defun brltty--next-answer (connection)
+  (pop (brltty--connection-answers connection)))
 
 (defstruct brltty--connection
   process
   (display-width nil)
   (output "")
-  (key-handler nil))
+  (key-handler nil)
+  (answers '()))
 
 (unless brltty--emacs-process-ok
   (defvar brltty--process-connections '()))
@@ -196,18 +196,22 @@ The default value is taken from the environment variable CONTROLVT."
       ;; unknown packet type -- ignore
       )
      (getdisplaysize
-      (brltty--add-answer (list type
+      (brltty--add-answer connection
+                          (list type
                                 (brltty--read-integer (substring data 0 4))
                                 (brltty--read-integer (substring data 4 8)))))
      (t
-      (brltty--add-answer (list type data))))))
+      (brltty--add-answer connection (list type data))))))
 
 (defun brltty--read-answer (connection packet-id)
-  (let ((connection (brltty--connection-process connection))
+  (let ((process (brltty--connection-process connection))
         (answer '(nothing-yet)))
     (while (and answer (not (eq (car answer) packet-id)))
-      (brltty--accept-process-output connection)
-      (setq answer (brltty--next-answer)))
+      ;; The answer may be already present in answers
+      (setq answer (brltty--next-answer connection))
+      (unless answer
+        (brltty--accept-process-output process)
+        (setq answer (brltty--next-answer connection))))
     (unless answer
       (error "BrlTTY answer not received"))
     (cdr answer)))
