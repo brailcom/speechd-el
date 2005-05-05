@@ -192,6 +192,7 @@
                              #'(lambda (m)
                                  (string= (mmanager--message-client m) client))
                            #'identity))
+  (setf (mmanager--manager-current-message manager) nil)
   (dolist (block% (mmanager--manager-message-blocks manager))
     (setcdr block% 'canceled)))
 

@@ -168,9 +168,11 @@ is not recommended to assign or call user commands here."
 (defmethod speechd-braille--make-message
     ((driver speechd-braille-emu-driver) text message)
   (list (speechd-brltty--connection driver) text message))
-
+  
 (defmethod speechd.shutdown ((driver speechd-brltty-driver))
-  (brltty-close (speechd-brltty--connection driver)))
+  (mmanager-cancel (slot-value driver 'manager) nil)
+  (brltty-close (speechd-brltty--connection driver))
+  (setf (slot-value driver 'brltty-connection) 'uninitialized))
 
 
 (speechd-out-register-driver (make-instance 'speechd-brltty-driver))
