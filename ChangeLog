@@ -1,3 +1,9 @@
+2005-05-09  Milan Zamazal  <pdm@brailcom.org>
+
+	* brltty.el (brltty-write): When filling the text with spaces,
+	format only spaces, not the original text, to avoid TAB
+	formatting.
+
 2005-05-05  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-common.el (with-speechd-coding-protection): New macro.

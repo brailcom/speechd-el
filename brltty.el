@@ -298,7 +298,12 @@ from 0."
     (let* ((display-width (car (brltty-display-size connection)))
            (text* (if (> (length text) display-width)
                       (substring text 0 display-width)
-                    (format (format "%%-%ds" display-width) text))))
+                    ;; We must be careful with FORMAT because of formatting of
+                    ;; TAB characters
+                    (concat text
+                            (format
+                             (format "%%-%ds" (- display-width (length text)))
+                             "")))))
       (brltty--send-packet connection nil 'write
                            -38
                            1 display-width
