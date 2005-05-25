@@ -68,6 +68,11 @@ The default value is taken from the environment variable CONTROLVT."
   :type 'integer
   :group 'brltty)
 
+(defcustom brltty-broken-protocol nil
+  "Set it to non-nil if your BrlTTY version is older than 3.6.2."
+  :type 'boolean
+  :group 'brltty)
+
 
 ;;; Internal functions and data
 
@@ -239,7 +244,8 @@ The default value is taken from the environment variable CONTROLVT."
               (send-integer (cdr (assoc packet-id brltty--packet-types)) t)
               (dolist (data data-list)
                 (if (integerp data)
-                    (send-integer (abs data) (>= data 0))
+                    (send-integer (abs data) (or (not brltty-broken-protocol)
+                                                 (>= data 0)))
                   (process-send-string process data)))
               (when answer
                 (brltty--read-answer connection answer)))
