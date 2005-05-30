@@ -584,7 +584,7 @@ This function works only in Emacs 21.4 or higher."
   (interactive)
   (when (fboundp 'format-mode-line)
     (speechd-speak--interactive
-     (speechd-speak--text (format-mode-line)))))
+     (speechd-speak--text (format-mode-line t)))))
 
 (defun speechd-speak--window-contents ()
   (sit-for 0)                           ; to update window start and end
