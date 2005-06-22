@@ -1,3 +1,10 @@
+2005-06-22  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak-set-language): New command.
+	(speechd-speak-mode-map): Bind "dl" to speechd-speak-set-language.
+
+	* speechd.el (speechd-set-language): Don't set speechd-language.
+
 2005-05-09  Milan Zamazal  <pdm@brailcom.org>
 
 	* brltty.el (brltty-write): When filling the text with spaces,

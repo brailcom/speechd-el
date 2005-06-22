@@ -764,8 +764,7 @@ Return the opened connection on success, nil otherwise."
   "Set language of the current client connection to LANGUAGE.
 Language must be an RFC 1766 language code, as a string."
   (interactive (list (read-string "Language: ")))
-  (speechd--set-parameter 'language language)
-  (setq speechd-language language))
+  (speechd--set-parameter 'language language))
 
 (defmacro speechd--generate-set-command (parameter prompt argdesc)
   (let* ((prompt* (concat prompt ": "))

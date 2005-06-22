@@ -772,6 +772,13 @@ FUNCTION is invoked interactively."
   `(speechd-out-with-updated-text (speechd-speak--updated-text)
      ,@body))
 
+(defun speechd-speak-set-language (language)
+  "Set default language to LANGUAGE.
+Language must be an RFC 1766 language code, as a string."
+  (interactive "sLanguage: ")
+  (speechd-set-language language)
+  (setq speechd-language language))
+
 
 ;;; Basic speaking
 
@@ -1836,7 +1843,7 @@ The following symbols are valid state change identifiers: `buffer-name',
               'speechd-speak-key-set-predefined-rate))
 (define-key speechd-speak-mode-map "d." 'speechd-set-punctuation-mode)
 (define-key speechd-speak-mode-map "dc" 'speechd-set-capital-character-mode)
-(define-key speechd-speak-mode-map "dl" 'speechd-set-language)
+(define-key speechd-speak-mode-map "dl" 'speechd-speak-set-language)
 (define-key speechd-speak-mode-map "do" 'speechd-set-output-module)
 (define-key speechd-speak-mode-map "dp" 'speechd-set-pitch)
 (define-key speechd-speak-mode-map "dr" 'speechd-set-rate)

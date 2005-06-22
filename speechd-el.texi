@@ -10,7 +10,7 @@
 @copying
 This manual is for speechd-el, @value{VERSION}.
 
-Copyright @copyright{} 2003, 2004 Brailcom, o.p.s.
+Copyright @copyright{} 2003, 2004, 2005 Brailcom, o.p.s.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -500,7 +500,7 @@ Commands affecting basic parameters of the text-to-speech process:
 @table @kbd
 @item C-e d l
 @kindex C-e d l
-@findex speechd-set-language
+@findex speechd-speak-set-language
 @cindex language
 Set default language of the connection.  Specify it as an ISO 639
 language code.
