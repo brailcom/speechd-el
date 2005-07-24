@@ -1,5 +1,10 @@
 2005-07-24  Milan Zamazal  <pdm@brailcom.org>
 
+	* brltty.el (brltty-tty): Try to initialize the value from the
+	XFree86_VT property.
+
+2005-07-24  Milan Zamazal  <pdm@brailcom.org>
+
 	* speechd-out.el (speechd-out-shutdown): New optional argument
 	INACTIVE-ONLY.
 

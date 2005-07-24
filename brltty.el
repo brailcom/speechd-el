@@ -57,9 +57,17 @@
   :type 'coding-system
   :group 'brltty)
 
-(defcustom brltty-tty (car (read-from-string (or (getenv "CONTROLVT") "0")))
+(defcustom brltty-tty (car (read-from-string
+                            (or (let ((value (ignore-errors
+                                               (shell-command-to-string "xprop -root XFree86_VT"))))
+                                  (and value
+                                       (string-match "= *\\([0-9]+\\)" value)
+                                       (match-string 1 value)))
+                                (getenv "CONTROLVT")
+                                "0")))
   "Number of the Linux console on which brltty.el runs.
-The default value is taken from the environment variable CONTROLVT."
+The default value is taken from the XFree86_VT root window property or, if not
+available, from the  environment variable CONTROLVT."
   :type 'integer
   :group 'brltty)
 
