@@ -1,3 +1,11 @@
+2005-07-24  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-out.el (speechd-out-shutdown): New optional argument
+	INACTIVE-ONLY.
+
+	* speechd-speak.el (speechd-speak-stop-brltty-output): New
+	command.
+
 2005-06-22  Milan Zamazal  <pdm@brailcom.org>
 
 	* speechd-speak.el (speechd-speak-set-language): New command.

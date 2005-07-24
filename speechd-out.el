@@ -191,9 +191,12 @@
   (speechd-out--loop-drivers (driver)
     (speechd.set driver parameter value)))
 
-(defun speechd-out-shutdown ()
+(defun speechd-out-shutdown (&optional inactive-only)
   (speechd-out--loop-drivers (driver)
-    (speechd.shutdown driver)))
+    (when (or (not inactive-only)
+              (not (memq (speechd-driver.name driver)
+                         speechd-out-active-drivers)))
+      (speechd.shutdown driver))))
 
 
 ;;; Announce

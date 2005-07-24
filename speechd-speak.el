@@ -1985,6 +1985,13 @@ starts blocking your Emacs functions."
   (setq speechd-speak--message-timer
         (run-with-idle-timer 0 t 'speechd-speak--message-timer)))
 
+(defun speechd-speak-stop-brltty-output ()
+  "Close BrlTTY connections and stop BrlTTY output.
+This is useful in case you need to free BrlTTY for another application."
+  (interactive)
+  (setq speechd-out-active-drivers (remove 'brltty speechd-out-active-drivers))
+  (speechd-out-shutdown t))
+
 
 ;;; Announce
 
