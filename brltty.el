@@ -90,7 +90,7 @@ available, from the  environment variable CONTROLVT."
 
 (defconst brltty--emacs-process-ok (fboundp 'process-put))
 
-(defconst brltty--protocol-version 6)
+(defconst brltty--protocol-version 7)
 
 (defconst brltty--packet-types
   '(;; commands
@@ -234,7 +234,9 @@ available, from the  environment variable CONTROLVT."
 (defun brltty--send-packet (connection answer packet-id &rest data-list)
   (let ((length (reduce #'+ data-list :initial-value 0
                         :key #'(lambda (data)
-                                 (if (integerp data) 4 (length data)))))
+                                 (cond 
+				  ((integerp data) 4)
+				  (t (length data))))))
         (process (brltty--connection-process connection)))
     (when process
       (with-speechd-coding-protection
@@ -251,10 +253,15 @@ available, from the  environment variable CONTROLVT."
               (send-integer length t)
               (send-integer (cdr (assoc packet-id brltty--packet-types)) t)
               (dolist (data data-list)
-                (if (integerp data)
-                    (send-integer (abs data) (or (not brltty-broken-protocol)
-                                                 (>= data 0)))
-                  (process-send-string process data)))
+                (cond
+                 ((integerp data)
+                  (send-integer (abs data) (or (not brltty-broken-protocol)
+                                               (>= data 0))))
+                 ((vectorp data)
+                  (dotimes (i (length data))
+                    (process-send-string process (format "%c" (aref data i)))))
+                 (t
+                  (process-send-string process data))))
               (when answer
                 (brltty--read-answer connection answer)))
           (error
@@ -278,7 +285,7 @@ respectively."
         (brltty--send-packet connection 'ack 'authkey
                              (- brltty--protocol-version)
                              (brltty--authentication-key))
-        (brltty--send-packet connection 'ack 'gettty brltty-tty 0)
+        (brltty--send-packet connection 'ack 'gettty 0 [0])
         connection)
     (error
      (message "Error on opening BrlTTY connection: %s" err)
@@ -317,12 +324,13 @@ from 0."
                     (concat text
                             (format
                              (format "%%-%ds" (- display-width (length text)))
-                             "")))))
+                             ""))))
+           (encoded-text (with-speechd-coding-protection
+                           (encode-coding-string text* brltty-coding))))
       (brltty--send-packet connection nil 'write
                            -38
                            1 display-width
-                           (with-speechd-coding-protection
-                             (encode-coding-string text* brltty-coding))
+                           (length encoded-text) encoded-text
                            ;; Cursor position may not be too high, otherwise
                            ;; BrlTTY breaks the connection
                            (if cursor (1+ (min cursor display-width)) 0)))))
