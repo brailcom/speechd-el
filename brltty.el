@@ -76,11 +76,6 @@ available, from the  environment variable CONTROLVT."
   :type 'integer
   :group 'brltty)
 
-(defcustom brltty-broken-protocol nil
-  "Set it to non-nil if your BrlTTY version is older than 3.6.2."
-  :type 'boolean
-  :group 'brltty)
-
 
 ;;; Internal functions and data
 
@@ -241,22 +236,21 @@ available, from the  environment variable CONTROLVT."
     (when process
       (with-speechd-coding-protection
         (condition-case err
-            (flet ((send-integer (n reverse)
+            (flet ((send-integer (n)
                      (process-send-string
                       process
                       (apply #'format "%c%c%c%c"
-                             (funcall (if reverse #'reverse #'identity)
+                             (funcall #'reverse
                                       (loop for i from 1 to 4
                                             for x = n then (/ x 256)
                                             for rem = (% x 256)
                                             collect rem))))))
-              (send-integer length t)
-              (send-integer (cdr (assoc packet-id brltty--packet-types)) t)
+              (send-integer length)
+              (send-integer (cdr (assoc packet-id brltty--packet-types)))
               (dolist (data data-list)
                 (cond
                  ((integerp data)
-                  (send-integer (abs data) (or (not brltty-broken-protocol)
-                                               (>= data 0))))
+                  (send-integer data))
                  ((vectorp data)
                   (dotimes (i (length data))
                     (process-send-string process (format "%c" (aref data i)))))
@@ -283,7 +277,7 @@ respectively."
   (condition-case err
       (let ((connection (brltty--open-connection host port key-handler)))
         (brltty--send-packet connection 'ack 'authkey
-                             (- brltty--protocol-version)
+                             brltty--protocol-version
                              (brltty--authentication-key))
         (brltty--send-packet connection 'ack 'gettty 0 [0])
         connection)
@@ -328,7 +322,7 @@ from 0."
            (encoded-text (with-speechd-coding-protection
                            (encode-coding-string text* brltty-coding))))
       (brltty--send-packet connection nil 'write
-                           -38
+                           38
                            1 display-width
                            (length encoded-text) encoded-text
                            ;; Cursor position may not be too high, otherwise
