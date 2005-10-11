@@ -198,6 +198,33 @@
                          speechd-out-active-drivers)))
       (speechd.shutdown driver))))
 
+(defun speechd-out-enable-driver (driver)
+  "Enable given driver."
+  (interactive
+   (list (intern
+          (completing-read "Enable driver: "
+                           (mapcar 'list
+                                   (mapcar 'symbol-name
+                                           (set-difference
+                                            (mapcar 'speechd-driver.name
+                                                    speechd-out--drivers)
+                                            speechd-out-active-drivers)))
+                           nil t))))
+  (unless (memq driver speechd-out-active-drivers)
+    (push driver speechd-out-active-drivers)))
+
+(defun speechd-out-disable-driver (driver)
+  "Disable given driver and disconnect from its output device."
+  (interactive
+   (list (intern
+          (completing-read "Disable driver: "
+                           (mapcar 'list
+                                   (mapcar 'symbol-name
+                                           speechd-out-active-drivers))
+                           nil t))))
+  (setq speechd-out-active-drivers (remove driver speechd-out-active-drivers))
+  (speechd-out-shutdown t))
+
 
 ;;; Announce
 

@@ -1,3 +1,10 @@
+2005-07-25  Milan Zamazal  <pdm@brailcom.org>
+
+	* speechd-speak.el (speechd-speak-stop-brltty-output): Removed.
+
+	* speechd-out.el (speechd-out-enable-driver)
+	(speechd-out-disable-driver): New commands.
+
 2005-07-24  Milan Zamazal  <pdm@brailcom.org>
 
 	* brltty.el (brltty-tty): Try to initialize the value from the
