@@ -39,12 +39,15 @@
 (defcustom speechd-braille-key-functions
   '((1 . speechd-brltty-previous-message)
     (2 . speechd-brltty-next-message)
+    (11 . speechd-brltty-last-message)
+    (12 . speechd-brltty-first-message)
     (23 . speechd-brltty-scroll-left)
     (24 . speechd-brltty-scroll-right)
+    (25 . speechd-brltty-scroll-to-bol)
+    (26 . speechd-brltty-scroll-to-eol)
     (29 . speechd-brltty-scroll-to-cursor)
-    (8513 . speechd-brltty-last-message)
-    (8545 . speechd-brltty-first-message)
-    (74081 . speechd-brltty-finish-message))
+    (8204 . speechd-brltty-finish-message)
+    (8205 . speechd-brltty-cancel))
   "Alist of Braille display key codes and corresponding Emacs functions.
 If the given key is pressed, the corresponding function is called with a
 `speechd-brltty-driver' instance as its single argument.
@@ -113,27 +116,40 @@ is not recommended to assign or call user commands here."
     (speechd-braille--stop manager)
     (mmanager-next manager)))
 
-(defun speechd-brltty-scroll-left (driver)
+(defun speechd-brltty-scroll-left (driver &optional bolp)
   (let* ((manager (slot-value driver 'manager))
          (scrolling (mmanager-get manager 'scrolling)))
     (when (and scrolling (> scrolling 0))
       (speechd-braille--stop manager)
       (mmanager-put manager 'scrolling
-                    (max (- scrolling (car (brltty-display-size connection)))
-                         0))
+                    (if bolp
+                        0
+                      (max (- scrolling (car (brltty-display-size connection)))
+                           0)))
       (speechd-brltty--display manager (mmanager-history manager 'current) t))))
 
-(defun speechd-brltty-scroll-right (driver)
+(defun speechd-brltty-scroll-to-bol (driver)
+  (speechd-brltty-scroll-left driver t))
+
+(defun speechd-brltty-scroll-right (driver &optional eolp)
   (let* ((manager (slot-value driver 'manager))
          (scrolling (mmanager-get manager 'scrolling)))
     (let ((message (mmanager-history manager 'current)))
       (when scrolling
         (speechd-braille--stop manager)
         (destructuring-bind (connection text cursor) message
-          (setq scrolling (+ scrolling (car (brltty-display-size connection))))
+          (setq scrolling (if eolp
+                              (max (- (length text)
+                                      (car (brltty-display-size connection)))
+                                   0)
+                            (+ scrolling
+                               (car (brltty-display-size connection)))))
           (when (< scrolling (length text))
             (mmanager-put manager 'scrolling scrolling)))
         (speechd-brltty--display manager message t)))))
+
+(defun speechd-brltty-scroll-to-eol (driver)
+  (speechd-brltty-scroll-right driver t))
 
 (defmacro speechd-brltty--message-from-history (which)
   `(let* ((manager (slot-value driver 'manager))
@@ -155,6 +171,9 @@ is not recommended to assign or call user commands here."
 
 (defun speechd-brltty-last-message (driver)
   (speechd-brltty--message-from-history 'last))
+
+(defun speechd-brltty-cancel (driver)
+  (speechd.cancel driver))
 
 
 ;;; Driver definition, methods and registration
