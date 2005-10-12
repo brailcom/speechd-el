@@ -279,7 +279,7 @@ respectively."
         (brltty--send-packet connection 'ack 'authkey
                              brltty--protocol-version
                              (brltty--authentication-key))
-        (brltty--send-packet connection 'ack 'gettty 0 [0])
+        (brltty--send-packet connection 'ack 'gettty 1 brltty-tty [0])
         connection)
     (error
      (message "Error on opening BrlTTY connection: %s" err)
