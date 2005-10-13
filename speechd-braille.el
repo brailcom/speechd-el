@@ -1,6 +1,6 @@
 ;;; speechd-braille.el --- Emacs braille emulator driver
 
-;; Copyright (C) 2004 Brailcom, o.p.s.
+;; Copyright (C) 2004, 2005 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -40,6 +40,9 @@
   "How many seconds to display a message before displaying the next one."
   :type 'number
   :group 'speechd-braille)
+
+
+(defvar speechd-braille--vetoed-icons '("message"))
 
 
 (defconst speechd-braille--empty-message '("" nil))
@@ -153,8 +156,9 @@
    driver text (speechd-braille--make-message driver text cursor)))
 
 (defmethod speechd.icon ((driver speechd-braille-emu-driver) icon)
-  (speechd-braille--maybe-enqueue
-   driver icon (speechd-braille--make-message driver icon nil)))
+  (unless (member icon speechd-braille--vetoed-icons)
+    (speechd-braille--maybe-enqueue
+     driver icon (speechd-braille--make-message driver icon nil))))
 
 (defmethod speechd.char ((driver speechd-braille-emu-driver) char)
   (let ((text (char-to-string char)))
