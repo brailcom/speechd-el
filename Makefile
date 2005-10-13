@@ -1,5 +1,5 @@
 # Makefile for speechd-el
-# Copyright (C) 2003, 2004 Brailcom, o.p.s.
+# Copyright (C) 2003, 2004, 2005 Brailcom, o.p.s.
 
 EMACS = emacs
 
@@ -15,14 +15,10 @@ all: compile info
 
 compile: braille.elc mmanager.elc speechd.elc speechd-braille.elc \
          speechd-bug.elc speechd-common.elc \
-         speechd-out.elc speechd-speak.elc speechd-ssip.elc speechd-version.elc
+         speechd-out.elc speechd-speak.elc speechd-ssip.elc
 
 %.elc: %.el
 	$(EMACS) --batch -l speechd-compile.el -f speechd-compile --kill
-
-speechd-version.el:
-	echo '(defconst speechd-version "' `tla logs -f -r | head -1` '")' > $@
-	echo "(provide 'speechd-version)" >> $@
 
 install:
 
@@ -41,7 +37,7 @@ distclean: clean
 	rm -rf $(DISTDIR) $(TARFILE)* *.orig *.rej
 
 maintainer-clean: distclean
-	rm -f *.info* speechd-version.el
+	rm -f *.info*
 
 TAGS:
 	etags *.el
@@ -62,7 +58,7 @@ ps: speechd-el.ps
 %.ps: %.texi
 	texi2ps $<
 
-dist: maintainer-clean info speechd-version.el
+dist: maintainer-clean info
 	mkdir $(DISTDIR)
 	chmod 755 $(DISTDIR)
 	install -m 644 `find . -maxdepth 1 -type f -name '[a-zA-Z]*'` \

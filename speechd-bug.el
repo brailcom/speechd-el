@@ -1,6 +1,6 @@
 ;;; speechd-bug.el --- reporting speechd-el and speechd bugs
 
-;; Copyright (C) 2003, 2004 Brailcom, o.p.s.
+;; Copyright (C) 2003, 2004, 2005 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -25,7 +25,6 @@
 
 (eval-when-compile (require 'cl))
 (require 'speechd-speak)
-(require 'speechd-version)
   
 
 (defvar speechd-bug--log-extractor "speechd-log-extractor")
