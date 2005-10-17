@@ -84,7 +84,7 @@ is not recommended to assign or call user commands here."
 
 (defun speechd-brltty--display (manager message &optional scroll)
   (multiple-value-bind (connection text cursor) message
-    (let ((display-width (car (brltty-display-size connection))))
+    (let ((display-width (or (car (brltty-display-size connection)) 0)))
       (when (and cursor (>= cursor display-width) (not scroll))
         (mmanager-put manager 'scrolling
                       (* (/ cursor display-width) display-width))
@@ -124,7 +124,7 @@ is not recommended to assign or call user commands here."
       (mmanager-put manager 'scrolling
                     (if bolp
                         0
-                      (max (- scrolling (car (brltty-display-size connection)))
+                      (max (- scrolling (or (car (brltty-display-size connection)) 0))
                            0)))
       (speechd-brltty--display manager (mmanager-history manager 'current) t))))
 
@@ -138,12 +138,11 @@ is not recommended to assign or call user commands here."
       (when scrolling
         (speechd-braille--stop manager)
         (destructuring-bind (connection text cursor) message
-          (setq scrolling (if eolp
-                              (max (- (length text)
-                                      (car (brltty-display-size connection)))
-                                   0)
-                            (+ scrolling
-                               (car (brltty-display-size connection)))))
+          (let ((display-width (or (car (brltty-display-size connection)) 0)))
+            (setq scrolling (if eolp
+                                (max (- (length text) display-width)
+                                     0)
+                              (+ scrolling display-width))))
           (when (< scrolling (length text))
             (mmanager-put manager 'scrolling scrolling)))
         (speechd-brltty--display manager message t)))))

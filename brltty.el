@@ -310,24 +310,28 @@ TEXT is encoded in the coding given by `brltty-coding' before it is sent.
 CURSOR, if non-nil, is a position of the cursor on the display, starting
 from 0."
   (when connection
-    (let* ((display-width (car (brltty-display-size connection)))
-           (text* (if (> (length text) display-width)
-                      (substring text 0 display-width)
-                    ;; We must be careful with FORMAT because of formatting of
-                    ;; TAB characters
-                    (concat text
-                            (format
-                             (format "%%-%ds" (- display-width (length text)))
-                             ""))))
-           (encoded-text (with-speechd-coding-protection
-                           (encode-coding-string text* brltty-coding))))
-      (brltty--send-packet connection nil 'write
-                           38
-                           1 display-width
-                           (length encoded-text) encoded-text
-                           ;; Cursor position may not be too high, otherwise
-                           ;; BrlTTY breaks the connection
-                           (if cursor (1+ (min cursor display-width)) 0)))))
+    (let ((display-width (car (brltty-display-size connection))))
+      (when display-width
+        (let* ((text* (if (> (length text) display-width)
+                          (substring text 0 display-width)
+                        ;; We must be careful with FORMAT because of formatting
+                        ;; of TAB characters
+                        (concat text
+                                (format
+                                 (format "%%-%ds" (- display-width
+                                                     (length text)))
+                                 ""))))
+               (encoded-text (with-speechd-coding-protection
+                              (encode-coding-string text* brltty-coding))))
+          (brltty--send-packet connection nil 'write
+                               38
+                               1 display-width
+                               (length encoded-text) encoded-text
+                               ;; Cursor position may not be too high,
+                               ;; otherwise BrlTTY breaks the connection
+                               (if cursor
+                                   (1+ (min cursor display-width))
+                                 0)))))))
 
 
 ;;; Announce
