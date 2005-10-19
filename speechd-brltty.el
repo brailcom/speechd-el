@@ -84,20 +84,21 @@ is not recommended to assign or call user commands here."
 
 (defun speechd-brltty--display (manager message &optional scroll)
   (multiple-value-bind (connection text cursor) message
-    (let ((display-width (or (car (brltty-display-size connection)) 0)))
-      (when (and cursor (>= cursor display-width) (not scroll))
-        (mmanager-put manager 'scrolling
-                      (* (/ cursor display-width) display-width))
-        (setq scroll t))
-      (if scroll
-          (let ((scrolling (mmanager-get manager 'scrolling)))
-            (setq text (substring text scrolling))
-            (when cursor
-              (setq cursor (- cursor scrolling))
-              (when (or (< cursor 0) (> cursor display-width))
-                (setq cursor nil))))
-        (mmanager-put manager 'scrolling 0)))
-    (speechd-braille--display manager (list connection text cursor))))
+    (let ((display-width (car (brltty-display-size connection))))
+      (when display-width
+        (when (and cursor (>= cursor display-width) (not scroll))
+          (mmanager-put manager 'scrolling
+                        (* (/ cursor display-width) display-width))
+          (setq scroll t))
+        (if scroll
+            (let ((scrolling (mmanager-get manager 'scrolling)))
+              (setq text (substring text scrolling))
+              (when cursor
+                (setq cursor (- cursor scrolling))
+                (when (or (< cursor 0) (> cursor display-width))
+                  (setq cursor nil))))
+          (mmanager-put manager 'scrolling 0)))
+      (speechd-braille--display manager (list connection text cursor)))))
 
 
 ;;; Braille key handling
@@ -133,19 +134,19 @@ is not recommended to assign or call user commands here."
 
 (defun speechd-brltty-scroll-right (driver &optional eolp)
   (let* ((manager (slot-value driver 'manager))
-         (scrolling (mmanager-get manager 'scrolling)))
-    (let ((message (mmanager-history manager 'current)))
-      (when scrolling
-        (speechd-braille--stop manager)
-        (destructuring-bind (connection text cursor) message
-          (let ((display-width (or (car (brltty-display-size connection)) 0)))
+         (scrolling (mmanager-get manager 'scrolling))
+         (message (mmanager-history manager 'current)))
+    (when scrolling
+      (speechd-braille--stop manager)
+      (destructuring-bind (connection text cursor) message
+        (let ((display-width (or (car (brltty-display-size connection)) 0)))
+          (when display-width
             (setq scrolling (if eolp
-                                (max (- (length text) display-width)
-                                     0)
+                                (max (- (length text) display-width) 0)
                               (+ scrolling display-width))))
           (when (< scrolling (length text))
-            (mmanager-put manager 'scrolling scrolling)))
-        (speechd-brltty--display manager message t)))))
+            (mmanager-put manager 'scrolling scrolling))))
+      (speechd-brltty--display manager message t))))
 
 (defun speechd-brltty-scroll-to-eol (driver)
   (speechd-brltty-scroll-right driver t))
