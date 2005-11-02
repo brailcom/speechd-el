@@ -294,7 +294,8 @@ respectively."
         (setq brltty--process-connections
               (remove (assq process brltty--process-connections)
                       brltty--process-connections)))
-      (delete-process process))))
+      (when process
+        (delete-process process)))))
 
 (defun brltty-display-size (connection)
   "Return the size of the display as the list (WIDTH HEIGHT)."
