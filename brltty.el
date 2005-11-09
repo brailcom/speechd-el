@@ -122,7 +122,7 @@ available, from the  environment variable CONTROLVT."
                                       (or host brltty-default-host)
                                       (or port brltty-default-port))))
     (when process
-      (set-process-coding-system process 'raw-text-unix 'raw-text-unix)
+      (set-process-coding-system process 'binary 'binary)
       (if (fboundp 'set-process-query-on-exit-flag)
           (set-process-query-on-exit-flag process nil)
         (process-kill-without-query process))
