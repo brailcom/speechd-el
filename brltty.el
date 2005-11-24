@@ -122,7 +122,7 @@ available, from the  environment variable CONTROLVT."
     (cond
      ((getenv "WINDOWSPATH")
       (save-match-data
-        (dolist (number (split-string (getenv "WINDOWSPATH") ":" t))
+        (dolist (number (split-string (getenv "WINDOWSPATH") ":"))
           (push (string-to-number number) terminal-spec))))
      ((eq window-system 'x)
       (push brltty-tty terminal-spec)))
