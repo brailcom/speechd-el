@@ -117,6 +117,28 @@ available, from the  environment variable CONTROLVT."
 (unless brltty--emacs-process-ok
   (defvar brltty--process-connections '()))
 
+(defun brltty--terminal-spec ()
+  (let ((terminal-spec '()))
+    (cond
+     ((getenv "WINDOWSPATH")
+      (save-match-data
+        (dolist (number (split-string (getenv "WINDOWSPATH") ":" t))
+          (push (string-to-number number) terminal-spec))))
+     ((eq window-system 'x)
+      (push brltty-tty terminal-spec)))
+    (cond
+     ((eq window-system 'x)
+      (push (string-to-number (frame-parameter (selected-frame) 'outer-window-id)) terminal-spec))
+     ((getenv "WINDOWID")
+      (push (string-to-number (getenv "WINDOWID")) terminal-spec))
+     ((file-readable-p "/proc/self/stat")
+      ;; where's the tty info in `stat'?
+      (push 0 terminal-spec)
+      )
+     (t
+      (push 0 terminal-spec)))
+    (nreverse terminal-spec)))
+
 (defun brltty--open-connection (host port key-handler)
   (let ((process (open-network-stream "brltty" nil
                                       (or host brltty-default-host)
@@ -275,11 +297,15 @@ available, from the  environment variable CONTROLVT."
 If HOST or PORT is nil, `brltty-default-host' or `brltty-default-port' is used
 respectively."
   (condition-case err
-      (let ((connection (brltty--open-connection host port key-handler)))
+      (let ((connection (brltty--open-connection host port key-handler))
+            (terminal-spec (brltty--terminal-spec)))
         (brltty--send-packet connection 'ack 'authkey
                              brltty--protocol-version
                              (brltty--authentication-key))
-        (brltty--send-packet connection 'ack 'gettty 1 brltty-tty [0])
+        (apply 'brltty--send-packet
+               (append (list connection 'ack 'gettty (length terminal-spec))
+                       terminal-spec
+                       (list [0])))
         connection)
     (error
      (message "Error on opening BrlTTY connection: %s" err)
