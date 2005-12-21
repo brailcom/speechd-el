@@ -112,7 +112,8 @@ available, from the  environment variable CONTROLVT."
   (display-width nil)
   (output "")
   (key-handler nil)
-  (answers '()))
+  (answers '())
+  (terminal-spec nil))
 
 (unless brltty--emacs-process-ok
   (defvar brltty--process-connections '()))
@@ -296,6 +297,18 @@ available, from the  environment variable CONTROLVT."
     (insert-file-contents brltty-authentication-file)
     (buffer-substring (point-min) (point-max))))
 
+(defun brltty--update-terminal-spec (connection)
+  (let ((terminal-spec (brltty--terminal-spec))
+        (orig-terminal-spec (brltty--connection-terminal-spec connection)))
+    (unless (equalp terminal-spec orig-terminal-spec)
+      (when orig-terminal-spec
+        (brltty--send-packet connection 'ack 'leavetty))
+      (apply 'brltty--send-packet
+             (append (list connection 'ack 'gettty (length terminal-spec))
+                     terminal-spec
+                     (list [0])))
+      (setf (brltty--connection-terminal-spec connection) terminal-spec))))
+
 
 ;;; Public functions and data
 
@@ -305,15 +318,10 @@ available, from the  environment variable CONTROLVT."
 If HOST or PORT is nil, `brltty-default-host' or `brltty-default-port' is used
 respectively."
   (condition-case err
-      (let ((connection (brltty--open-connection host port key-handler))
-            (terminal-spec (brltty--terminal-spec)))
+      (let ((connection (brltty--open-connection host port key-handler)))
         (brltty--send-packet connection 'ack 'authkey
                              brltty--protocol-version
                              (brltty--authentication-key))
-        (apply 'brltty--send-packet
-               (append (list connection 'ack 'gettty (length terminal-spec))
-                       terminal-spec
-                       (list [0])))
         connection)
     (error
      (message "Error on opening BrlTTY connection: %s" err)
@@ -345,6 +353,7 @@ TEXT is encoded in the coding given by `brltty-coding' before it is sent.
 CURSOR, if non-nil, is a position of the cursor on the display, starting
 from 0."
   (when connection
+    (brltty--update-terminal-spec connection)
     (let ((display-width (car (brltty-display-size connection))))
       (when display-width
         (let* ((text* (if (> (length text) display-width)
