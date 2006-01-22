@@ -1,6 +1,6 @@
 ;;; brltty.el --- Interface to BrlTTY
 
-;; Copyright (C) 2004, 2005 Brailcom, o.p.s.
+;; Copyright (C) 2004, 2005, 2006 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -134,16 +134,17 @@ available, from the  environment variable CONTROLVT."
       (push (string-to-number (getenv "WINDOWID")) terminal-spec))
      ((file-readable-p "/proc/self/stat")
       (with-temp-buffer
-        (push (or (ignore-errors
-                    (insert-file-contents "/proc/self/stat")
-                    (goto-char (point-min))
-                    (dotimes (_ 6) (read))
-                    (let ((tty (read)))
-                      (if (and tty (= (/ tty 256) 4)) ; major
-                          (mod tty 256)               ; minor
-                        0)))
-                  0)
-              terminal-spec)))
+        (let ((standard-input (current-buffer)))
+          (push (or (ignore-errors
+                      (insert-file-contents "/proc/self/stat")
+                      (goto-char (point-min))
+                      (dotimes (_ 6) (read))
+                      (let ((tty (read)))
+                        (if (and tty (= (/ tty 256) 4)) ; major
+                            (mod tty 256)               ; minor
+                          0)))
+                    0)
+                terminal-spec))))
      (t
       (push 0 terminal-spec)))
     (nreverse terminal-spec)))
