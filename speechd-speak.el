@@ -1121,19 +1121,26 @@ Only single characters are allowed in the keymap.")
       (push text (speechd-speak--cinfo changes))))))
 
 (defun speechd-speak--buffer-substring (beg end &optional maybe-align-p)
-  (buffer-substring
-   (if (and maybe-align-p
-            speechd-speak-align-buffer-insertions
-            (not (eq this-command 'self-insert-command)))
-       (save-excursion
-         (goto-char beg)
-         (when (save-match-data
-                 (and (looking-at "\\w")
-                      (not (looking-at "\\<"))))
-           (backward-word 1))
-         (point))
-     beg)
-   end))
+  (let ((text (buffer-substring
+               (if (and maybe-align-p
+                        speechd-speak-align-buffer-insertions
+                        (not (eq this-command 'self-insert-command)))
+                   (save-excursion
+                     (goto-char beg)
+                     (when (save-match-data
+                             (and (looking-at "\\w")
+                                  (not (looking-at "\\<"))))
+                       (backward-word 1))
+                     (point))
+                 beg)
+               end)))
+    (dolist (o (overlays-in beg end))
+      (let ((face (overlay-get o 'face)))
+        (when face
+          (let ((beg* (max (overlay-start o) beg))
+                (end* (min (overlay-end o) end)))
+            (put-text-property (- beg* beg) (- end* beg) 'face face text)))))
+    text))
 
 (defun speechd-speak--minibuffer-update-report (info old new)
   (speechd-speak--add-command-text
