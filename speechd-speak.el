@@ -1,6 +1,6 @@
 ;;; speechd-speak.el --- simple speechd-el based Emacs client
 
-;; Copyright (C) 2003, 2004, 2005 Brailcom, o.p.s.
+;; Copyright (C) 2003, 2004, 2005, 2006 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -506,7 +506,7 @@ is output."
   (speechd-speak--interactive
    (let* ((beg (or beg (mark)))
           (end (or end (point)))
-          (text (buffer-substring beg end)))
+          (text (speechd-speak--buffer-substring beg end)))
      (cond
       ((string= text "")
        (speechd-speak-report (or empty-text 'empty)
@@ -1077,7 +1077,7 @@ Only single characters are allowed in the keymap.")
 (defun speechd-speak--updated-text ()
   (let ((line-beg (line-beginning-position))
         (line-end (line-end-position)))
-    (make-speechd-out-update :text (buffer-substring line-beg line-end)
+    (make-speechd-out-update :text (speechd-speak--buffer-substring line-beg line-end)
                              :cursor (- (point) line-beg) :group 'line)))
 
 (defun speechd-speak--command-keys (&optional priority)
@@ -1108,7 +1108,7 @@ Only single characters are allowed in the keymap.")
 (defun speechd-speak--add-command-text (info beg end)
   (let ((last (first (speechd-speak--cinfo changes)))
         (last-end (speechd-speak--cinfo change-end))
-        (text (speechd-speak--buffer-substring beg end)))
+        (text (speechd-speak--buffer-substring beg end t)))
     (setf (speechd-speak--cinfo change-end) end)
     (cond
      ((and last (string= last text))
@@ -1116,13 +1116,14 @@ Only single characters are allowed in the keymap.")
       )
      ((and last-end (= last-end beg))
       (rplaca (speechd-speak--cinfo changes)
-              (concat last (buffer-substring beg end))))
+              (concat last (speechd-speak--buffer-substring beg end t))))
      (t
       (push text (speechd-speak--cinfo changes))))))
 
-(defun speechd-speak--buffer-substring (beg end)
+(defun speechd-speak--buffer-substring (beg end &optional maybe-align-p)
   (buffer-substring
-   (if (and speechd-speak-align-buffer-insertions
+   (if (and maybe-align-p
+            speechd-speak-align-buffer-insertions
             (not (eq this-command 'self-insert-command)))
        (save-excursion
          (goto-char beg)
@@ -1172,14 +1173,14 @@ Only single characters are allowed in the keymap.")
         (unless (memq this-command '(self-insert-command quoted-insert newline
                                      newline-and-indent undo yank yank-pop))
           (speechd-speak--read-buffer-change
-           (buffer-name) (speechd-speak--buffer-substring beg end))))
+           (buffer-name) (speechd-speak--buffer-substring beg end t))))
        ((not this-command)
         ;; Asynchronous buffer change -- we are not interested in it by
         ;; default
         nil)
        ((member (buffer-name) speechd-speak-insertions-in-buffers)
         (setf (speechd-speak--cinfo other-changes-buffer) (buffer-name))
-        (push (speechd-speak--buffer-substring beg end)
+        (push (speechd-speak--buffer-substring beg end t)
               (speechd-speak--cinfo other-changes)))
        ((eq (current-buffer) (speechd-speak--cinfo buffer))
         (if (speechd-speak--in-minibuffer-p)
@@ -1525,7 +1526,7 @@ Only single characters are allowed in the keymap.")
 	(error "No completion here"))
     (setq beg (previous-single-property-change beg 'mouse-face))
     (setq end (or (next-single-property-change end 'mouse-face) (point-max)))
-    (setq completion (buffer-substring beg end))
+    (setq completion (speechd-speak--buffer-substring beg end))
     (speechd-speak--text completion)
     (speechd-speak--reset-command-start-info)))
 
