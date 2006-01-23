@@ -1,6 +1,6 @@
 ;;; speechd.el --- Library for accessing Speech Dispatcher
 
-;; Copyright (C) 2003, 2004, 2005 Brailcom, o.p.s.
+;; Copyright (C) 2003, 2004, 2005, 2006 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -740,7 +740,15 @@ Return the opened connection on success, nil otherwise."
         (when (first answer)
           (setf (speechd--connection-parameters connection)
                 (plist-put (speechd--connection-parameters connection)
-                           parameter value)))))))
+                           parameter value))))
+      ;; Speech Dispatcher bug work-around
+      (when (eq parameter 'language)
+        (let ((output-module (plist-get
+                              (speechd--connection-parameters connection)
+                              'output-module)))
+          (when output-module
+            (speechd--set-connection-parameter 'output-module
+                                               output-module)))))))
 
 (defun speechd--set-parameter (parameter value &optional all)
   (if all
