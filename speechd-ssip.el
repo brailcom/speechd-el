@@ -1,6 +1,6 @@
 ;;; speechd-ssip.el --- SSIP driver
 
-;; Copyright (C) 2004 Brailcom, o.p.s.
+;; Copyright (C) 2004, 2006 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -34,17 +34,17 @@
    (host :initform speechd-host :initarg :host)
    (port :initform speechd-port :initarg :port)))
   
-(defmethod speechd.cancel ((driver speechd-ssip-driver))
-  (speechd-cancel))
+(defmethod speechd.cancel ((driver speechd-ssip-driver) all)
+  (speechd-cancel all))
 
-(defmethod speechd.stop ((driver speechd-ssip-driver))
-  (speechd-stop))
+(defmethod speechd.stop ((driver speechd-ssip-driver) all)
+  (speechd-stop all))
 
-(defmethod speechd.pause ((driver speechd-ssip-driver))
-  (speechd-pause))
+(defmethod speechd.pause ((driver speechd-ssip-driver) all)
+  (speechd-pause all))
 
-(defmethod speechd.resume ((driver speechd-ssip-driver))
-  (speechd-resume))
+(defmethod speechd.resume ((driver speechd-ssip-driver) all)
+  (speechd-resume all))
 
 (defmethod speechd.repeat ((driver speechd-ssip-driver))
   (speechd-repeat))

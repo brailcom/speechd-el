@@ -1,6 +1,6 @@
 ;;; speechd-brltty.el --- BrlTTY output driver
 
-;; Copyright (C) 2004, 2005 Brailcom, o.p.s.
+;; Copyright (C) 2004, 2005, 2006 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -173,7 +173,7 @@ is not recommended to assign or call user commands here."
   (speechd-brltty--message-from-history 'last))
 
 (defun speechd-brltty-cancel (driver)
-  (speechd.cancel driver))
+  (speechd.cancel driver all))
 
 
 ;;; Driver definition, methods and registration

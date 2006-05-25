@@ -1,6 +1,6 @@
 ;;; speechd-braille.el --- Emacs braille emulator driver
 
-;; Copyright (C) 2004, 2005 Brailcom, o.p.s.
+;; Copyright (C) 2004, 2005, 2006 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -126,17 +126,17 @@
     ((driver speechd-braille-emu-driver) text cursor)
   (list text cursor))
 
-(defmethod speechd.cancel ((driver speechd-braille-emu-driver))
+(defmethod speechd.cancel ((driver speechd-braille-emu-driver) all)
   (mmanager-cancel (slot-value driver 'manager) speechd-client-name))
 
-(defmethod speechd.stop ((driver speechd-braille-emu-driver))
+(defmethod speechd.stop ((driver speechd-braille-emu-driver) all)
   (mmanager-next (slot-value driver 'manager)))
 
-(defmethod speechd.pause ((driver speechd-braille-emu-driver))
+(defmethod speechd.pause ((driver speechd-braille-emu-driver) all)
   ;; do nothing
   )
 
-(defmethod speechd.resume ((driver speechd-braille-emu-driver))
+(defmethod speechd.resume ((driver speechd-braille-emu-driver) all)
   ;; do nothing
   )
 

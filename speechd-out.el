@@ -1,6 +1,6 @@
 ;;; speechd-out.el --- Alternative output interface
 
-;; Copyright (C) 2004, 2005 Brailcom, o.p.s.
+;; Copyright (C) 2004, 2005, 2006 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -89,13 +89,13 @@
                  (cons (car list) (replace (cdr list)))))))
       (setq speechd-out--drivers (replace speechd-out--drivers)))))
 
-(defmethod speechd.cancel ((driver speechd-driver)))
+(defmethod speechd.cancel ((driver speechd-driver)) all)
 
-(defmethod speechd.stop ((driver speechd-driver)))
+(defmethod speechd.stop ((driver speechd-driver)) all)
 
-(defmethod speechd.pause ((driver speechd-driver)))
+(defmethod speechd.pause ((driver speechd-driver)) all)
 
-(defmethod speechd.resume ((driver speechd-driver)))
+(defmethod speechd.resume ((driver speechd-driver)) all)
 
 (defmethod speechd.repeat ((driver speechd-driver)))
 
@@ -132,19 +132,19 @@
 
 (defun speechd-out-cancel (&optional all)
   (interactive "P")
-  (speechd-out--loop-drivers-op #'speechd.cancel))
+  (speechd-out--loop-drivers-op #'speechd.cancel all))
 
 (defun speechd-out-stop (&optional all)
   (interactive "P")
-  (speechd-out--loop-drivers-op #'speechd.stop))
+  (speechd-out--loop-drivers-op #'speechd.stop all))
 
 (defun speechd-out-pause (&optional all)
   (interactive "P")
-  (speechd-out--loop-drivers-op #'speechd.pause))
+  (speechd-out--loop-drivers-op #'speechd.pause all))
 
 (defun speechd-out-resume (&optional all)
   (interactive "P")
-  (speechd-out--loop-drivers-op #'speechd.resume))
+  (speechd-out--loop-drivers-op #'speechd.resume all))
 
 (defun speechd-out-repeat ()
   (interactive)
