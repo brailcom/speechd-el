@@ -49,11 +49,8 @@
 (defmethod speechd.repeat ((driver speechd-ssip-driver))
   (speechd-repeat))
 
-(defmethod speechd.block-begin ((driver speechd-ssip-driver))
-  (speechd--send-command '("BLOCK BEGIN")))
-
-(defmethod speechd.block-end ((driver speechd-ssip-driver))
-  (speechd--send-command '("BLOCK END")))
+(defmethod speechd.block ((driver speechd-ssip-driver) function)
+  (speechd-block function))
 
 (defmethod speechd.text ((driver speechd-ssip-driver) text cursor)
   (speechd-say-text text))

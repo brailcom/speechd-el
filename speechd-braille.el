@@ -144,12 +144,11 @@
   ;; do nothing
   )
 
-(defmethod speechd.block-begin ((driver speechd-braille-emu-driver))
+(defmethod speechd.block ((driver speechd-braille-emu-driver) function)
   (mmanager-start-block (slot-value driver 'manager) speechd-client-name
-                        (slot-value driver 'priority)))
-
-(defmethod speechd.block-end ((driver speechd-braille-emu-driver))
-  (mmanager-finish-block (slot-value driver 'manager) speechd-client-name))
+                        (slot-value driver 'priority))
+  (unwind-protect (funcall function)
+    (mmanager-finish-block (slot-value driver 'manager) speechd-client-name)))  
 
 (defmethod speechd.text ((driver speechd-braille-emu-driver) text cursor)
   (speechd-braille--maybe-enqueue

@@ -650,12 +650,12 @@ Return the opened connection on success, nil otherwise."
   (unless (listp command)
     (setq command (list command)))
   (speechd--with-current-connection
-    (setf (speechd--connection-last-command connection) command)
     (when (or (not (speechd--connection-in-block connection))
               (speechd--block-command-p command))
+      (setf (speechd--connection-last-command connection) command)
       (speechd--send-request
-        (make-speechd--request
-         :string (concat (mapconcat #'identity command " ") speechd--eol))))))
+       (make-speechd--request
+        :string (concat (mapconcat #'identity command " ") speechd--eol))))))
 
 (defun speechd--send-text (text)
   (when (first (or (speechd--send-command "SPEAK") '(t)))
@@ -876,31 +876,32 @@ If called with a prefix argument, set it for all connections."
 ;;; Blocks
 
 
-(defmacro speechd-block (parameters &rest body)
+(defun speechd-block (function &optional parameters)
+  "Call FUNCTION inside an SSIP block.
+FUNCTION is called without any arguments."
+  (speechd--with-current-connection
+    (if (and connection (speechd--connection-in-block connection))
+        (funcall function)
+      (let ((%block-connection connection))
+        (speechd--with-connection-parameters parameters
+          (let ((speechd-client-name (speechd--connection-name connection)))
+            (speechd--send-command '("BLOCK BEGIN"))
+            (when connection
+              (setf (speechd--connection-in-block connection) t))
+            (unwind-protect (funcall function)
+              (let ((connection %block-connection))
+                (when connection
+                  (setf (speechd--connection-in-block connection) nil)
+                  (speechd--send-command '("BLOCK END")))))))))))
+
+(defmacro speechd-block* (parameters &rest body)
   "Set PARAMETERS and enclose BODY by an SSIP block.
 Before invoking BODY, the BLOCK BEGIN command is sent, and the BLOCK END
 command is sent afterwards.
 PARAMETERS is a property list defining parameters to be set before sending the
 BLOCK BEGIN command.  The property-value pairs correspond to the arguments of
 the `speechd--set-parameter' function."
-  `(speechd--with-current-connection
-     (speechd--with-connection-parameters ,parameters
-       (if (and connection (speechd--connection-in-block connection))
-           (progn ,@body)
-         (let ((block-connection connection))
-           (speechd--send-command '("BLOCK BEGIN"))
-           (unwind-protect
-               (progn
-                 (speechd--with-current-connection
-                  (when connection
-                    (setf (speechd--connection-in-block connection) t)))
-                 ,@body)
-             (let ((connection block-connection))
-               (when connection
-                 (setf (speechd--connection-in-block connection) nil)
-                 (let ((speechd-client-name
-                        (speechd--connection-name connection)))
-                   (speechd--send-command '("BLOCK END")))))))))))
+  `(speechd-block (lambda () ,@body) ,parameters))
 
 
 ;;; Speaking functions
@@ -918,7 +919,6 @@ is empty."
   (interactive "sText: ")
   (when (or say-if-empty
             (not (string= text "")))
-    (speechd--set-parameter 'message-priority priority)
     (flet ((properties (point)
              (let ((voice (cdr (assq (get-text-property point 'face text)
                                      speechd-face-voices)))
@@ -927,27 +927,26 @@ is empty."
                        (when language (list 'language language))
                        (when (and voice (symbolp voice))
                          (speechd--voice-parameters voice))))))
-      (speechd-block `(language ,(speechd--current-language)
-                       spelling-mode ,speechd-spell)
-        (let* ((beg 0)
-               (new-properties (properties beg)))
-          (while beg
-            (let* ((properties new-properties)
-                   (change-point beg)
-                   (end (progn
-                          (while (and
-                                  (setq change-point (next-property-change
-                                                      change-point text))
-                                  (equal properties
-                                         (setq new-properties
-                                               (properties change-point)))))
-                          change-point))
-                   (substring (substring text beg end)))
-              (if properties
-                  (speechd--with-connection-parameters properties
-                    (speechd--send-text substring))
-                (speechd--send-text substring))
-              (setq beg end))))))))
+      (let* ((beg 0)
+             (new-properties (properties beg)))
+        (while beg
+          (let* ((properties new-properties)
+                 (change-point beg)
+                 (end (progn
+                        (while (and
+                                (setq change-point (next-property-change
+                                                    change-point text))
+                                (equal properties
+                                       (setq new-properties
+                                             (properties change-point)))))
+                        change-point))
+                 (substring (substring text beg end)))
+            (speechd-block* `(message-priority ,priority
+                              language ,(speechd--current-language)
+                              spelling-mode ,speechd-spell
+                              ,@properties)
+              (speechd--send-text substring))
+            (setq beg end)))))))
 
 (defun* speechd-say-sound (name &key (priority speechd-default-sound-priority))
   "Ask speechd to play an auditory icon.

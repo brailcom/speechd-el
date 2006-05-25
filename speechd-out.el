@@ -54,12 +54,6 @@
        (when (memq (speechd-driver.name ,var*) speechd-out-active-drivers)
          ,@body))))
 
-(defmacro speechd-out--block (driver &rest body)
-  `(progn
-     (speechd.block-begin ,driver)
-     (unwind-protect (progn ,@body)
-       (speechd.block-end ,driver))))
-
 (defun speechd-out--loop-drivers-op (operation &rest args)
   (speechd-out--loop-drivers (driver)
     (apply operation driver args)))
@@ -99,9 +93,7 @@
 
 (defmethod speechd.repeat ((driver speechd-driver)))
 
-(defmethod speechd.block-begin ((driver speechd-driver)))
-
-(defmethod speechd.block-end ((driver speechd-driver)))
+(defmethod speechd.block ((driver speechd-driver) function))
 
 (defmethod speechd.text ((driver speechd-driver) text cursor))
 
@@ -162,30 +154,40 @@
   (let ((icon-name (speechd-out--icon-name icon)))
     (speechd-out--loop-drivers (driver)
       (speechd.set driver 'priority priority)
-      (speechd-out--block driver
-        (when icon-name
-          (speechd.icon driver icon-name))
-        (speechd.char driver char)))))
+      (lexical-let ((icon-name% icon-name)
+                    (driver% driver)
+                    (char% char))
+        (speechd.block driver (lambda ()
+                                (when icon-name%
+                                  (speechd.icon driver% icon-name%))
+                                (speechd.char driver% char%)))))))
 
 (defun* speechd-out-keys (keys &key (priority speechd-default-key-priority)
                                text)
   (speechd-out--loop-drivers (driver)
     (speechd.set driver 'priority priority)
-    (speechd-out--block driver
-      (dolist (k keys)
-        (speechd.key driver k))
-      (when text
-        (speechd.text driver text nil)))))
+    (lexical-let ((driver% driver)
+                  (keys% keys)
+                  (text% text))
+      (speechd.block driver (lambda ()
+                              (dolist (k keys%)
+                                (speechd.key driver% k))
+                              (when text%
+                                (speechd.text driver% text% nil)))))))
 
 (defun* speechd-out-text (text &key (priority speechd-default-text-priority)
                                icon cursor)
   (let ((icon-name (speechd-out--icon-name icon)))
     (speechd-out--loop-drivers (driver)
       (speechd.set driver 'priority priority)
-      (speechd-out--block driver
-        (when icon-name
-          (speechd.icon driver icon-name))
-        (speechd.text driver text cursor)))))
+      (lexical-let ((icon-name% icon-name)
+                    (driver% driver)
+                    (text% text)
+                    (cursor% cursor))
+        (speechd.block driver (lambda ()
+                                (when icon-name%
+                                  (speechd.icon driver% icon-name%))
+                                (speechd.text driver% text% cursor%)))))))
 
 (defun speechd-out-set (parameter value)
   (speechd-out--loop-drivers (driver)
