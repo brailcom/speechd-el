@@ -952,14 +952,15 @@ Language must be an RFC 1766 language code, as a string."
          (and (ad-get-arg 6) speechd-language)))
     ad-do-it))
 
-(defun speechd-speak--prompt (prompt)
-  (speechd-speak--text prompt :priority 'message))
+(defun speechd-speak--prompt (prompt &optional no-icon)
+  (speechd-speak--text prompt :priority 'message
+                       :icon (unless no-icon 'minibuffer)))
 
 (defun speechd-speak--speak-minibuffer-prompt ()
   (let ((speechd-language "en")
         (speechd-speak-input-method-languages nil))
     (speechd-speak--prompt (minibuffer-prompt)))
-  (speechd-speak--prompt (minibuffer-contents)))
+  (speechd-speak--prompt (minibuffer-contents) t))
 
 (defun speechd-speak--minibuffer-setup-hook ()
   (set (make-local-variable 'speechd-language)
@@ -967,7 +968,6 @@ Language must be an RFC 1766 language code, as a string."
   (speechd-speak--enforce-speak-mode)
   (speechd-speak--with-command-start-info
    (setf (speechd-speak--cinfo minibuffer-contents) (minibuffer-contents)))
-  (speechd-speak-report 'minibuffer :priority 'message)
   (speechd-speak--speak-minibuffer-prompt))
 
 (defun speechd-speak--minibuffer-exit-hook ()
