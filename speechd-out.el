@@ -31,7 +31,7 @@
 
 (defvar speechd-out--drivers '())
 
-(defvar speechd-out-active-drivers '(ssip)
+(defvar speechd-out-active-drivers '(ssip brltty)
   "List of names of the drivers to send output to.")
 
 (defvar speechd-out--event-mapping
