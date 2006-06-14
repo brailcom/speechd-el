@@ -305,6 +305,13 @@ This may be useful when debugging speechd-el itself."
   :type 'sexp
   :group 'speechd-speak)
 
+(defcustom speechd-speak-hook nil
+  "Hook run in the `speechd-speak' function."
+  :options '((lambda () (require 'speechd-ssip))
+             (lambda () (require 'speechd-brltty)))
+  :type 'hook
+  :group 'speechd-speak)
+
 
 ;;; Internal constants
 
@@ -1991,7 +1998,8 @@ starts blocking your Emacs functions."
   (speechd-speak--debug 'start)
   (speechd-speak-report 'start)
   (setq speechd-speak--message-timer
-        (run-with-idle-timer 0 t 'speechd-speak--message-timer)))
+        (run-with-idle-timer 0 t 'speechd-speak--message-timer))
+  (run-hook 'speechd-speak-hook))
 
 
 ;;; Announce
