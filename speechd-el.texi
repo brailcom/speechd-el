@@ -10,7 +10,7 @@
 @copying
 This manual is for speechd-el, @value{VERSION}.
 
-Copyright @copyright{} 2003, 2004, 2005 Brailcom, o.p.s.
+Copyright @copyright{} 2003, 2004, 2005, 2006 Brailcom, o.p.s.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -20,6 +20,20 @@ Invariant Sections, with no Front-Cover Texts and no Back-Cover Texts.
 A copy of the license is included in the section entitled ``GNU Free
 Documentation License.''
 @end quotation
+
+You can also (at your option) distribute this manual under the GNU
+General Public License:
+
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU General Public License as published by the
+Free Software Foundation; either version 2 of the License, or (at your
+option) any later version.
+
+A copy of the license is included in the section entitled ``GNU
+General Public License''.
+@end quotation
+
 @end copying
 
 @dircategory Sound
@@ -1570,12 +1584,28 @@ feel free to contact us at the e-mail address
 @c ****************************************************************************
 
 @node Copying This Manual, Index, Contact Information, Top
-@appendix GNU Free Documentation License
+@appendix Copying Conditions of This Manual
+
+@menu
+* GNU Free Documentation License::  
+* GNU General Public License::  
+@end menu
+
+@node GNU Free Documentation License, GNU General Public License, Copying This Manual, Copying This Manual
+@section GNU Free Documentation License
 
 @cindex FDL, GNU Free Documentation License
 @center Version 1.2, November 2002
 
 @include fdl.texi
+
+@node GNU General Public License,  , GNU Free Documentation License, Copying This Manual
+@section GNU General Public License
+
+@cindex GPL, GNU General Public License
+@center Version 2, June 1991
+
+@include gpl.texi
 
 @c ****************************************************************************
 
