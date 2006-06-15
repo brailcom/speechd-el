@@ -113,11 +113,13 @@ is not recommended to assign or call user commands here."
       (message "Braille key pressed: %d" key)))))
 
 (defun speechd-brltty-finish-message (driver)
+  "Stop displaying the current message and display the next one."
   (let ((manager (slot-value driver 'manager)))
     (speechd-braille--stop manager)
     (mmanager-next manager)))
 
 (defun speechd-brltty-scroll-left (driver &optional bolp)
+  "Scroll towards the beginning of the currently displayed message."
   (let* ((manager (slot-value driver 'manager))
          (scrolling (mmanager-get manager 'scrolling)))
     (when (and scrolling (> scrolling 0))
@@ -130,9 +132,11 @@ is not recommended to assign or call user commands here."
       (speechd-brltty--display manager (mmanager-history manager 'current) t))))
 
 (defun speechd-brltty-scroll-to-bol (driver)
+  "Scroll to the beginning of the currently displayed message."
   (speechd-brltty-scroll-left driver t))
 
 (defun speechd-brltty-scroll-right (driver &optional eolp)
+  "Scroll towards the end of the currently displayed message."
   (let* ((manager (slot-value driver 'manager))
          (scrolling (mmanager-get manager 'scrolling))
          (message (mmanager-history manager 'current)))
@@ -149,6 +153,7 @@ is not recommended to assign or call user commands here."
       (speechd-brltty--display manager message t))))
 
 (defun speechd-brltty-scroll-to-eol (driver)
+  "Scroll to the end of the currently displayed message."
   (speechd-brltty-scroll-right driver t))
 
 (defmacro speechd-brltty--message-from-history (which)
@@ -158,21 +163,27 @@ is not recommended to assign or call user commands here."
        (speechd-brltty--display manager message))))
 
 (defun speechd-brltty-scroll-to-cursor (driver)
+  "Scroll to the cursor position (if any) in the displayed message."
   (speechd-brltty--message-from-history 'current))
 
 (defun speechd-brltty-previous-message (driver)
+  "Display the previous message from the history."
   (speechd-brltty--message-from-history 'previous))
 
 (defun speechd-brltty-next-message (driver)
+  "Display the next message from the history."
   (speechd-brltty--message-from-history 'next))
 
 (defun speechd-brltty-first-message (driver)
+  "Display the first message in the history."
   (speechd-brltty--message-from-history 'first))
 
 (defun speechd-brltty-last-message (driver)
+  "Display the last message in the history."
   (speechd-brltty--message-from-history 'last))
 
 (defun speechd-brltty-cancel (driver)
+  "Discard all messages from the display queue."
   (speechd.cancel driver all))
 
 
