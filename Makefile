@@ -1,10 +1,10 @@
 # Makefile for speechd-el
-# Copyright (C) 2003, 2004, 2005 Brailcom, o.p.s.
+# Copyright (C) 2003, 2004, 2005, 2006 Brailcom, o.p.s.
 
 EMACS = emacs
 
 NAME = speechd-el
-VERSION = 1.0
+VERSION = 2.0
 DISTDIR = $(NAME)-$(VERSION)
 TARFILE = $(NAME)-$(VERSION).tar
 
@@ -13,8 +13,8 @@ TARFILE = $(NAME)-$(VERSION).tar
 
 all: compile info
 
-compile: braille.elc mmanager.elc speechd.elc speechd-braille.elc \
-         speechd-bug.elc speechd-common.elc \
+compile: braille.elc brltty.elc mmanager.elc speechd.elc speechd-braille.elc \
+         speechd-brltty.elc speechd-bug.elc speechd-common.elc \
          speechd-out.elc speechd-speak.elc speechd-ssip.elc
 
 %.elc: %.el
