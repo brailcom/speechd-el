@@ -1,24 +1,26 @@
-speechd-el 1.0 released
+speechd-el 2.0 released
 =======================
 
-The Free(b)soft project is pleased to announce speechd-el 1.0.
+The Free(b)soft project is pleased to announce speechd-el 2.0.
 
 * What is speechd-el?
 
-  speechd-el is an Emacs client to Speech Dispatcher, providing a
-  complex speech interface to Emacs, focused especially on (but not
-  limited to) the blind and visually impaired users.  It allows the user
-  to work with Emacs without looking on the screen, using the speech
-  output produced by the synthesizers supported in Speech Dispatcher.
+  speechd-el is an Emacs client to Speech Dispatcher and BrlTTY (and
+  possibly other alternative output devices), providing a complex speech
+  and Braille interface to Emacs, focused especially on (but not limited
+  to) the blind and visually impaired users.  It allows the user to work
+  with Emacs without looking on the screen, using speech output produced
+  by the synthesizers supported in Speech Dispatcher and Braille output
+  on displays supported by BrlTTY.
 
   Key speechd-el features are:
   
-  - Automated speaking of most Emacs messages and actions, without
+  - Automated reading of most Emacs messages and actions, without
     necessity to customize each particular Emacs function to make it
     speak.
 
-  - Most built-in and external Emacs packages can produce speech output
-    immediately, without any special support.
+  - Most built-in and external Emacs packages can produce speech and
+    Braille output immediately, without any special support.
     
   - Almost no change of the standard Emacs behavior, no interference
     with user settings.
@@ -27,32 +29,36 @@ The Free(b)soft project is pleased to announce speechd-el 1.0.
 
   - Full cooperation with Speech Dispatcher.
 
+  - Braille output and input support.
+
+  - Mechanism for adding backends for other alternative output devices.
+
   - Small code size.
 
   - Free Software, distributed under the GPL.
 
-  The speechd-el package contains an Elisp library for communication
-  with Speech Dispatcher, allowing you to write your own Emacs speech
-  output extensions and your own Emacs interfaces to Speech Dispatcher.
+  The speechd-el package contains an Elisp libraries for communication
+  with Speech Dispatcher and BrlTTY, allowing you to write your own
+  Emacs speech and Braille output extensions and your own Emacs
+  interfaces to Speech Dispatcher and BrlTTY.
 
   speechd-el design is completely different from the design of
   Emacspeak, another speech output package for Emacs.  Though both
   speechd-el and Emacspeak serve a similar purpose, they differ in
   their approach to the problem they address.
 
-* What is new in the 1.0 version?
+* What is new in the 2.0 version?
 
-  There is no significant change in this release.  It completes the
-  development of the first stable version of speechd-el.
-
-  After this stable release, major changes are planned in speechd-el,
-  focused on providing more kinds of accessible user interfaces than
-  just speech output.
+  This is a major release.  The primary change is separation and
+  modularization of the output mechanism.  From the user's point of view
+  the main result of this is support of Braille output and input,
+  similar to the speech output interface.  So now you can use speechd-el
+  with both Speech Dispatcher and BrlTTY.
 
 * Where to get it?
   
   You can get the distribution tarball of the released version from
-  http://www.freebsoft.org/pub/projects/speechd-el/speechd-el-1.0.tar.gz .
+  http://www.freebsoft.org/pub/projects/speechd-el/speechd-el-2.0.tar.gz .
 
   The home page of the project is http://www.freebsoft.org/speechd-el .
 
