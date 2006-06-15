@@ -1999,7 +1999,7 @@ starts blocking your Emacs functions."
   (speechd-speak-report 'start)
   (setq speechd-speak--message-timer
         (run-with-idle-timer 0 t 'speechd-speak--message-timer))
-  (run-hook 'speechd-speak-hook))
+  (run-hooks 'speechd-speak-hook))
 
 
 ;;; Announce
