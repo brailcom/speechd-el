@@ -1,30 +1,47 @@
-speechd-el is an Emacs client to Speech Dispatcher, providing full speech
+speechd-el is an Emacs client to speech synthesizers, Braille displays and
+other alternative output interfaces.  It provides full speech and Braille
 output environment for Emacs.
 
 It consists of two parts:
 
-- The library file speechd.el implementing access functions to the Speech
-  Dispatcher protocol.
+- User interface that makes Emacs speak or communicate through a Braille
+  display during its common operation.  This makes Emacs accessible to visually
+  impaired users.  The user interface part is implemented in the
+  speechd-speak.el file.
 
-- The file speechd-speak.el that makes Emacs speak.
+- Backends, namely SSIP (Speech Dispatcher) and BrlTTY access libraries.  They
+  are used by the frontend and can be used to communicate 
 
 Installation:
+
+- Install the `eieio' Elisp library, available from
+  http://cedet.sourceforge.net/eieio.shtml or perhaps your favorite operating
+  system distribution.
 
 - Copy the *.el files somewhere to your Emacs load path.
 
 - If you like, byte compile them.
 
-- Install the `speechd-log-extractor' script somewhere to your shell PATH.
+- Install the `speechd-log-extractor' script somewhere to your shell PATH
+  (optionally, used only for bug reporting).
 
-- Start speech-dispatcher.
+- Start Speech Dispatcher and/or BrlTTY.
 
 - Start Emacs and apply the commands
 
-   M-x load-library RET speechd-speak RET
-   
-   M-x speechd-speak RET
+    M-x load-library RET speechd-speak RET
 
-Now, your Emacs should start speaking.
+    M-x speechd-speak RET
+
+  In case you want speech output, do:
+
+    M-x load-library RET speechd-ssip RET
+
+  In case you want Braille output, do:
+
+    M-x load-library RET speechd-brltty RET
+
+Now, your Emacs should speak and/or output to your Braille display.
 
 See the Texinfo manual for complete documentation.
 

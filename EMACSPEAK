@@ -11,6 +11,9 @@ everything.
 
 Particular reasons why you might want to use speechd-el:
 
+- You want to use Braille output in a similar way to using speech output.
+  Emacspeak currently doesn't support Braille output at all.
+
 - You want to use Speech Dispatcher.  Emacspeak currently doesn't support it
   and it is unlikely it will provide more than a limited support in future, due
   to Emacspeak architecture.
@@ -33,8 +36,3 @@ Particular reasons why you might want to use Emacspeak:
 
 - You want to get everything pre-customized and standard Emacs behavior changed
   in an attempt to provide a special environment to visually impaired users.
-
-- You prefer solutions that are available and developed for many years.
-
-There's no single killer feature in any of the Emacs speech systems, so it's
-only up to you and your particular needs which one of them you prefer.

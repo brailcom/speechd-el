@@ -14,7 +14,7 @@ speechd-el now supports Braille output to BrlTTY with basically the same
 functionality as in the speech output.  It is possible to use speech output,
 Braille output, or both.  You can use sophisticated speechd-el features such as
 message priorities and text property handling instead of screen reading.
-Additionally Braille display keys are supported.
+Additionally it is possible to bind functions to the Braille display keys.
 
 ** Braille display emulator added.
 

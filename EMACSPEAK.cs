@@ -11,6 +11,9 @@ sám.
 
 Konkrétní dùvody, proè mù¾ete chtít pou¾ívat speechd-el:
 
+- Chcete podobným zpùsobem jako øeèový výstup pou¾ívat výstup na braillský
+  øádek.  Tuto mo¾nost Emacspeak v souèasné dobì nenabízí.
+
 - Chcete pou¾ívat Speech Dispatcher.  Emacspeak jej momentálnì nepodporuje a je
   nepravdìpodobné, ¾e by jej v budoucnu podporoval více ne¾ omezenì, vzhledem
   k architektuøe Emacspeak.
@@ -34,9 +37,3 @@ Konkrétní dùvody, proè mù¾ete chtít pou¾ívat Emacspeak:
 - Chcete mít v¹e pøedem zkonfigurováno a chcete mít zmìnìno standardní chování
   Emacsu zpùsobem, který se pokou¹í nabídnout speciální prostøedí zrakovì
   posti¾eným u¾ivatelùm.
-
-- Upøednostòujete øe¹ení, která jsou pou¾ívána a vyvíjena ji¾ øadu let.
-
-®ádný z emacsových øeèových systémù nedisponuje nìjakou pøevratnou funkcí,
-která by jej èinila nenahraditelným, tak¾e zále¾í èistì na va¹em rozhodnutí a
-va¹ich potøebách, který z nich si vyberete.
