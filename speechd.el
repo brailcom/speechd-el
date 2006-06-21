@@ -880,15 +880,16 @@ If called with a prefix argument, set it for all connections."
   "Call FUNCTION inside an SSIP block.
 FUNCTION is called without any arguments."
   (speechd--with-current-connection
-    (if (and connection (speechd--connection-in-block connection))
-        (funcall function)
-      (let ((%block-connection connection))
-        (speechd--with-connection-parameters parameters
-          (let ((speechd-client-name (speechd--connection-name connection)))
+    (let ((%block-connection connection)
+          (nested (and connection (speechd--connection-in-block connection))))
+      (speechd--with-connection-parameters parameters
+        (let ((speechd-client-name (speechd--connection-name connection)))
+          (unless nested
             (speechd--send-command '("BLOCK BEGIN"))
             (when connection
-              (setf (speechd--connection-in-block connection) t))
-            (unwind-protect (funcall function)
+              (setf (speechd--connection-in-block connection) t)))
+          (unwind-protect (funcall function)
+            (unless nested
               (let ((connection %block-connection))
                 (when connection
                   (setf (speechd--connection-in-block connection) nil)
