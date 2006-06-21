@@ -1637,7 +1637,9 @@ When the mode is enabled, all spoken text is spelled."
      ,(when on-change
         `(defun ,(speechd-speak--name 'speechd-speak--update name) (old new)
            (speechd-speak--maybe-speak
-            (let ((speechd-default-text-priority 'message))
+            (let ((speechd-default-text-priority 'message)
+                  (speechd-language "en")
+                  (speechd-speak-input-method-languages nil))
               (funcall ,on-change old new)))))
      ,(when on-change
         `(add-to-list 'speechd-speak--info-updates (quote ,name)))))
