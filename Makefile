@@ -34,7 +34,7 @@ clean: mostlyclean
 	rm -f *.dvi *.elc speechd-el.pdf *.ps
 
 distclean: clean
-	rm -rf $(DISTDIR) $(TARFILE)* *.orig *.rej
+	rm -rf $(DISTDIR) $(TARFILE)* *.orig *.rej TAGS
 
 maintainer-clean: distclean
 	rm -f *.info*
