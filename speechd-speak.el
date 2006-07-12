@@ -147,7 +147,8 @@ and the keys are read after the command is performed."
 
 (defcustom speechd-speak-ignore-command-keys
   '(forward-char backward-char next-line previous-line
-    delete-char delete-backward-char backward-delete-char-untabify)
+    delete-char comint-delchar-or-maybe-eof delete-backward-char
+    backward-delete-char-untabify)
   "List of commands for which their keys are never read."
   :type '(repeat function)
   :group 'speechd-speak)
@@ -836,7 +837,8 @@ Language must be an RFC 1766 language code, as a string."
                                      deleted-char
                                    (preceding-char)))))))
 
-(speechd-speak--command-feedback (delete-char) around
+(speechd-speak--command-feedback (delete-char comint-delchar-or-maybe-eof)
+                                 around
   (let ((deleted-char (following-char)))
     (prog1 ad-do-it
       (speechd-speak--with-updated-text
