@@ -136,13 +136,14 @@ available, from the  environment variable CONTROLVT."
       (with-temp-buffer
         (let ((standard-input (current-buffer)))
           (push (or (ignore-errors
-                      (insert-file-contents "/proc/self/stat")
-                      (goto-char (point-min))
-                      (dotimes (_ 6) (read))
-                      (let ((tty (read)))
-                        (if (and tty (= (/ tty 256) 4)) ; major
-                            (mod tty 256)               ; minor
-                          0)))
+                      (with-speechd-coding-protection
+                        (insert-file-contents "/proc/self/stat")
+                        (goto-char (point-min))
+                        (dotimes (_ 6) (read))
+                        (let ((tty (read)))
+                          (if (and tty (= (/ tty 256) 4)) ; major
+                              (mod tty 256)               ; minor
+                            0))))
                     0)
                 terminal-spec))))
      (t
