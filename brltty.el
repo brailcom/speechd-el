@@ -119,6 +119,14 @@ available, from the  environment variable CONTROLVT."
   (defvar brltty--process-connections '()))
 
 (defun brltty--terminal-spec ()
+  (lexical-let ((last-selected-frame 'uninitialized)
+                (last-terminal-spec 'uninitialized))
+    (if (eq (selected-frame) last-selected-frame)
+        last-terminal-spec
+      (prog1 (setq last-terminal-spec (brltty--terminal-spec*))
+        (setq last-selected-frame (selected-frame))))))
+
+(defun brltty--terminal-spec* ()
   (let ((terminal-spec '()))
     (cond
      ((getenv "WINDOWSPATH")
