@@ -118,9 +118,9 @@ available, from the  environment variable CONTROLVT."
 (unless brltty--emacs-process-ok
   (defvar brltty--process-connections '()))
 
-(defun brltty--terminal-spec ()
-  (lexical-let ((last-selected-frame 'uninitialized)
-                (last-terminal-spec 'uninitialized))
+(lexical-let ((last-selected-frame 'uninitialized)
+              (last-terminal-spec 'uninitialized))
+  (defun brltty--terminal-spec ()
     (if (eq (selected-frame) last-selected-frame)
         last-terminal-spec
       (prog1 (setq last-terminal-spec (brltty--terminal-spec*))
