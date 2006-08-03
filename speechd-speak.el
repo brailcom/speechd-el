@@ -1183,10 +1183,17 @@ Only single characters are allowed in the keymap.")
                            (current-buffer))
     (speechd-speak--text text :priority 'message)))
 
+(defvar speechd-speak--current-change-string nil)
+(defun speechd-speak--before-change-hook (beg end)
+  (setq speechd-speak--current-change-string
+        (buffer-substring-no-properties beg end)))
 (defun speechd-speak--after-change-hook (beg end len)
   (speechd-speak--enforce-speak-mode)
   (speechd-speak--with-command-start-info
-    (unless (= beg end)
+    (unless (or (= beg end)
+                ;; Avoid reading changes when only text properties have changed
+                (equal speechd-speak--current-change-string
+                       (buffer-substring-no-properties beg end)))
       (cond
        ((or (member (buffer-name) speechd-speak-priority-insertions-in-buffers)
             ;; Asynchronous buffer changes
@@ -1927,6 +1934,7 @@ the value of the `speechd-speak-prefix' variable:
         (speechd-speak-map-mode 1)
         (add-hook 'pre-command-hook 'speechd-speak--pre-command-hook)
         (add-hook 'post-command-hook 'speechd-speak--post-command-hook)
+        (add-hook 'before-change-functions 'speechd-speak--before-change-hook)
         (add-hook 'after-change-functions 'speechd-speak--after-change-hook)
         (add-hook 'minibuffer-setup-hook 'speechd-speak--minibuffer-setup-hook)
         (add-hook 'minibuffer-exit-hook 'speechd-speak--minibuffer-exit-hook)
