@@ -325,14 +325,18 @@ This may be useful when debugging speechd-el itself."
 
 (defvar speechd-speak--debug ())
 (defvar speechd-speak--max-debug-length 12)
+(defvar speechd-speak--debug-all nil)
+(defvar speechd-speak--debug-mark nil)
 
-(defun speechd-speak--debug (info)
-  (setq speechd-speak--debug
-        (cons info
-              (if (>= (length speechd-speak--debug)
-                      speechd-speak--max-debug-length)
-                  (butlast speechd-speak--debug)
-                speechd-speak--debug))))
+(defun speechd-speak--debug (info &optional optional)
+  (when (or (not optional) speechd-speak--debug-all)
+    (setq speechd-speak--debug
+          (cons info
+                (if (and (not speechd-speak--debug-all)
+                         (>= (length speechd-speak--debug)
+                             speechd-speak--max-debug-length))
+                    (butlast speechd-speak--debug)
+                  speechd-speak--debug)))))
 
 
 ;;; Control functions
@@ -470,6 +474,8 @@ This variable is reset to nil before each command in pre-command-hook.")
    ;; TODO: skip invisible text
    ;; TODO: replace repeating patterns
    ;; TODO: handle selective display
+   (when speechd-speak--debug-mark
+     (speechd-speak--debug (cons speechd-speak--debug-mark text) t))
    (apply #'speechd-out-text text args)))
 
 (defun speechd-speak--char (char &rest args)
@@ -1249,7 +1255,7 @@ Only single characters are allowed in the keymap.")
                    in-minibuffer other-buffer)
        (if (and ,state-condition
                 ,guard)
-           (progn
+           (let ((speechd-speak--debug-mark (quote ,name)))
              ,@body
              ,new-state)
          state))))
