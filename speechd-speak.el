@@ -1994,6 +1994,7 @@ starts blocking your Emacs functions."
     (setq speechd-speak--message-timer nil))
   (remove-hook 'pre-command-hook 'speechd-speak--pre-command-hook)
   (remove-hook 'post-command-hook 'speechd-speak--post-command-hook)
+  (remove-hook 'before-change-functions 'speechd-speak--before-change-hook)
   (remove-hook 'after-change-functions 'speechd-speak--after-change-hook)
   (remove-hook 'minibuffer-setup-hook 'speechd-speak--minibuffer-setup-hook)
   (remove-hook 'minibuffer-exit-hook 'speechd-speak--minibuffer-exit-hook)
