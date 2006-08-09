@@ -1566,7 +1566,8 @@ Only single characters are allowed in the keymap.")
   (speechd-speak--speak-completion))
 
 (speechd-speak--defadvice widget-choose around
-  (let ((widget-menu-minibuffer-flag t))
+  (let ((widget-menu-minibuffer-flag (or speechd-speak-mode
+                                         widget-menu-minibuffer-flag)))
     ad-do-it))
 
 
