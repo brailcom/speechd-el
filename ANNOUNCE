@@ -1,7 +1,7 @@
-speechd-el 2.0 released
+speechd-el 2.1 released
 =======================
 
-The Free(b)soft project is pleased to announce speechd-el 2.0.
+The Free(b)soft project is pleased to announce speechd-el 2.1.
 
 * What is speechd-el?
 
@@ -14,51 +14,46 @@ The Free(b)soft project is pleased to announce speechd-el 2.0.
   watching Braille output on Braille displays supported by BrlTTY.
 
   Key speechd-el features are:
-  
-  - Automated reading of most Emacs messages and actions, without
-    necessity to customize each particular Emacs function to make it
-    speak.
 
-  - Most built-in and external Emacs packages can produce speech and
-    Braille output immediately, without any special support.
+  - Speech output and Braille input/output.
+  
+  - Automated "intelligent" and reading of most Emacs messages and
+    actions.  Additional commands for explicit reading.
+
+  - Message priorities, voice parameter changes, sound icons and other
+    features provided by Speech Dispatcher.
+
+  - Multilingual support.
     
   - Almost no change of the standard Emacs behavior, no interference
     with user settings.
   
   - Highly configurable.
 
-  - Full cooperation with Speech Dispatcher.
-
-  - Braille output and input support.
-
   - Mechanism for adding backends for other alternative output devices.
+
+  - Programming libraries for both the user interface and generic
+    speech, Braille and other output.
 
   - Small code size.
 
   - Free Software, distributed under the GPL.
 
-  The speechd-el package contains an Elisp libraries for communication
-  with Speech Dispatcher and BrlTTY, allowing you to write your own
-  Emacs speech and Braille output extensions and your own Emacs
-  interfaces to Speech Dispatcher and BrlTTY.
+  More information about speechd-el (including comparison with
+  Emacspeak) can be found on its web page, see
+  http://www.freebsoft.org/speechd-el .
 
-  speechd-el design is completely different from the design of
-  Emacspeak, another speech output package for Emacs.  Though both
-  speechd-el and Emacspeak serve a similar purpose, they differ in
-  their approach to the problem they address.
+* What is new in the 2.1 version?
 
-* What is new in the 2.0 version?
+  This is a bug fix release, no new features were added.
 
-  This is a major release.  The primary change is separation and
-  modularization of the output mechanism.  From the user's point of view
-  the main result of this change is support of Braille output and input,
-  similar to the speech output interface.  So now you can use speechd-el
-  with both Speech Dispatcher and BrlTTY.
+  The project web page was completely reworked, you can find more useful
+  information there now: http://www.freebsoft.org/speechd-el .
 
 * Where to get it?
   
   You can get the distribution tarball of the released version from
-  http://www.freebsoft.org/pub/projects/speechd-el/speechd-el-2.0.tar.gz .
+  http://www.freebsoft.org/pub/projects/speechd-el/speechd-el-2.1.tar.gz .
 
   The home page of the project is http://www.freebsoft.org/speechd-el .
 
