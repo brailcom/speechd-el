@@ -74,59 +74,194 @@ General Public License''.
 
 @node Introduction, speechd-el User Manual, Top, Top
 @chapter Introduction
-@cindex Speech Dispatcher
 
-speechd-el is an Emacs client to speech synthesizers and Braille
-displays.  It provides the following functionality:
+speechd-el is an Emacs client to speech synthesizers, Braille displays
+and other alternative output interfaces. It provides full speech and
+Braille output environment for Emacs.
+
+It is aimed primarily at visually impaired users who need non-visual
+communication with Emacs, but it can be used by anybody who needs
+sophisticated speech or other kind of alternative output from Emacs.
+speechd-el can make Emacs a completely speech and BrlTTY enabled
+application suitable for visually impaired users or, depending on its
+configuration, it can only speak in certain situations or when asked,
+to serve needs of any Emacs user.
+
+Programming interfaces are available both to the user interface and
+for communication with the output devices.
+
+This manual describes the speech/Braille output user interface, how to
+customize and extend the interface, and the Emacs Lisp libraries.
+Some degree of familiarity with Speech Dispatcher or BrlTTY on the
+user level is recommended, although not absolutely necessary.
+
+@menu
+* Design Goals::                
+* Feature List::                
+* Components::                  
+@end menu
+
+@node Design Goals, Feature List, Introduction, Introduction
+@section Design Goals
+
+speechd-el was designed considering our experience with other free
+accessibility technologies.  We sometimes meet problems such as lack
+of maintenance power, duplicated efforts, making technology specific
+solutions instead of generally useful tools, important bugs.  As other
+@uref{http://www.freebsoft.org/projects,Free(b)soft projects}
+speechd-el attempts to fill in an empty space in the accessibility
+area, in a way oriented towards future.  speechd-el tries to offer
+technology that is useful, simple, supporting general accessibility
+architecture models and that effectively utilizes the limited
+accessibility development resources.
+
+The particular speechd-el design goals are:
 
 @itemize @bullet
 @item
-Emacs speech and Braille output support, especially focused on
-providing facilities necessary for Emacs use by the blind and visually
-impaired.
+Providing advanced accessible user environment that works out of the
+box and utilizes standard Emacs features wherever possible.  Emacs
+accessibility should work as much as possible on the general level
+without necessity to implement direct support for particular Emacs
+packages.  speechd-el should also preferrably use standard Emacs
+features if possible instead of implementing its own solutions.
 
 @item
-@cindex SSIP
-An Emacs Lisp library for accessing Speech Dispatcher using its socket
-based communication protocol (SSIP).
+Implementing just the necessary functionality, without duplicating
+features presented in other components such as Speech Dispatcher,
+speech synthesizers or Braille APIs.  Emacs accessibility solutions
+should share features, configuration, code, etc. with other
+applications to the highest possible extent in order to make life of
+both users and developers easier.
 
 @item
-@cindex BrlAPI
-An Emacs Lisp library for accessing BrlTTY using its socket based
-communication protocol (BrlAPI).
+Simple and clean source code that requires only minimum maintenance
+and allows future extensions.
+
+@item
+As little modifications to standard Emacs environment as possible,
+with the possibility to make additional customizations if needed,
+either shared or private.  Emacs should work the same way whether it
+speaks or not.  Of course optional customizations can be made and the
+generally useful ones should be included as optional parts of the
+distribution.
+
+@item
+Ability to work well in a multilingual environment.
+
+@item
+Completely Free Software architecture, without requiring any
+proprietary component.
 @end itemize
 
-Key features of speechd-el are:
+@node Feature List, Components, Design Goals, Introduction
+@section Feature List
+
+Major speechd-el features are:
 @cindex features
 
 @itemize @bullet
 @item
-Support for automated speaking, without necessity to customize each
-particular Emacs function to make it speak; most built-in and external
-Emacs packages produce speech output immediately, without any special
-support.
+Speech output.
 
 @item
-Almost no change of standard Emacs behavior, no interference with user
-settings.
+Braille display output and input, mostly identical to the speech
+output.
 
 @item
-Full cooperation with Speech Dispatcher.
+Both automated and explicit reading.  You can let Emacs read
+everything and/or you can ask it to read some parts of the text (such
+as current line, current buffer, last message, etc.).
 
 @item
-BrlTTY output/input support.
+Message priorities ensuring you don't miss important messages while
+you needn't listen to or view unimportant messages.
 
 @item
-Possibility to add new backends.
+``Intelligent'' and customizable selection of text to be read based on
+lines, text properties, buffer contents changes and other criteria.
+
+@item
+Support for changing speech parameters (such as language, voice, rate,
+pitch, volume, speech synthesizer).  Different speech parameters can
+be used in different buffers, major modes, faces, etc.
+
+@item
+Support for events (such as sound icons).
+
+@item
+Emacs status changes reporting (such as mode, keyboard, process
+changes, etc.).
+
+@item
+Multilingual environment support.  speechd-el works well with
+languages other than English and offers support for current language
+selection based on the kind of texts, selected keyboard, etc.
+
+@item
+Reasonable immediate speech and Braille output in most Emacs packages.
+
+@item
+No significant changes of the standard Emacs behavior.
+
+@item
+Speech and Braille output can be enabled/disabled independently to
+each other and they can be enabled/disabled for the whole Emacs
+session or just for particular buffers.
+
+@item
+Speech synthesizer independence, you can use all speech synthesizers
+supported by Speech Dispatcher (such as Festival, Flite, eSpeak, Epos,
+Dectalk, IBM TTS, Cicero, etc.) and you can use multiple speech
+synthesizers inside a single Emacs session.
+
+@item
+Braille displays are handled through BrlTTY drivers and APIs.
+
+@item
+Programming libraries for those who want to extend speechd-el
+facilities or who just want to talk to speech synthesizers, Braille
+display or other output/input devices.
+
+@item
+Special features for speechd-el developers such as silence in
+debugger, debugging variables, possibility to disable speechd-el
+hooks, etc.
 
 @item
 Small code size.
 @end itemize
 
-This manual describes the speech/Braille output user interface, how to
-customize and extend the interface, and the Emacs Lisp libraries.
-Some degree of familiarity with Speech Dispatcher or BrlTTY on the
-user level is recommended, though not absolutely necessary.
+See @uref{http://www.freebsoft.org/speechd-el,speechd-el web page} if
+you are interested in comparison with Emacspeak.
+
+@node Components,  , Feature List, Introduction
+@section Components
+
+speechd-el design is strictly modular.  It contains several components
+layered each on top of other.  Lower layer functions can be used
+independently of higher level features.
+
+@cindex SSIP
+@cindex BrlAPI
+The lowest level components are access libraries to output devices,
+especially to SSIP (the Speech Dispatcher TCP communication protocol
+for speech output) and BrlAPI (interface to BrlTTY drivers for
+communication with Braille displays).  They can be used to talk to the
+output devices directly from Elisp programs.
+
+The next level implements common access to all the devices.  Instead
+of talking to each device independently one can use this layer to
+output device independent messages that are processed and sent to the
+output devices as defined in the user configuration.  This is the
+preferred way of communication with the output devices.
+
+On the highest level there is the user interface frontend that makes
+Emacs read texts and events automatically, defines the corresponding
+minor modes, key bindings and most of the interactive commands.
+
+There are some other auxiliary components, look into speechd-el source
+code if interested.
 
 @c ****************************************************************************
 
@@ -166,7 +301,7 @@ more information about BrlTTY.
 @node Installation, Starting Alternative Output, speechd-el User Manual, speechd-el User Manual
 @section Installation
 
-You can install speechd-el in the following steps:
+speechd-el installation consists of the following steps:
 
 @enumerate
 @item
@@ -175,8 +310,8 @@ Install the @samp{eieio} Elisp library, available from
 favorite operating system distribution.
 
 @item
-Copy the @file{*.el} files contained in the distribution package
-somewhere to your Emacs load path.
+Copy the speechd-el @file{*.el} files contained in the distribution
+package somewhere to your Emacs load path.
 
 @item
 If you like, byte compile the @file{*.el} files.  Byte compilation is
@@ -192,11 +327,11 @@ well.
 
 @item
 Install the @file{speechd-log-extractor} somewhere to your shell PATH,
-e.g. @file{/usr/local/bin/}.  This script is used only for bug
-reporting, so you 
+e.g. @file{/usr/local/bin/}.  Installing this script is optional, it
+is used only for bug reporting.
 
 @item
-Add the following line to your @file{~/.emacs}:
+Add the following lines to your @file{~/.emacs}:
 
 @lisp
 (autoload 'speechd-speak "speechd-speak" nil t)
