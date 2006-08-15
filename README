@@ -1,23 +1,17 @@
 speechd-el is an Emacs client to speech synthesizers, Braille displays and
-other alternative output devices.  It provides full speech and Braille output
+other alternative output interfaces. It provides full speech and Braille output
 environment for Emacs.
 
-It consists of two parts:
+It is aimed primarily at visually impaired users who need non-visual
+communication with Emacs, but it can be used by anybody who needs sophisticated
+speech or other kind of alternative output from Emacs.  speechd-el can make
+Emacs a completely speech and BrlTTY enabled application suitable for visually
+impaired users or, depending on its configuration, it can only speak in certain
+situations or when asked, to serve needs of any Emacs user.
 
-- User interface that makes Emacs speak or communicate through a Braille
-  display during its common operation.  This makes Emacs accessible to visually
-  impaired users.  This user interface part is implemented in the
-  speechd-speak.el file.
-
-- Backends, namely SSIP (Speech Dispatcher) and BrlTTY access libraries.  They
-  are used by the frontend and can be also used to communicate with Speech
-  Dispatcher and BrlTTY for any purpose.
-
-speechd-el can make Emacs both a completely speech and BrlTTY enabled
-application suitable for visually impaired users or, depending on its
-configuration, it can only speak in certain situations or when asked, to serve
-needs of any Emacs user.
-
+For more information about speechd-el features see the Texinfo manual or the
+project web page http://www.freebsoft.org/speechd-el (you can also find some
+comparison with Emacspeak there).
 
 Installation:
 
@@ -25,16 +19,16 @@ Installation:
   http://cedet.sourceforge.net/eieio.shtml or perhaps from your favorite
   operating system distribution.
 
-- Copy the *.el files somewhere to your Emacs load path.
+- Copy the speechd-el *.el files somewhere to your Emacs load path.
 
 - If you like, byte compile them.
 
-- Install the `speechd-log-extractor' script somewhere to your shell PATH
-  (optionally, used only for bug reporting).
+- Install the `speechd-log-extractor' script somewhere to your shell PATH (this
+  step is optional, the script is used only for bug reporting).
 
 - Start Speech Dispatcher and/or BrlTTY.
 
-- Start Emacs and apply the commands
+- Start Emacs and call the commands
 
     M-x load-library RET speechd-speak RET
 
