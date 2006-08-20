@@ -720,7 +720,7 @@ This function works only in Emacs 21.4 or higher."
 (defmacro speechd-speak--defadvice (function class &rest body)
   (let* ((function* function)
          (fname (if (listp function*) (first function*) function*))
-         (aname (if (listp function*) 'speechd-speak-user 'speechd-speak)))
+         (aname (if (listp function*) 'speechd-speak 'speechd-speak-user)))
     `(defadvice ,fname (,class ,aname activate preactivate compile)
        (if (not speechd-speak--started)
            ,(when (eq class 'around) 'ad-do-it)
