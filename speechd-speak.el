@@ -719,12 +719,16 @@ This function works only in Emacs 21.4 or higher."
 
 (defmacro speechd-speak--defadvice (function class &rest body)
   (let* ((function* function)
-         (fname (if (listp function*) (first function*) function*))
+         (functions (if (listp function*) function* (list function*)))
          (aname (if (listp function*) 'speechd-speak 'speechd-speak-user)))
-    `(defadvice ,fname (,class ,aname activate preactivate compile)
-       (if (not speechd-speak--started)
-           ,(when (eq class 'around) 'ad-do-it)
-         ,@body))))
+    `(progn
+       ,@(mapcar
+          (lambda (fname)
+            `(defadvice ,fname (,class ,aname activate preactivate compile)
+               (if (not speechd-speak--started)
+                   ,(when (eq class 'around) 'ad-do-it)
+                 ,@body)))
+          functions))))
 
 (defmacro speechd-speak--report (feedback &rest args)
   (if (stringp feedback)
