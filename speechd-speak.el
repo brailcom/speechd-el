@@ -837,24 +837,29 @@ Language must be an RFC 1766 language code, as a string."
 				 after
   (speechd-speak-read-word))
 
-(speechd-speak--command-feedback (delete-backward-char backward-delete-char
-				  backward-delete-char-untabify)
-				 around
-  (let ((deleted-char (preceding-char)))
-    (prog1 ad-do-it
-      (speechd-speak--with-updated-text
-        (speechd-speak-read-char (if speechd-speak-deleted-char
-                                     deleted-char
-                                   (preceding-char)))))))
+(speechd-speak--defadvice (delete-backward-char backward-delete-char) around
+  (let ((command-name (symbol-name this-command)))
+    (when (and (string-match "\\<delete\\>.*\\<char\\>\\|delchar"
+                             command-name)
+               (string-match "backward" command-name))
+      (let ((deleted-char (preceding-char)))
+        (prog1 ad-do-it
+          (speechd-speak--with-updated-text
+           (speechd-speak-read-char (if speechd-speak-deleted-char
+                                        deleted-char
+                                      (preceding-char)))))))))        
 
-(speechd-speak--command-feedback (delete-char comint-delchar-or-maybe-eof)
-                                 around
-  (let ((deleted-char (following-char)))
-    (prog1 ad-do-it
-      (speechd-speak--with-updated-text
-       (speechd-speak-read-char (if speechd-speak-deleted-char
-                                    deleted-char
-                                  (following-char)))))))
+(speechd-speak--defadvice (delete-char) around
+  (let ((command-name (symbol-name this-command)))
+    (when (and (string-match "\\<delete\\>.*\\<char\\>\\|delchar"
+                             command-name)
+               (not (string-match "backward" command-name)))
+      (let ((deleted-char (following-char)))
+        (prog1 ad-do-it
+          (speechd-speak--with-updated-text
+           (speechd-speak-read-char (if speechd-speak-deleted-char
+                                        deleted-char
+                                      (following-char)))))))))
 
 (speechd-speak--command-feedback (quoted-insert) after
   (speechd-speak-read-char (preceding-char)))
