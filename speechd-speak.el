@@ -148,7 +148,8 @@ and the keys are read after the command is performed."
 (defcustom speechd-speak-ignore-command-keys
   '(forward-char backward-char next-line previous-line
     delete-char comint-delchar-or-maybe-eof delete-backward-char
-    backward-delete-char-untabify)
+    backward-delete-char-untabify
+    c-electric-backspace c-electric-delete-forward)
   "List of commands for which their keys are never read."
   :type '(repeat function)
   :group 'speechd-speak)
@@ -645,6 +646,7 @@ This function works only in Emacs 21.4 or higher."
   modified
   (changes '())
   (change-end nil)
+  (deleted-chars nil)
   (other-changes '())
   other-changes-buffer
   other-window
@@ -837,29 +839,33 @@ Language must be an RFC 1766 language code, as a string."
 				 after
   (speechd-speak-read-word))
 
-(speechd-speak--defadvice (delete-backward-char backward-delete-char) around
-  (let ((command-name (symbol-name this-command)))
-    (when (and (string-match "\\<delete\\>.*\\<char\\>\\|delchar"
-                             command-name)
-               (string-match "backward" command-name))
-      (let ((deleted-char (preceding-char)))
-        (prog1 ad-do-it
-          (speechd-speak--with-updated-text
-           (speechd-speak-read-char (if speechd-speak-deleted-char
-                                        deleted-char
-                                      (preceding-char)))))))))        
+(defun speechd-speak--store-deleted-chars (text)
+  (speechd-speak--with-command-start-info
+    (setf (speechd-speak--cinfo deleted-chars)
+          (if (speechd-speak--cinfo deleted-chars)
+              t
+            text))))
 
+(speechd-speak--defadvice (delete-backward-char backward-delete-char) around
+  (speechd-speak--with-command-start-info
+    (let ((speechd-speak--deleted-chars
+           (when speechd-speak-deleted-char
+             (buffer-substring (point) (max (- (point) (or (ad-get-arg 0) 1))
+                                            (point-min))))))
+      ad-do-it
+      (speechd-speak--store-deleted-chars (if speechd-speak-deleted-char
+                                              speechd-speak--deleted-chars
+                                            (format "%c" (preceding-char)))))))
+  
 (speechd-speak--defadvice (delete-char) around
-  (let ((command-name (symbol-name this-command)))
-    (when (and (string-match "\\<delete\\>.*\\<char\\>\\|delchar"
-                             command-name)
-               (not (string-match "backward" command-name)))
-      (let ((deleted-char (following-char)))
-        (prog1 ad-do-it
-          (speechd-speak--with-updated-text
-           (speechd-speak-read-char (if speechd-speak-deleted-char
-                                        deleted-char
-                                      (following-char)))))))))
+  (let ((speechd-speak--deleted-chars
+         (when speechd-speak-deleted-char
+           (buffer-substring (point) (min (+ (point) (or (ad-get-arg 0) 1))
+                                          (point-max))))))
+    ad-do-it
+    (speechd-speak--store-deleted-chars (if speechd-speak-deleted-char
+                                            speechd-speak--deleted-chars
+                                          (format "%c" (following-char))))))
 
 (speechd-speak--command-feedback (quoted-insert) after
   (speechd-speak-read-char (preceding-char)))
@@ -1144,7 +1150,8 @@ Only single characters are allowed in the keymap.")
      (t
       (push text (speechd-speak--cinfo changes))))))
 
-(defun speechd-speak--buffer-substring (beg end &optional maybe-align-p)
+(defun
+  speechd-speak--buffer-substring (beg end &optional maybe-align-p)
   (let ((text (buffer-substring
                (if (and maybe-align-p
                         speechd-speak-align-buffer-insertions
@@ -1283,12 +1290,12 @@ Only single characters are allowed in the keymap.")
   (speechd-speak--with-updated-text
     (cond
      ((looking-at "^")
-      (speechd-speak--char (following-char) :icon 'beginning-of-line))
+      (speechd-speak--char ()following-char) :icon 'beginning-of-line))
      ((looking-at "$")
       (speechd-speak-report 'end-of-line
                             :priority speechd-default-char-priority))
      (t
-      (speechd-speak-read-char)))))
+      (speechd-speak-read-char))))
 
 (speechd-speak--post-defun buffer-switch t t
   ;; Any buffer switch
@@ -1297,6 +1304,23 @@ Only single characters are allowed in the keymap.")
     (speechd-speak--text (buffer-name) :priority 'message))
   (when (memq speechd-speak-buffer-name '(text nil))
     (speechd-speak-read-line t)))
+
+(speechd-speak--post-defun deleted-chars t t
+  ;; Reading delete-char etc. interactive feedback
+  (let ((deleted-chars (speechd-speak--cinfo deleted-chars))
+        (changes (speechd-speak--cinfo changes)))
+    (and (stringp deleted-chars)
+         (or (null changes)
+             (and (= (length changes) 1)
+                  (equal (first changes) deleted-chars)))))
+  (when (eq speechd-speak-read-command-keys t)
+    ;; Cancel reading the DEL key etc. -- perhaps too daring?
+    (speechd-out-cancel))
+  (speechd-speak--with-updated-text
+   (let ((deleted-chars (speechd-speak--cinfo deleted-chars)))
+     (if (= (length deleted-chars) 1)
+         (speechd-speak-read-char (string-to-char deleted-chars))
+       (speechd-speak--text deleted-chars)))))
 
 (speechd-speak--post-defun command-keys t nil
   ;; Keys that invoked the command
@@ -1476,6 +1500,7 @@ Only single characters are allowed in the keymap.")
 (defvar speechd-speak--post-command-speaking-defaults
   '(speechd-speak--post-read-special-commands
     speechd-speak--post-read-buffer-switch
+    speechd-speak--post-read-deleted-chars
     speechd-speak--post-read-command-keys
     speechd-speak--post-read-command-done
     speechd-speak--post-read-info-change
