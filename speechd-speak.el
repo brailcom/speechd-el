@@ -1290,12 +1290,12 @@ Only single characters are allowed in the keymap.")
   (speechd-speak--with-updated-text
     (cond
      ((looking-at "^")
-      (speechd-speak--char ()following-char) :icon 'beginning-of-line))
+      (speechd-speak--char (following-char) :icon 'beginning-of-line))
      ((looking-at "$")
       (speechd-speak-report 'end-of-line
                             :priority speechd-default-char-priority))
      (t
-      (speechd-speak-read-char))))
+      (speechd-speak-read-char)))))
 
 (speechd-speak--post-defun buffer-switch t t
   ;; Any buffer switch
