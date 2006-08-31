@@ -2,7 +2,9 @@ User-visible changes to speechd-el:
 
 * Changes in speechd-el 2.1
 
-This is a bug fix and maintenance release.
+This is primarily a bug fix and maintenance release.
+
+** Invisible text is no longer read.
 
 
 * Changes in speechd-el 2.0

@@ -470,11 +470,24 @@ This variable is reset to nil before each command in pre-command-hook.")
                                           speechd-default-text-priority)))
      ,@body))
 
+(defun speechd-speak--remove-invisible-text (text)
+  (loop
+   for max = (length text)
+   for pos = (text-property-any 0 max 'invisible t text)
+   while pos
+   do (setq text (concat
+                  (substring text 0 pos)
+                  (substring text
+                             (or (text-property-any pos max 'invisible nil text)
+                                 max)
+                             max)))
+   finally (return text)))
+
 (defun speechd-speak--text (text &rest args)
   (speechd-speak--maybe-speak
-   ;; TODO: skip invisible text
    ;; TODO: replace repeating patterns
    ;; TODO: handle selective display
+   (setq text (speechd-speak--remove-invisible-text text))
    (when speechd-speak--debug-mark
      (speechd-speak--debug (cons speechd-speak--debug-mark text) t))
    (apply #'speechd-out-text text args)))
