@@ -1355,7 +1355,7 @@ various criteria (@pxref{Multiple Connections}), you can set different
 parameters to different connections, based on their names.
 
 @vtable @code
-@item speechd-connection-parameters
+@item speechd-connection-voices
 Alist of connection names and corresponding voices.  Each list element
 is of the form @code{(@var{connection-name} . @var{voice})}, where
 @var{connection-name} is a connection name given as a string and
