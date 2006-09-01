@@ -117,7 +117,8 @@ Each element of the list is of the form (VOICE-ID . PARAMETERS), where VOICE-ID
 is a symbol under which the voice will be accessed and PARAMETERS is an alist
 of parameter identifiers and parameter values.  Valid parameter names are the
 following symbols: language, gender, age, style, name, rate, pitch, volume,
-punctuation-mode, capital-character-mode, message-priority, output-module.
+punctuation-mode, capital-character-mode, message-priority, explicit-control,
+output-module.
 
 Name is a string identifying Speech Dispatcher voice name.  If it is not given,
 the parameters gender, age, and style are considered to select a Speech
@@ -128,6 +129,10 @@ in future).
 
 The message-priority parameter sets priority of any message of the voice.  Its
 value is any of the message priority symbols.
+
+If explicit-control is non-nil, the connection is excluded from performing some
+control commands, especially from output cancellation on invoking interactive
+commands.
 
 See the corresponding speechd-set-* functions for valid values of other
 parameters.
@@ -172,6 +177,9 @@ definition of its parameters is optional."
             ;;
 	    (cons :tag "Message priority" (const :format "" message-priority)
 		  (speechd-priority-tag :value text))
+            (cons :tag "Exclude from implicit control commands"
+                  (const :format "" explicit-control)
+                  boolean)
 	    (cons :tag "Output module" (const :format "" output-module)
 		  string))))
   :set #'(lambda (name value)
@@ -1012,6 +1020,15 @@ of the symbols `important', `message', `text', `notification' or
                                   (speechd--connection)))
                           command)))
       (speechd--send-command (list command "self"))))
+   ((equal all 0)
+    (let ((speechd-client-name$ speechd-client-name))
+      (speechd--iterate-clients
+       (when (or (equal speechd-client-name$ speechd-client-name)
+                 (let* ((voice (cdr (assoc speechd-client-name
+                                           speechd-connection-voices)))
+                        (parameters (cdr (assoc voice speechd-voices))))
+                   (not (cdr (assoc 'explicit-control parameters)))))
+         (speechd--control-command command nil repeatable)))))
    ((numberp all)
     (speechd--iterate-clients 
      (speechd--control-command command nil repeatable)))

@@ -627,7 +627,8 @@ connection.
 Stop reading all the queued messages of the current connection.  If
 the universal prefix argument is given, stop reading all the messages
 of all connections.  If a numeric prefix argument is given, stop all
-the messages of the current Emacs session.
+the messages of the current Emacs session.  If the prefix number is
+zero, don't stop messages of connections marked for explicit control.
 
 @item C-e p
 @kindex C-e p
@@ -1336,6 +1337,10 @@ values are likely to be changed in future).
 
 The @code{message-priority} parameter sets priority of any message of
 the voice.  Its value is any of the message priority symbols.
+
+If @code{explicit-control} is non-@code{nil}, the connection is
+excluded from performing some control commands, especially from output
+cancellation on invoking interactive commands.
 
 See the corresponding @code{speechd-set-*} functions for valid values
 of other parameters.

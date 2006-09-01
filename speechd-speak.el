@@ -1255,7 +1255,7 @@ Only single characters are allowed in the keymap.")
   (condition-case err
       (progn
         (unless (memq this-command speechd-speak--dont-cancel-on-commands)
-          (speechd-out-cancel))
+          (speechd-out-cancel 0))
         (speechd-speak--set-command-start-info)
         (setq speechd-speak--last-report "")
         (setq speechd-speak-command-done nil)
@@ -2004,7 +2004,7 @@ the value of the `speechd-speak-prefix' variable:
 
 (speechd-speak--defadvice global-speechd-speak-mode before
   (when global-speechd-speak-mode
-    (speechd-out-cancel)))
+    (speechd-out-cancel 1)))
 
 ;; global-speechd-speak-map-mode is not enabled until kill-all-local-variables
 ;; is called.  So we have to be a bit more aggressive about it sometimes.  The
