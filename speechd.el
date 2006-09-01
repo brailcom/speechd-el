@@ -1025,7 +1025,7 @@ If the universal argument is given, stop speaking messages of all clients.
 If a numeric argument is given, stop speaking messages of all current Emacs
 session clients."
   (interactive "P")
-  (speechd--control-command "CANCEL" all))
+  (speechd--control-command "CANCEL" all t))
 
 ;;;###autoload
 (defun speechd-stop (&optional all)
