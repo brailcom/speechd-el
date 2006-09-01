@@ -1013,7 +1013,8 @@ of the symbols `important', `message', `text', `notification' or
                           command)))
       (speechd--send-command (list command "self"))))
    ((numberp all)
-    (speechd--iterate-clients (speechd--control-command command nil)))
+    (speechd--iterate-clients 
+     (speechd--control-command command nil repeatable)))
    (t
     (speechd--send-command (list command "all")))))
 
