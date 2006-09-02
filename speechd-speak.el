@@ -872,8 +872,10 @@ Language must be an RFC 1766 language code, as a string."
   (speechd-speak--with-command-start-info
     (let ((speechd-speak--deleted-chars
            (when speechd-speak-deleted-char
-             (buffer-substring (point) (max (- (point) (or (ad-get-arg 0) 1))
-                                            (point-min))))))
+             (speechd-speak--buffer-substring
+              (point)
+              (max (- (point) (or (ad-get-arg 0) 1))
+                   (point-min))))))
       ad-do-it
       (speechd-speak--store-deleted-chars (if speechd-speak-deleted-char
                                               speechd-speak--deleted-chars
@@ -882,8 +884,10 @@ Language must be an RFC 1766 language code, as a string."
 (speechd-speak--defadvice (delete-char) around
   (let ((speechd-speak--deleted-chars
          (when speechd-speak-deleted-char
-           (buffer-substring (point) (min (+ (point) (or (ad-get-arg 0) 1))
-                                          (point-max))))))
+           (speechd-speak--buffer-substring
+            (point)
+            (min (+ (point) (or (ad-get-arg 0) 1))
+                 (point-max))))))
     ad-do-it
     (speechd-speak--store-deleted-chars (if speechd-speak-deleted-char
                                             speechd-speak--deleted-chars
