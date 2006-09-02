@@ -471,17 +471,26 @@ This variable is reset to nil before each command in pre-command-hook.")
      ,@body))
 
 (defun speechd-speak--remove-invisible-text (text)
-  (loop
-   for max = (length text)
-   for pos = (text-property-any 0 max 'invisible t text)
-   while pos
-   do (setq text (concat
-                  (substring text 0 pos)
-                  (substring text
-                             (or (text-property-any pos max 'invisible nil text)
-                                 max)
-                             max)))
-   finally (return text)))
+  (let ((pieces '())
+        (max (length text))
+        (pos 0)
+        (invisibility-spec (if (eq buffer-invisibility-spec t)
+                               t
+                             (mapcar (lambda (s) (if (consp s) (car s) s))
+                                     buffer-invisibility-spec))))
+    (while (and pos (< pos max))
+      (let ((next-pos (next-single-char-property-change pos 'invisible text)))
+        (when (let ((invisibility (get-char-property pos 'invisible text)))
+                (not (cond
+		      ((eq invisibility-spec t)
+		       invisibility)
+		      ((consp invisibility)
+		       (intersection invisibility-spec invisibility))
+		      (t
+		       (memq invisibility buffer-invisibility-spec)))))
+          (push (substring text pos next-pos) pieces))
+        (setq pos next-pos)))
+    (apply 'concat (nreverse pieces))))
 
 (defun speechd-speak--text (text &rest args)
   (speechd-speak--maybe-speak
@@ -1163,8 +1172,7 @@ Only single characters are allowed in the keymap.")
      (t
       (push text (speechd-speak--cinfo changes))))))
 
-(defun
-  speechd-speak--buffer-substring (beg end &optional maybe-align-p)
+(defun speechd-speak--buffer-substring (beg end &optional maybe-align-p)
   (let ((text (buffer-substring
                (if (and maybe-align-p
                         speechd-speak-align-buffer-insertions
@@ -1179,11 +1187,13 @@ Only single characters are allowed in the keymap.")
                  beg)
                end)))
     (dolist (o (overlays-in beg end))
-      (let ((face (overlay-get o 'face)))
-        (when face
+      (let ((face (overlay-get o 'face))
+            (invisible (overlay-get o 'invisible)))
+        (when (or face invisible)
           (let ((beg* (max (overlay-start o) beg))
                 (end* (min (overlay-end o) end)))
-            (put-text-property (- beg* beg) (- end* beg) 'face face text)))))
+            (add-text-properties (- beg* beg) (- end* beg)
+                                 `(face ,face invisible ,invisible) text)))))
     text))
 
 (defun speechd-speak--minibuffer-update-report (info old new)
