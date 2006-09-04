@@ -1747,6 +1747,18 @@ Some examples:
   (let ((appt-now-displayed nil))
     (appt-check)))
 @end lisp
+
+@item
+@emph{Reviewing ispell choices}
+
+@cindex ispell
+When you invoke the @code{ispell-word} command and the checked word is
+mispelled, ispell offers you the list of alternative spellings.  You
+can let speechd-el repeat the list by pressing @kbd{C-a} in the ispell
+prompt.  When you want to review the choices closely, press @kbd{C-r}
+to enter recursive edit and then switch to the @code{*Choices*} window
+with @kbd{C-x o}.  After you review the choices, you can return back
+to the ispell prompt by pressing @kbd{C-M-c}.
 @end itemize
 
 @node Bug Reporting,  , Tips, speechd-el User Manual
