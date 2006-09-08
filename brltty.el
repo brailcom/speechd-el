@@ -129,9 +129,12 @@ available, from the  environment variable CONTROLVT."
 (defun brltty--terminal-spec* ()
   (let ((terminal-spec '()))
     (cond
-     ((getenv "WINDOWSPATH")
+     ((or (getenv "WINDOWPATH")
+          (getenv "WINDOWSPATH"))
       (save-match-data
-        (dolist (number (split-string (getenv "WINDOWSPATH") ":"))
+        (dolist (number (split-string (or (getenv "WINDOWPATH")
+                                          (getenv "WINDOWSPATH"))
+                                      ":"))
           (push (string-to-number number) terminal-spec))))
      ((eq window-system 'x)
       (push brltty-tty terminal-spec)))
