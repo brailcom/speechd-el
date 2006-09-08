@@ -45,7 +45,12 @@ The Free(b)soft project is pleased to announce speechd-el 2.1.
 
 * What is new in the 2.1 version?
 
-  This is a bug fix release, no new features were added.
+  This is primarily a bug fix release.  The only new features are:
+
+  - Invisible text is no longer read.
+
+  - WINDOWPATH BrlTTY environment variable (renamed from WINDOWSPATH) is
+    recognized.
 
   The project web page was completely reworked, you can find more useful
   information there now: http://www.freebsoft.org/speechd-el .
