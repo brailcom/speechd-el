@@ -1254,8 +1254,10 @@ Only single characters are allowed in the keymap.")
                  (member (buffer-name) speechd-speak-insertions-in-buffers)))
         (unless (memq this-command '(self-insert-command quoted-insert newline
                                      newline-and-indent undo yank yank-pop))
+          ;; Don't align buffer substring here so that the last word of comint
+          ;; input is not read
           (speechd-speak--read-buffer-change
-           (buffer-name) (speechd-speak--buffer-substring beg end t))))
+           (buffer-name) (speechd-speak--buffer-substring beg end nil))))
        ((not this-command)
         ;; Asynchronous buffer change -- we are not interested in it by
         ;; default
