@@ -100,7 +100,7 @@ See also `speechd-speak-buffer-insertions'."
   :type '(repeat (string :tag "Buffer name"))
   :group 'speechd-speak)
 
-(defcustom speechd-speak-priority-insertions-in-buffers '("*shell*")
+(defcustom speechd-speak-priority-insertions-in-buffers '()
   "List of names of buffers, in which insertions are spoken immediately.
 Unlike `speechd-speak-insertions-in-buffers', speaking is not delayed until a
 command is completed.
@@ -821,6 +821,11 @@ Language must be an RFC 1766 language code, as a string."
   (speechd-set-language language)
   (setq speechd-language language))
 
+(defun speechd-speak--in-comint-p ()
+  "Return non-nil if the current buffer is any sort of a comint buffer."
+  (and (boundp 'comint-accum-marker)
+       comint-accum-marker))
+
 
 ;;; Basic speaking
 
@@ -1243,6 +1248,7 @@ Only single characters are allowed in the keymap.")
                        (buffer-substring-no-properties beg end)))
       (cond
        ((or (member (buffer-name) speechd-speak-priority-insertions-in-buffers)
+            (speechd-speak--in-comint-p)
             ;; Asynchronous buffer changes
             (and (not this-command)
                  (member (buffer-name) speechd-speak-insertions-in-buffers)))
