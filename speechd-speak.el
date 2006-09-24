@@ -1013,6 +1013,10 @@ Language must be an RFC 1766 language code, as a string."
                        :icon (unless no-icon 'minibuffer)))
 
 (defun speechd-speak--speak-minibuffer-prompt ()
+  (speechd-speak--with-command-start-info
+   ;; Discard changes, otherwise they would be read *after* the prompt, perhaps
+   ;; confusing the user
+   (setf (speechd-speak--cinfo changes) '()))
   (let ((speechd-language "en")
         (speechd-speak-input-method-languages nil))
     (speechd-speak--prompt (minibuffer-prompt)))
