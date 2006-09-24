@@ -1790,7 +1790,7 @@ When the mode is enabled, all spoken text is spelled."
 (speechd-speak--watch header-line
   #'(lambda ()
       (if (fboundp 'format-mode-line)
-          (let ((line (format-mode-line t)))
+          (let ((line (format-mode-line header-line-format)))
             (if (string= line "") "empty" line))
         "unknown"))
   :on-change #'(lambda (old new)
