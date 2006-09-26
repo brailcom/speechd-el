@@ -283,12 +283,13 @@ available, from the  environment variable CONTROLVT."
             (flet ((send-integer (n)
                      (process-send-string
                       process
-                      (apply #'format "%c%c%c%c"
-                             (funcall #'reverse
-                                      (loop for i from 1 to 4
-                                            for x = n then (/ x 256)
-                                            for rem = (% x 256)
-                                            collect rem))))))
+                      (string-make-unibyte
+                       (apply #'format "%c%c%c%c"
+                              (funcall #'reverse
+                                       (loop for i from 1 to 4
+                                             for x = n then (/ x 256)
+                                             for rem = (% x 256)
+                                             collect rem)))))))
               (send-integer length)
               (send-integer (cdr (assoc packet-id brltty--packet-types)))
               (dolist (data data-list)
@@ -297,7 +298,9 @@ available, from the  environment variable CONTROLVT."
                   (send-integer data))
                  ((vectorp data)
                   (dotimes (i (length data))
-                    (process-send-string process (format "%c" (aref data i)))))
+                    (process-send-string
+                     process
+                     (string-make-unibyte (format "%c" (aref data i))))))
                  (t
                   (process-send-string process data))))
               (when answer
