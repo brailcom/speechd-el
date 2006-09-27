@@ -912,7 +912,8 @@ Language must be an RFC 1766 language code, as a string."
   ;; notified automatically about it.  So we have to wrap the built-in
   ;; functions displaying messages to check for the otherwise hidden messages.
   `(speechd-speak--defadvice ,function after
-     (speechd-speak--current-message)))
+     (unless (string= (current-message) speechd-speak--last-message)
+       (speechd-speak--current-message))))
 
 (speechd-speak--unhide-message write-region)
 
