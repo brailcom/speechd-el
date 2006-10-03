@@ -198,6 +198,11 @@ You must reopen the connections to apply the changes to this variable."
              (speechd-reopen)))           
   :group 'speechd)
 
+(defcustom speechd-cancelable-connections '()
+  "List of names of connections on which cancel operation applies by default."
+  :type '(repeat (string :tag "Connection name"))
+  :group 'speechd)
+
 (defcustom speechd-face-voices '()
   "Alist mapping faces to voices.
 Each of the alist element is of the form (FACE . VOICE) where FACE is a face
@@ -1012,6 +1017,12 @@ of the symbols `important', `message', `text', `notification' or
                                   (speechd--connection)))
                           command)))
       (speechd--send-command (list command "self"))))
+   ((eq all 'some)
+    (let ((speechd-client-name$ speechd-client-name))
+      (speechd--iterate-clients
+       (when (or (equal speechd-client-name$ speechd-client-name)
+                 (member speechd-client-name speechd-cancelable-connections))
+         (speechd--control-command command nil repeatable)))))
    ((numberp all)
     (speechd--iterate-clients 
      (speechd--control-command command nil repeatable)))
@@ -1023,9 +1034,12 @@ of the symbols `important', `message', `text', `notification' or
   "Stop speaking all the messages sent through the current client so far.
 If the universal argument is given, stop speaking messages of all clients.
 If a numeric argument is given, stop speaking messages of all current Emacs
-session clients."
+session clients.
+If no argument is given, stop speaking messages of the current client and all
+the clients of the current Emacs session named in
+`speechd-cancelable-connections'."
   (interactive "P")
-  (speechd--control-command "CANCEL" all t))
+  (speechd--control-command "CANCEL" (or all 'some) t))
 
 ;;;###autoload
 (defun speechd-stop (&optional all)

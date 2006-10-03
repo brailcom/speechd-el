@@ -624,7 +624,8 @@ connection.
 @kindex C-e x
 @findex speechd-cancel
 @cindex stop
-Stop reading all the queued messages of the current connection.  If
+Stop reading all the queued messages of the current connection and of
+the connections listed in @var{speechd-cancelable-connections}.  If
 the universal prefix argument is given, stop reading all the messages
 of all connections.  If a numeric prefix argument is given, stop all
 the messages of the current Emacs session.
@@ -1441,6 +1442,11 @@ priority is used.
 corresponding connection.  If no connection with such a name is open
 in the running speechd-el, it is automatically created when there's
 something to send to it.
+
+@item speechd-cancelable-connections
+@cindex stop
+List of names of connections that are cancelled by default when a
+cancel function is called.
 @end vtable
 
 @node Keys, Braille Display Keys, Multiple Connections, Customization
