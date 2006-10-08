@@ -910,16 +910,6 @@ Language must be an RFC 1766 language code, as a string."
 (speechd-speak--command-feedback (undo) after
   (speechd-speak-read-line))
 
-(defmacro speechd-speak--unhide-message (function)
-  ;; If `message' is invoked within a built-in function, there's no way to get
-  ;; notified automatically about it.  So we have to wrap the built-in
-  ;; functions displaying messages to check for the otherwise hidden messages.
-  `(speechd-speak--defadvice ,function after
-     (unless (string= (current-message) speechd-speak--last-message)
-       (speechd-speak--current-message))))
-
-(speechd-speak--unhide-message write-region)
-
 
 ;;; Killing and yanking
 
@@ -1005,6 +995,16 @@ Language must be an RFC 1766 language code, as a string."
 
 (speechd-speak--defadvice message after
   (speechd-speak--current-message))
+
+(defmacro speechd-speak--unhide-message (function)
+  ;; If `message' is invoked within a built-in function, there's no way to get
+  ;; notified automatically about it.  So we have to wrap the built-in
+  ;; functions displaying messages to check for the otherwise hidden messages.
+  `(speechd-speak--defadvice ,function after
+     (unless (string= (current-message) speechd-speak--last-message)
+       (speechd-speak--current-message))))
+
+(speechd-speak--unhide-message write-region)
 
 
 ;;; Minibuffer
