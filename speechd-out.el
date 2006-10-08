@@ -31,8 +31,10 @@
 
 (defvar speechd-out--drivers '())
 
-(defvar speechd-out-active-drivers '(ssip brltty)
-  "List of names of the drivers to send output to.")
+(defcustom speechd-out-active-drivers '(ssip brltty)
+  "List of names of the drivers to send output to."
+  :type '(repeat symbol)
+  :group 'speechd-el)
 
 (defvar speechd-out--event-mapping
   '((empty . empty-text)

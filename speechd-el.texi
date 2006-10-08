@@ -816,6 +816,7 @@ All the customization options described below are accessible in the
 customization group @samp{speechd-el} and its subgroups.
 
 @menu
+* Driver Selection::            Choosing output devices.
 * Host Configuration::          Where to connect to.
 * Default Priorities::          Priorities of various kinds of messages.
 * Basic Speaking::              Simple options.
@@ -833,7 +834,37 @@ customization group @samp{speechd-el} and its subgroups.
 * Debugging::                   Make debugger quiet.
 @end menu
 
-@node Host Configuration, Default Priorities, Customization, Customization
+@node Driver Selection, Host Configuration, Customization, Customization
+@subsection Selecting Drivers
+
+By default speechd-el speaks to @code{ssip} and @code{brltty}
+drivers.  You can change the set of active drivers by customizing the
+following variable:
+
+@vtable @code
+@item speechd-out-active-drivers
+List of names of active output drivers.
+@end vtable
+
+If a driver that does not work is present in the variable (e.g. the
+list contains the @code{brltty} symbol while BrlTTY is not actually
+running), you receive an error message.  To prevent the error message,
+remove the driver from this variable.
+
+When you want to enable or disable some driver temporarily, you can
+use the following commands:
+
+@ftable @kbd
+@item M-x speechd-out-enable-driver
+@findex speechd-out-enable-driver
+Enable the given output driver.
+
+@item M-x speechd-out-disable-driver
+@findex speechd-out-disable-driver
+Disable the given output driver.
+@end ftable
+
+@node Host Configuration, Default Priorities, Driver Selection, Customization
 @subsection Speech Dispatcher Host Connection Configuration
 
 Host connection variables allow you connect to Speech Dispatcher or
