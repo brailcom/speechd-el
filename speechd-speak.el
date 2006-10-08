@@ -620,11 +620,11 @@ If BUFFER is nil, read current buffer."
 
 (defun speechd-speak-read-mode-line ()
   "Read mode line.
-This function works only in Emacs 21.4 or higher."
+This function works only in Emacs 22 or higher."
   (interactive)
   (when (fboundp 'format-mode-line)
     (speechd-speak--interactive
-     (speechd-speak--text (format-mode-line t)))))
+     (speechd-speak--text (format-mode-line mode-line-format t)))))
 
 (defun speechd-speak--window-contents ()
   (sit-for 0)                           ; to update window start and end
