@@ -1308,7 +1308,7 @@ Only single characters are allowed in the keymap.")
                 (speechd-speak--prompt (match-string 2 interactive)))))))
     (error
      (speechd-speak--debug (list 'pre-command-hook-error err))
-     (apply #'error (cdr err))))
+     (signal (car err) (cdr err))))
   (add-hook 'pre-command-hook 'speechd-speak--pre-command-hook))
 
 (defmacro speechd-speak--post-defun (name shy new-state guard &rest body)
@@ -1606,7 +1606,7 @@ Only single characters are allowed in the keymap.")
              (setq speechd-speak--last-minibuffer-depth (minibuffer-depth)))))
         (error
          (speechd-speak--debug (list 'post-command-hook-top-error err))
-         (apply #'error (cdr err))))
+         (signal (car err) (cdr err))))
     (add-hook 'post-command-hook 'speechd-speak--post-command-hook)))
 
 
@@ -2093,7 +2093,11 @@ starts blocking your Emacs functions."
   (global-speechd-speak-mode 1)
   (global-speechd-speak-map-mode 1)
   (speechd-speak--debug 'start)
-  (speechd-speak-report 'start)
+  (condition-case err (speechd-speak-report 'start)
+    (speechd-connection-error
+     (message (format "%s: %s" (car err) (cdr err)))
+     (sit-for 2)
+     (message "Customize `speechd-out-active-drivers' to disable drivers you don't use.")))
   (setq speechd-speak--message-timer
         (run-with-idle-timer 0 t 'speechd-speak--message-timer))
   (run-hooks 'speechd-speak-hook))

@@ -328,6 +328,10 @@ available, from the  environment variable CONTROLVT."
 
 ;;; Public functions and data
 
+(put 'brltty-connection-error 'error-conditions
+     '(error speechd-connection-error brltty-connection-error))
+(put 'brltty-connection-error 'error-message
+     "Error on opening BrlTTY connection")
 
 (defun brltty-open (&optional host port key-handler)
   "Open and return connection to a BrlTTY server running on HOST and PORT.
@@ -340,8 +344,7 @@ respectively."
                              (brltty--authentication-key))
         connection)
     (error
-     (message "Error on opening BrlTTY connection: %s" err)
-     nil)))
+     (signal 'brltty-connection-error err))))
 
 (defun brltty-close (connection)
   "Close BrlTTY CONNECTION."

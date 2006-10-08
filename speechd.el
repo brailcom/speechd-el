@@ -335,7 +335,8 @@ current voice."
 
 (defmacro speechd--with-current-connection (&rest body)
   `(let ((connection (speechd--connection)))
-     ,@body))
+     (unless (speechd--connection-failure-p connection)
+       ,@body)))
 
 (defmacro speechd--with-connection-setting (var value &rest body)
   (let ((accessor (intern (concat "speechd--connection-" (symbol-name var))))
@@ -486,13 +487,20 @@ current voice."
                              speechd--end-regexp
                              (speechd--connection-process-output connection)))
                   (unless (accept-process-output process speechd-timeout nil 1)
-                    (error "Timeout in communication with Speech Dispatcher"))))
+                    (signal 'ssip-connection-error
+                            "Timeout in communication with Speech Dispatcher"))))
               (prog1 (speechd--connection-process-output connection)
                 (setf (speechd--connection-process-output connection) "")))
           (error
            (speechd--permanent-connection-failure connection)
-           (error "Error in communication with Speech Dispatcher")))))))
-  
+           (signal 'ssip-connection-error
+                   "Error in communication with Speech Dispatcher")))))))
+
+(put 'ssip-connection-error 'error-conditions
+     '(error speechd-connection-error ssip-connection-error))
+(put 'ssip-connection-error 'error-message
+     "Error on opening Speech Dispatcher connection")
+
 ;;;###autoload
 (defun* speechd-open (&optional host port &key quiet force-reopen)
   "Open connection to Speech Dispatcher running on the given host and port.
@@ -532,19 +540,25 @@ Return the opened connection on success, nil otherwise."
                             default-parameters))
                           (t
                            default-parameters)))
-	     (id (when (or (not connection)
-                           (not (speechd--connection-failure-p connection))
-                           force-reopen)
-                   (condition-case nil
-                       (speechd--open-connection host port)))))
-	(if id
-	    (progn
-              (setq connection (make-speechd--connection
-                                :name name :host host :port port :process id))
-              (puthash name connection speechd--connections))
-	  (unless quiet
-            (setq connection nil)
-	    (message "Connection to Speech Dispatcher failed")))
+             (connection-error nil)
+	     (id (cond
+		  ((or (not connection)
+		       (not (speechd--connection-failure-p connection))
+		       force-reopen)
+                   (condition-case err (speechd--open-connection host port)
+                     (file-error
+                      (setq connection-error err)
+                      nil)))
+		  ((and connection
+			(not (speechd--connection-failure-p connection)))
+		   (speechd--connection-id connection)))))
+        (when (or id (not quiet))
+          (setq connection (make-speechd--connection
+                            :name name :host host :port port :process id))
+          (puthash name connection speechd--connections))
+        (when (and (not id) (not quiet))
+          (speechd--permanent-connection-failure connection)
+          (signal 'ssip-connection-error connection-error))
 	(when id
 	  (speechd--set-connection-name name)
           (setq parameters (append parameters
@@ -1057,7 +1071,8 @@ If the optional argument ALL is non-nil, pause speaking in all clients."
   (if all
       (speechd--iterate-connections
         (setf (speechd--connection-paused-p connection) t))
-    (setf (speechd--connection-paused-p (speechd--connection)) t))
+    (speechd--with-current-connection
+      (setf (speechd--connection-paused-p connection) t)))
   (speechd--control-command "PAUSE" (not (not all))))
 
 ;;;###autoload
@@ -1066,12 +1081,13 @@ If the optional argument ALL is non-nil, pause speaking in all clients."
 If the optional argument ALL is non-nil, resume speaking messages of all
 clients."
   (interactive "P")
-  (when (or all (speechd--connection-paused-p (speechd--connection)))
-    (speechd--control-command "RESUME" (not (not all)))
-    (if all
-        (setf (speechd--connection-paused-p (speechd--connection)) nil)
-      (speechd--iterate-connections
-        (setf (speechd--connection-paused-p connection) nil)))))
+  (speechd--with-current-connection
+    (when (or all (speechd--connection-paused-p connection))
+      (speechd--control-command "RESUME" (not (not all)))
+      (if all
+          (setf (speechd--connection-paused-p connection) nil)
+        (speechd--iterate-connections
+          (setf (speechd--connection-paused-p connection) nil))))))
 
 ;;;###autoload
 (defun speechd-repeat ()

@@ -51,10 +51,28 @@
 
 
 (defmacro speechd-out--loop-drivers (var &rest body)
-  (let ((var* (car var)))
-    `(dolist (,var* speechd-out--drivers)
-       (when (memq (speechd-driver.name ,var*) speechd-out-active-drivers)
-         ,@body))))
+  (let ((var* (car var))
+        ($speechd-out-errors (gensym))
+        ($error (gensym))
+        ($error-data (gensym))
+        ($err (gensym)))
+    `(let ((,$speechd-out-errors '()))
+       (dolist (,var* speechd-out--drivers)
+         (when (memq (speechd-driver.name ,var*) speechd-out-active-drivers)
+           (condition-case ,$err (progn ,@body)
+             (error
+              (push ,$err ,$speechd-out-errors)))))
+       (when ,$speechd-out-errors
+         ;; How to signal all the errors?
+         (destructuring-bind
+             (,$error . ,$error-data) (first ,$speechd-out-errors)
+           (setq ,$speechd-out-errors (cdr ,$speechd-out-errors))
+           (while (and ,$speechd-out-errors
+                       (eq (caar ,$speechd-out-errors) ,$error))
+             (setq ,$error-data (append ,$error-data
+                                        (cdar ,$speechd-out-errors)))
+             (setq ,$speechd-out-errors (cdr ,$speechd-out-errors)))
+           (signal ,$error ,$error-data))))))
 
 (defun speechd-out--loop-drivers-op (operation &rest args)
   (speechd-out--loop-drivers (driver)

@@ -71,15 +71,24 @@ is not recommended to assign or call user commands here."
     (mmanager-put manager 'braille-display #'brltty-write)
     manager))
 
-(defun speechd-brltty--connection (driver)
-  (let ((connection (slot-value driver 'brltty-connection)))
+(defun speechd-brltty--connection (driver &optional dont-open)
+  (let ((connection (slot-value driver 'brltty-connection))
+        (connection-error nil))
     (when (eq connection 'uninitialized)
-      (lexical-let ((driver driver))
-        (setq connection (brltty-open
-                          nil nil
-                          (lambda (key)
-                            (speechd-brltty--handle-key driver key)))))
-      (setf (slot-value driver 'brltty-connection) connection))
+      (if dont-open
+          (setq connection nil)
+        (lexical-let ((driver driver))
+          (setq connection (condition-case err 
+                               (brltty-open
+                                nil nil
+                                (lambda (key)
+                                  (speechd-brltty--handle-key driver key)))
+                             (brltty-connection-error
+                              (setq connection-error err)
+                              nil))))
+        (setf (slot-value driver 'brltty-connection) connection)
+        (when connection-error
+          (signal (car connection-error) (cdr connection-error)))))
     connection))
 
 (defun speechd-brltty--display (manager message &optional scroll)
@@ -201,7 +210,7 @@ is not recommended to assign or call user commands here."
   
 (defmethod speechd.shutdown ((driver speechd-brltty-driver))
   (mmanager-cancel (slot-value driver 'manager) nil)
-  (brltty-close (speechd-brltty--connection driver))
+  (brltty-close (speechd-brltty--connection driver t))
   (setf (slot-value driver 'brltty-connection) 'uninitialized))
 
 
