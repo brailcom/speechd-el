@@ -30,17 +30,11 @@ Installation:
 
 - Start Emacs and call the commands
 
-    M-x load-library RET speechd-speak RET
-
     M-x speechd-speak RET
 
-  In case you want speech output, do:
-
-    M-x load-library RET speechd-ssip RET
-
-  In case you want Braille output, do:
-
-    M-x load-library RET speechd-brltty RET
+  In case you do not use both speech and braille outputs and you'd like to get
+  rid of the corresponding error messages, customize the variable
+  speechd-out-active-drivers.
 
 Now, your Emacs should speak and/or output to your Braille display.
 

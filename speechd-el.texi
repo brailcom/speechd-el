@@ -335,10 +335,6 @@ Add the following lines to your @file{~/.emacs}:
 
 @lisp
 (autoload 'speechd-speak "speechd-speak" nil t)
-;; To enable speech output:
-(add-hook 'speechd-speak-hook (lambda () (require 'speechd-ssip)))
-;; To enable Braille output:
-(add-hook 'speechd-speak-hook (lambda () (require 'speechd-brltty)))
 @end lisp
 @end enumerate
 

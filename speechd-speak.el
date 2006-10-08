@@ -34,6 +34,9 @@
 (require 'speechd-common)
 (require 'speechd-out)
 
+(require 'speechd-brltty)
+(require 'speechd-ssip)
+
 
 ;;; User options
 
