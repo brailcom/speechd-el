@@ -42,8 +42,10 @@
   :type 'string
   :group 'brltty)
 
-(defcustom brltty-default-port 35751
-  "Default BrlTTY port to connect to."
+(defcustom brltty-default-port '(4101 4102 4103 4104 35751)
+  "Default BrlTTY port to connect to.
+If it is a list, the given port numbers are attempted in the order they are
+given until Emacs connects to something."
   :type 'integer
   :group 'brltty)
 
@@ -162,9 +164,19 @@ available, from the  environment variable CONTROLVT."
     (nreverse terminal-spec)))
 
 (defun brltty--open-connection (host port key-handler)
-  (let ((process (open-network-stream "brltty" nil
-                                      (or host brltty-default-host)
-                                      (or port brltty-default-port))))
+  (let ((process nil)
+        (ports (or port brltty-default-port))
+        (host* (or host brltty-default-host)))
+    (unless (consp ports)
+      (setq ports (list port)))
+    (while (and (not process)
+                ports)
+      (condition-case err
+          (setq process (open-network-stream "brltty" nil host* (car ports)))
+        (error
+         (if (cdr ports)
+             (setq ports (cdr ports))
+           (signal (car err) (cdr err))))))
     (when process
       (set-process-coding-system process 'binary 'binary)
       (if (fboundp 'set-process-query-on-exit-flag)

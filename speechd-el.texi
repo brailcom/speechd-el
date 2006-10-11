@@ -912,7 +912,10 @@ Name of the host running BrlTTY to connect to, given as a string.
 Default is @code{"localhost"}.
 
 @item brltty-default-port
-Port number to connect to.  Default is the BrlAPI standard port.
+Port number to connect to.  It can be either a single number or a list
+of numbers; in the latter case the given port numbers are attempted in
+the order they are given until Emacs connects to something.  Default
+is the list of the standard BrlAPI ports.
 
 @item brltty-authentication-file
 File containing the BrlAPI authentication key.  It is important to set
