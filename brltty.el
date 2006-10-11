@@ -226,6 +226,10 @@ available, from the  environment variable CONTROLVT."
   (+ (* 256 256 256 (aref string 0)) (* 256 256 (aref string 1))
      (* 256 (aref string 2)) (aref string 3)))
 
+(defun brltty--read-integer64 (string)
+  (list (brltty--read-integer (substring string 0 4))
+        (brltty--read-integer (substring string 4 8))))
+
 (defun brltty--read-packet (connection)
   (condition-case err
       (let ((process (brltty--connection-process connection)))
@@ -258,7 +262,11 @@ available, from the  environment variable CONTROLVT."
      (key
       (let ((handler (brltty--connection-key-handler connection)))
         (when handler
-          (funcall handler (brltty--read-integer data)))))
+          (funcall handler
+                   (funcall (if (> (length data) 4)
+                                #'brltty--read-integer64
+                              #'brltty--read-integer)
+                            data)))))
      (nil
       ;; unknown packet type -- ignore
       )

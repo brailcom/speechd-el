@@ -1525,6 +1525,10 @@ If the given key is pressed, the corresponding function is called with
 a @code{speechd-brltty-driver} instance as its single argument (read
 the source code for information about speechd-el output drivers).
 
+The key codes are either integers (for BrlTTY 3.7 and older) or lists
+containing two integers (for BrlTTY 3.8 and newer).  See the default
+variable value for examples of possible key codes.
+
 The assigned functions needn't be interactive.  Actually as the
 functions may be invoked by asynchronous events any time at any place,
 they shouldn't modify current environment in any inappropriate way.

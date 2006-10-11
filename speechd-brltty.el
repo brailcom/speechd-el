@@ -38,16 +38,27 @@
 
 (defcustom speechd-braille-key-functions
   '((1 . speechd-brltty-previous-message)
+    ((0 536870913) . speechd-brltty-previous-message)
     (2 . speechd-brltty-next-message)
+    ((0 536870914) . speechd-brltty-next-message)
     (11 . speechd-brltty-last-message)
+    ((0 536870937) . speechd-brltty-last-message)
     (12 . speechd-brltty-first-message)
+    ((0 536870938) . speechd-brltty-first-message)
     (23 . speechd-brltty-scroll-left)
+    ((0 536870935) . speechd-brltty-scroll-left)
     (24 . speechd-brltty-scroll-right)
+    ((0 536870936) . speechd-brltty-scroll-right)
     (25 . speechd-brltty-scroll-to-bol)
+    ((0 536870939) . speechd-brltty-scroll-to-bol)
     (26 . speechd-brltty-scroll-to-eol)
+    ((0 536870940) . speechd-brltty-scroll-to-bol)
     (29 . speechd-brltty-scroll-to-cursor)
+    ((0 536870941) . speechd-brltty-scroll-to-cursor)
     (8204 . speechd-brltty-finish-message)
-    (8205 . speechd-brltty-cancel))
+    ((0 536870984) . speechd-brltty-finish-message)
+    (8205 . speechd-brltty-cancel)
+    ((0 536870983) . speechd-brltty-cancel))
   "Alist of Braille display key codes and corresponding Emacs functions.
 If the given key is pressed, the corresponding function is called with a
 `speechd-brltty-driver' instance as its single argument.
@@ -119,7 +130,7 @@ is not recommended to assign or call user commands here."
      (function
       (funcall function driver))
      (speechd-braille-show-unknown-keys
-      (message "Braille key pressed: %d" key)))))
+      (message "Braille key pressed: %s" key)))))
 
 (defun speechd-brltty-finish-message (driver)
   "Stop displaying the current message and display the next one."

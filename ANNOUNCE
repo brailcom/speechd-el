@@ -49,6 +49,8 @@ The Free(b)soft project is pleased to announce speechd-el 2.1.
 
   - Invisible text is no longer read.
 
+  - Support for BrlTTY 3.8 and its 64-bit key codes added.
+
   - WINDOWPATH BrlTTY environment variable (renamed from WINDOWSPATH) is
     recognized.
 

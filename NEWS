@@ -4,10 +4,15 @@ User-visible changes to speechd-el:
 
 ** Invisible text is no longer read.
 
+** Support for BrlTTY 3.8.
+
+BrlTTY uses 64-bit key codes.  They are represented as two-number lists in
+speechd-braille-key-functions.
+
 ** WINDOWPATH BrlTTY environment variable is recognized.
 
 The WINDOWSPATH environment variable should be named WINDOWPATH now.
-This speechd-el version uses whatever of those two is defined.
+This speechd-el version uses whichever of those two is defined.
 
 
 * Changes in speechd-el 2.0
