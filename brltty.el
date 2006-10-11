@@ -87,7 +87,7 @@ available, from the  environment variable CONTROLVT."
 
 (defconst brltty--emacs-process-ok (fboundp 'process-put))
 
-(defconst brltty--protocol-version 7)
+(defconst brltty--supported-protocol-versions '(7))
 
 (defconst brltty--packet-types
   '(;; commands
@@ -111,6 +111,7 @@ available, from the  environment variable CONTROLVT."
 
 (defstruct brltty--connection
   process
+  (protocol-version nil)
   (display-width nil)
   (output "")
   (key-handler nil)
@@ -350,10 +351,22 @@ available, from the  environment variable CONTROLVT."
 If HOST or PORT is nil, `brltty-default-host' or `brltty-default-port' is used
 respectively."
   (condition-case err
-      (let ((connection (brltty--open-connection host port key-handler)))
-        (brltty--send-packet connection 'ack 'authkey
-                             brltty--protocol-version
-                             (brltty--authentication-key))
+      (let ((connection nil)
+            (protocol-versions brltty--supported-protocol-versions))
+        (while (and (not connection)
+                    protocol-versions)
+          (let ((connection* (brltty--open-connection host port key-handler)))
+            (condition-case err*
+                (let ((version (car protocol-versions)))
+                  (brltty--send-packet connection* 'ack 'authkey version
+                                       (brltty--authentication-key))
+                  (setf (brltty--connection-protocol-version connection*)
+                        version)
+                  (setq connection connection*))
+              (error
+               (setq protocol-versions (cdr protocol-versions))
+               (unless protocol-versions
+                 (signal (car err*) (cdr err*)))))))
         connection)
     (error
      (signal 'brltty-connection-error err))))
