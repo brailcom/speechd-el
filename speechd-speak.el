@@ -1241,8 +1241,11 @@ Only single characters are allowed in the keymap.")
 
 (defvar speechd-speak--current-change-string nil)
 (defun speechd-speak--before-change-hook (beg end)
-  (setq speechd-speak--current-change-string
-        (buffer-substring-no-properties beg end)))
+  ;; Beware, before-change-functions may be sometimes called for several times
+  ;; with different arguments (an Emacs bug?)
+  (unless speechd-speak--current-change-string
+    (setq speechd-speak--current-change-string
+          (buffer-substring-no-properties beg end))))
 (defun speechd-speak--after-change-hook (beg end len)
   (speechd-speak--enforce-speak-mode)
   (speechd-speak--with-command-start-info
@@ -1275,7 +1278,8 @@ Only single characters are allowed in the keymap.")
             (progn
               (speechd-speak--read-other-changes)
               (speechd-speak--minibuffer-update beg end len))
-          (speechd-speak--add-command-text info beg end)))))))
+          (speechd-speak--add-command-text info beg end))))))
+  (setq speechd-speak--current-change-string nil))
 
 (defconst speechd-speak--dont-cancel-on-commands
   '(speechd-speak speechd-unspeak
