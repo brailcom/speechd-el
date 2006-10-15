@@ -227,8 +227,10 @@ available, from the  environment variable CONTROLVT."
      (* 256 (aref string 2)) (aref string 3)))
 
 (defun brltty--read-integer64 (string)
-  (list (brltty--read-integer (substring string 0 4))
-        (brltty--read-integer (substring string 4 8))))
+  (list
+   (+ (* 256 (aref string 0)) (aref string 1))
+   (+ (* 256 256 (aref string 2)) (* 256 (aref string 3)) (aref string 4))
+   (+ (* 256 256 (aref string 5)) (* 256 (aref string 6)) (aref string 7))))
 
 (defun brltty--read-packet (connection)
   (condition-case err
