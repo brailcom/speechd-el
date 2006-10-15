@@ -65,7 +65,7 @@ If the given key is pressed, the corresponding function is called with a
 Please note the functions may be called asynchronously any time.  So they
 shouldn't modify current environment in any inappropriate way.  Especially, it
 is not recommended to assign or call user commands here."
-  :type '(alist :key-type (integer :tag "Key code") :value-type function)
+  :type '(alist :key-type (sexp :tag "Key code") :value-type function)
   :group 'speechd-braille)
 
 (defcustom speechd-braille-show-unknown-keys t
