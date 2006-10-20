@@ -5,20 +5,21 @@ The Free(b)soft project is pleased to announce speechd-el 2.1.
 
 * What is speechd-el?
 
-  speechd-el is an Emacs client to Speech Dispatcher and BrlTTY (and
-  possibly other alternative output devices), providing a complex speech
-  and Braille interface to Emacs, focused especially on (but not limited
-  to) the blind and visually impaired users.  It allows the user to work
-  with Emacs without looking on the screen, listening to speech output
+  speechd-el is an Emacs client to speech synthesizers, Braille displays
+  and other alternative output interfaces.  It provides full speech and
+  Braille output environment for Emacs using the Speech Dispatcher and
+  BrlTTY backends.  It is focused especially on (but not limited to) the
+  blind and visually impaired users.  It allows the user to work with
+  Emacs without looking on the screen, by listening to speech output
   produced by the speech synthesizers supported in Speech Dispatcher and
   watching Braille output on Braille displays supported by BrlTTY.
-
+  
   Key speechd-el features are:
 
   - Speech output and Braille input/output.
   
-  - Automated "intelligent" and reading of most Emacs messages and
-    actions.  Additional commands for explicit reading.
+  - Automated "intelligent" reading of most Emacs messages and actions.
+    Additional commands for explicit reading.
 
   - Message priorities, voice parameter changes, sound icons and other
     features provided by Speech Dispatcher.
@@ -30,10 +31,10 @@ The Free(b)soft project is pleased to announce speechd-el 2.1.
   
   - Highly configurable.
 
-  - Mechanism for adding backends for other alternative output devices.
+  - Possibility to add support for other alternative output methods.
 
-  - Programming libraries for both the user interface and generic
-    speech, Braille and other output.
+  - Elisp libraries for generic speech, Braille and other kinds of
+    output as well as for alternative user interface programming.
 
   - Small code size.
 
@@ -45,14 +46,13 @@ The Free(b)soft project is pleased to announce speechd-el 2.1.
 
 * What is new in the 2.1 version?
 
-  This is primarily a bug fix release.  The only new features are:
+  This is primarily a bug fix release, many bugs were fixed.
+  Additionally there are a few new user visible features:
 
   - Invisible text is no longer read.
 
-  - Support for BrlTTY 3.8 and its 64-bit key codes added.
-
-  - WINDOWPATH BrlTTY environment variable (renamed from WINDOWSPATH) is
-    recognized.
+  - Support for BrlTTY 3.8, especially its 64-bit key codes and the
+    WINDOWPATH environment variable (renamed from WINDOWSPATH).
 
   The project web page was completely reworked, you can find more useful
   information there now: http://www.freebsoft.org/speechd-el .
