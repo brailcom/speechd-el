@@ -397,9 +397,12 @@ respectively."
   "Return the size of the display as the list (WIDTH HEIGHT)."
   (when connection
     (or (brltty--connection-display-width connection)
-        (setf (brltty--connection-display-width connection)
-              (brltty--send-packet connection 'getdisplaysize
-                                   'getdisplaysize)))))
+        (let ((size (brltty--send-packet connection 'getdisplaysize
+                                         'getdisplaysize)))
+          ;; BrlAPI may report zero size when the display is off.
+          ;; We shouldn't return nor cache such a value.
+          (when (> (car size) 0)
+            (setf (brltty--connection-display-width connection) size))))))
 
 (defun brltty-write (connection text &optional cursor)
   "Display TEXT in BrlTTY accessed through CONNECTION.
