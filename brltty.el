@@ -87,7 +87,7 @@ available, from the  environment variable CONTROLVT."
 
 (defconst brltty--emacs-process-ok (fboundp 'process-put))
 
-(defconst brltty--supported-protocol-versions '(7))
+(defconst brltty--supported-protocol-versions '(8 7))
 
 (defconst brltty--packet-types
   '(;; commands
