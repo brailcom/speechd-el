@@ -384,7 +384,8 @@ respectively."
 (defun brltty-close (connection)
   "Close BrlTTY CONNECTION."
   (when connection
-    (brltty--send-packet connection 'ack 'leavetty)
+    (when (brltty--connection-terminal-spec connection)
+      (brltty--send-packet connection 'ack 'leavetty))
     (let ((process (brltty--connection-process connection)))
       (unless brltty--emacs-process-ok
         (setq brltty--process-connections
