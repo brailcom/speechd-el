@@ -91,6 +91,24 @@ available, from the  environment variable CONTROLVT."
 
 (defconst brltty--protocol-version-error 13)
 
+(defconst brltty--errors
+  '((1 . "Not enough memory")
+    (2 . "A connection is already running in this tty")
+    (3 . "A connection is already using RAW or suspend mode")
+    (4 . "Not implemented in protocol")
+    (5 . "Forbiden in current mode")
+    (6 . "Out of range or have no sense")
+    (7 . "Invalid size")
+    (8 . "Connection refused")
+    (9 . "Operation not supported")
+    (10 . " Getaddrinfo error")
+    (11 . " Libc error")
+    (12 . " Couldn't find out the tty number")
+    (13 . " Bad protocol version")
+    (14 . " Unexpected end of file")
+    (15 . " Key file empty")
+    (16 . " Packet returned by driver too large")))
+
 (defconst brltty--packet-types
   '(;; commands
     (authkey . ?K)
@@ -265,7 +283,8 @@ available, from the  environment variable CONTROLVT."
       (let ((err-number (brltty--read-integer data)))
         (if (= err-number brltty--protocol-version-error)
             (brltty--add-answer connection (list type err-number))
-          (error (format "BrlTTY error %d: %s" err-number data)))))
+          (error (format "BrlTTY error %d: %s"
+                         err-number (cdr (assoc err-number brltty--errors)))))))
      (key
       (let ((handler (brltty--connection-key-handler connection)))
         (when handler
