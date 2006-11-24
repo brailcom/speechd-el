@@ -1,5 +1,12 @@
 User-visible changes to speechd-el:
 
+* Changes in speechd-el 2.2
+
+** Support for BrlTTY 3.8 final version.
+
+Including BrlTTY error reporting cleanup.
+
+
 * Changes in speechd-el 2.1
 
 ** Invisible text is no longer read.

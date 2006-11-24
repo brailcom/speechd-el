@@ -121,6 +121,11 @@ available, from the  environment variable CONTROLVT."
     (err . ?e)
     (key . ?k)))
 
+(defconst brltty--authentication-codes
+  '((?N . none)
+    (?K . key)
+    (?C . credentials)))
+
 (defun brltty--add-answer (connection answer)
   (setf (brltty--connection-answers connection)
         (append (brltty--connection-answers connection) (list answer)))
@@ -293,6 +298,17 @@ available, from the  environment variable CONTROLVT."
                                 #'brltty--read-integer64
                               #'brltty--read-integer)
                             data)))))
+     (authkey
+      (let ((version (brltty--read-integer (substring data 0 4)))
+            (auth-methods '())
+            (len (length data))
+            (n 4))
+        (while (< n len)
+          (push (cdr (assoc (brltty--read-integer (substring data n (+ n 4)))
+                            brltty--authentication-codes))
+                auth-methods)
+          (setq n (+ n 4)))
+        (brltty--add-answer connection (list type version auth-methods))))
      (nil
       ;; unknown packet type -- ignore
       )
@@ -304,7 +320,7 @@ available, from the  environment variable CONTROLVT."
      (t
       (brltty--add-answer connection (list type data))))))
 
-(defun brltty--read-answer (connection packet-id)
+(defun brltty--read-answer (connection packet-id &optional none-ok)
   (let ((process (brltty--connection-process connection))
         (answer '(nothing-yet)))
     (while (and answer (not (eq (car answer) packet-id)))
@@ -313,7 +329,7 @@ available, from the  environment variable CONTROLVT."
       (unless answer
         (brltty--accept-process-output process)
         (setq answer (brltty--next-answer connection))))
-    (unless answer
+    (when (and (not answer) (not none-ok))
       (error "BrlTTY answer not received"))
     (cdr answer)))
 
@@ -385,25 +401,37 @@ available, from the  environment variable CONTROLVT."
 If HOST or PORT is nil, `brltty-default-host' or `brltty-default-port' is used
 respectively."
   (condition-case err
-      (let ((connection nil)
-            (protocol-versions brltty--supported-protocol-versions))
-        (while (and (not connection)
-                    protocol-versions)
-          (let ((connection* (brltty--open-connection host port key-handler)))
-            (condition-case err*
-                (let* ((version (car protocol-versions))
-                       (answer (brltty--send-packet
-                                connection* 'ack 'authkey version
-                                (brltty--authentication-key))))
-                  (when (equal answer brltty--protocol-version-error)
-                    (signal 'brltty-error answer))
-                  (setf (brltty--connection-protocol-version connection*)
-                        version)
-                  (setq connection connection*))
-              (error
-               (setq protocol-versions (cdr protocol-versions))
-               (unless protocol-versions
-                 (signal (car err*) (cdr err*)))))))
+      ;; In protocol >= 8 server initiates communication, let's look if
+      ;; there is any
+      (let* ((connection (brltty--open-connection host port key-handler))
+             (answer (brltty--read-answer connection 'authkey t))
+             (version 7))
+        (if answer
+            (destructuring-bind (version* auth-methods) answer
+              (setq version version*)
+              (unless (member version brltty--supported-protocol-versions)
+                (warn "Unsupported BrlAPI protocol version: %d" version))
+              (cond
+               ((memq 'none auth-methods)
+                (brltty--send-packet
+                 connection 'ack 'authkey version
+                 (car (rassoc 'none brltty--authentication-codes))))
+               ((memq 'key auth-methods)
+                (brltty--send-packet
+                 connection 'ack 'authkey version
+                 (car (rassoc 'key brltty--authentication-codes))
+                 (brltty--authentication-key)))
+               (t
+                (signal 'brltty-connection-error
+                        "No supported BrlAPI authentication method"))))
+          ;; No server initial message, assume protocol version 7 (older
+          ;; versions are not supported)
+          (let ((answer (brltty--send-packet
+                         connection 'ack 'authkey version
+                         (brltty--authentication-key))))
+            (when (equal answer brltty--protocol-version-error)
+              (signal 'brltty-error answer))))
+        (setf (brltty--connection-protocol-version connection) version)
         connection)
     (error
      (signal 'brltty-connection-error err))))
