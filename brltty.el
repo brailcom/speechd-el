@@ -89,6 +89,8 @@ available, from the  environment variable CONTROLVT."
 
 (defconst brltty--supported-protocol-versions '(8 7))
 
+(defconst brltty--protocol-version-error 13)
+
 (defconst brltty--packet-types
   '(;; commands
     (authkey . ?K)
@@ -260,7 +262,10 @@ available, from the  environment variable CONTROLVT."
   (destructuring-bind (type . data) (brltty--read-packet connection)
     (case type
      (err
-      (error (format "BrlTTY error %d: %s" (brltty--read-integer data) data)))
+      (let ((err-number (brltty--read-integer data)))
+        (if (= err-number brltty--protocol-version-error)
+            (brltty--add-answer connection (list type err-number))
+          (error (format "BrlTTY error %d: %s" err-number data)))))
      (key
       (let ((handler (brltty--connection-key-handler connection)))
         (when handler
@@ -367,9 +372,12 @@ respectively."
                     protocol-versions)
           (let ((connection* (brltty--open-connection host port key-handler)))
             (condition-case err*
-                (let ((version (car protocol-versions)))
-                  (brltty--send-packet connection* 'ack 'authkey version
-                                       (brltty--authentication-key))
+                (let* ((version (car protocol-versions))
+                       (answer (brltty--send-packet
+                                connection* 'ack 'authkey version
+                                (brltty--authentication-key))))
+                  (when (equal answer brltty--protocol-version-error)
+                    (signal 'brltty-error answer))
                   (setf (brltty--connection-protocol-version connection*)
                         version)
                   (setq connection connection*))
