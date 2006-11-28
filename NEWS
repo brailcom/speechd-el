@@ -6,6 +6,11 @@ User-visible changes to speechd-el:
 
 Including BrlTTY error reporting cleanup.
 
+** New BrlTTY key handler for general character input.
+
+New macro `speechd-brltty-command-key-function' is provided to assign actions
+to Braille display general input keys, such as letters.
+
 
 * Changes in speechd-el 2.1
 

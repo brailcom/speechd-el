@@ -1565,12 +1565,21 @@ Display the first message in the history.
 Display the last message in the history.
 @end ftable
 
-The variable contains some default bindings initially, but as the keys
-and their codes differ a lot for various Braille displays, you
-probably need to adjust it for your particular device.  You can figure
-out the display key codes by setting the
-@code{speechd-braille-show-unknown-keys} variable to @code{t} and
-pressing the display keys.
+Additionally, the following macro is provided:
+
+@ftable @code
+@item speechd-brltty-command-key-function @var{key}
+Insert function for handling @var{key} as a general input key.  This
+is useful for handling Braille keys acting as general character input
+keys.
+@end ftable
+
+The @code{speechd-braille-key-functions} variable contains some
+default bindings initially, but as the keys and their codes differ a
+lot for various Braille displays, you probably need to adjust it for
+your particular device.  You can figure out the display key codes by
+setting the @code{speechd-braille-show-unknown-keys} variable to
+@code{t} and pressing the display keys.
 
 @item speechd-braille-show-unknown-keys
 If non-@code{nil}, show codes of the pressed Braille keys that have no

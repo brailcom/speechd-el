@@ -206,6 +206,14 @@ is not recommended to assign or call user commands here."
   "Discard all messages from the display queue."
   (speechd.cancel driver all))
 
+(defun speechd-brltty-command-key (driver key)
+  "Put given key to the command queue."
+  (setq unread-command-events (append unread-command-events (list key))))
+
+(defmacro speechd-brltty-command-key-function (key)
+  "Insert BrlTTY function handling general character KEY event."
+  `(lambda (driver) (speechd-brltty-command-key driver ,key)))
+
 
 ;;; Driver definition, methods and registration
 
