@@ -1,6 +1,6 @@
 ;;; brltty.el --- Interface to BrlTTY
 
-;; Copyright (C) 2004, 2005, 2006 Brailcom, o.p.s.
+;; Copyright (C) 2004, 2005, 2006, 2007 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -111,7 +111,9 @@ available, from the  environment variable CONTROLVT."
 
 (defconst brltty--packet-types
   '(;; commands
-    (authkey . ?K)
+    (version . ?v)
+    (auth . ?a)
+    (authkey . ?K) ; protocol version < 8
     (gettty . ?t)
     (leavetty . ?L)
     (getdisplaysize . ?s)
@@ -309,6 +311,19 @@ available, from the  environment variable CONTROLVT."
                 auth-methods)
           (setq n (+ n 4)))
         (brltty--add-answer connection (list type version auth-methods))))
+     (auth
+      (let ((auth-methods '())
+            (len (length data))
+            (n 0))
+        (while (< n len)
+          (push (cdr (assoc (brltty--read-integer (substring data n (+ n 4)))
+                            brltty--authentication-codes))
+                auth-methods)
+          (setq n (+ n 4)))
+        (brltty--add-answer connection (cons type auth-methods))))
+     (version
+      (let ((version (brltty--read-integer (substring data 0 4))))
+        (brltty--add-answer connection (list type version))))
      (nil
       ;; unknown packet type -- ignore
       )
@@ -404,21 +419,22 @@ respectively."
       ;; In protocol >= 8 server initiates communication, let's look if
       ;; there is any
       (let* ((connection (brltty--open-connection host port key-handler))
-             (answer (brltty--read-answer connection 'authkey t))
-             (version 7))
-        (if answer
-            (destructuring-bind (version* auth-methods) answer
-              (setq version version*)
+             (version (or (first (brltty--read-answer connection 'version t))
+                          7)))
+        (if (> version 7)
+            (progn
               (unless (member version brltty--supported-protocol-versions)
-                (warn "Unsupported BrlAPI protocol version: %d" version))
+                (setq version (apply max brltty--supported-protocol-versions)))
+              (setq auth-methods (brltty--send-packet connection 'auth
+                                                      'version version))
               (cond
                ((memq 'none auth-methods)
                 (brltty--send-packet
-                 connection 'ack 'authkey version
+                 connection 'ack 'auth
                  (car (rassoc 'none brltty--authentication-codes))))
                ((memq 'key auth-methods)
                 (brltty--send-packet
-                 connection 'ack 'authkey version
+                 connection 'ack 'auth
                  (car (rassoc 'key brltty--authentication-codes))
                  (brltty--authentication-key)))
                (t
