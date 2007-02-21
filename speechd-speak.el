@@ -1,6 +1,6 @@
 ;;; speechd-speak.el --- simple speechd-el based Emacs client
 
-;; Copyright (C) 2003, 2004, 2005, 2006 Brailcom, o.p.s.
+;; Copyright (C) 2003, 2004, 2005, 2006, 2007 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -226,6 +226,14 @@ If ACTION is a function, it is invoked, with no arguments."
   "If non-nil, speak whole line on movement by default.
 Otherwise speak from the point to the end of line on movement by default."
   :type 'boolean
+  :group 'speechd-speak)
+
+(defcustom speechd-speak-separator-regexp nil
+  "If non-nil don't read parts of a line separated by the given regexp.
+This is typically useful in w3m where columns are separated only
+by whitespace.  \"   \" may be good value of this variable in such
+a case."
+  :type 'regexp
   :group 'speechd-speak)
 
 (defcustom speechd-speak-message-time-interval 30
@@ -565,9 +573,17 @@ If the prefix argument is given, output the line only from the current point
 to the end of the line."
   (interactive "P")
   (speechd-speak--interactive
-   (speechd-speak-read-region (if rest-only (point) (line-beginning-position))
-                              (line-end-position)
-                              (when (speechd-speak--in-minibuffer-p) ""))))
+   (let ((beg (if rest-only (point) (line-beginning-position)))
+         (end (line-end-position)))
+     (when speechd-speak-separator-regexp
+       (save-excursion
+         (when (re-search-backward speechd-speak-separator-regexp beg t)
+           (setq beg (match-end 0))))
+       (save-excursion
+         (when (re-search-forward speechd-speak-separator-regexp end t)
+           (setq end (match-beginning 0)))))
+     (speechd-speak-read-region beg end
+                                (when (speechd-speak--in-minibuffer-p) "")))))
 
 (defun speechd-speak-read-next-line ()
   "Speak the next line after the current line.
