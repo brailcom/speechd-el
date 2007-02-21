@@ -881,9 +881,9 @@ Language must be an RFC 1766 language code, as a string."
     (let ((speechd-speak--deleted-chars
            (when speechd-speak-deleted-char
              (speechd-speak--buffer-substring
-              (point)
               (max (- (point) (or (ad-get-arg 0) 1))
-                   (point-min))))))
+                   (point-min))
+              (point)))))
       ad-do-it
       (speechd-speak--store-deleted-chars (if speechd-speak-deleted-char
                                               speechd-speak--deleted-chars
