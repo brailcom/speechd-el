@@ -576,12 +576,13 @@ to the end of the line."
    (let ((beg (if rest-only (point) (line-beginning-position)))
          (end (line-end-position)))
      (when speechd-speak-separator-regexp
-       (save-excursion
-         (when (re-search-backward speechd-speak-separator-regexp beg t)
-           (setq beg (match-end 0))))
-       (save-excursion
-         (when (re-search-forward speechd-speak-separator-regexp end t)
-           (setq end (match-beginning 0)))))
+       (save-match-data
+         (save-excursion
+           (when (re-search-backward speechd-speak-separator-regexp beg t)
+             (setq beg (match-end 0))))
+         (save-excursion
+           (when (re-search-forward speechd-speak-separator-regexp end t)
+             (setq end (match-beginning 0))))))
      (speechd-speak-read-region beg end
                                 (when (speechd-speak--in-minibuffer-p) "")))))
 
