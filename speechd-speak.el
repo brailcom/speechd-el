@@ -1981,6 +1981,7 @@ The following symbols are valid state change identifiers: `buffer-name',
 (define-key speechd-speak-mode-map "dp" 'speechd-set-pitch)
 (define-key speechd-speak-mode-map "dr" 'speechd-set-rate)
 (define-key speechd-speak-mode-map "dv" 'speechd-set-voice)
+(define-key speechd-speak-mode-map "d\C-v" 'speechd-set-synthesizer-voice)
 (define-key speechd-speak-mode-map "dV" 'speechd-set-volume)
 
 (defvar speechd-speak--mode-map (make-sparse-keymap))

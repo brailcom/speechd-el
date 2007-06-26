@@ -1,6 +1,6 @@
 ;;; speechd.el --- Library for accessing Speech Dispatcher
 
-;; Copyright (C) 2003, 2004, 2005, 2006 Brailcom, o.p.s.
+;; Copyright (C) 2003, 2004, 2005, 2006, 2007 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -261,6 +261,7 @@ current voice."
     (pause-context . "PAUSE_CONTEXT")
     (capital-character-mode . "CAP_LET_RECOGN")
     (voice . "VOICE")
+    (synthesizer-voice . "SYNTHESIS_VOICE")
     (rate . "RATE")
     (pitch . "PITCH")
     (volume . "VOLUME")
@@ -268,8 +269,11 @@ current voice."
     (output-module . "OUTPUT_MODULE")	; TODO: to be removed sometimes
     ))
 
-(defconst speechd--list-parameter-names
-  '((voices . "VOICES")))
+(defconst speechd--list-parameters
+  '((voices
+     "VOICES" identity)
+    (synthesis-voices
+     "SYNTHESIS_VOICES" (lambda (line) (first (split-string line))))))
 
 (defconst speechd--parameter-value-mappings
   '((message-priority
@@ -714,9 +718,9 @@ Return the opened connection on success, nil otherwise."
 
 
 (defun speechd--list (parameter)
-  (second (speechd--send-command
-	   (list "LIST"
-		 (cdr (assoc parameter speechd--list-parameter-names))))))
+  (multiple-value-bind (command processor)
+      (cdr (assoc parameter speechd--list-parameters))
+    (mapcar processor (second (speechd--send-command (list "LIST" command))))))
 
 
 ;;; Parameter setting functions
@@ -842,6 +846,7 @@ If called with a prefix argument, set it for all connections."
 (speechd--generate-set-command volume "Volume" 0)
 (speechd--generate-set-command rate "Rate" 0)
 (speechd--generate-set-command voice "Voice" 'voices)
+(speechd--generate-set-command synthesizer-voice "Synthesizer voice" 'synthesis-voices)
 (speechd--generate-set-command punctuation-mode "Punctuation mode"
                                speechd--punctuation-modes)
 (speechd--generate-set-command pause-context "Pause context" 0)

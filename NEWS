@@ -11,6 +11,11 @@ Including BrlTTY error reporting cleanup.
 New macro `speechd-brltty-command-key-function' is provided to assign actions
 to Braille display general input keys, such as letters.
 
+** New command speechd-set-synthesizer-voice.
+
+It allows setting speech synthesizer voice directly by its name.  Note this
+only works with Speech Dispatcher 0.6.3 or higher.
+
 
 * Changes in speechd-el 2.1
 

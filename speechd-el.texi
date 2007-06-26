@@ -10,7 +10,7 @@
 @copying
 This manual is for speechd-el, @value{VERSION}.
 
-Copyright @copyright{} 2003, 2004, 2005, 2006 Brailcom, o.p.s.
+Copyright @copyright{} 2003, 2004, 2005, 2006, 2007 Brailcom, o.p.s.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -718,6 +718,17 @@ Commands affecting speech output properties:
 Set default voice to be used by the synthesizer
 (@code{speechd-set-voice}).  You may select one from the voice set
 offered by your Speech Dispatcher installation.
+
+@item C-e d C-v
+@kindex C-e d C-v
+@findex speechd-set-synthesizer-voice
+@cindex voice
+Set default voice to be used by the synthesizer directly by its
+synthesizer dependent name (@code{speechd-set-synthesizer-voice}).
+You may select one from the voice set offered by the currently
+selected Speech Dispatcher output module.  This works only with Speech
+Dispatcher 0.6.3 or higher and not all Speech Dispatcher output
+modules support this function.
 
 @item C-e d r
 @kindex C-e d r
