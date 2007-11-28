@@ -2,11 +2,12 @@ User-visible changes to speechd-el:
 
 * Changes in speechd-el 2.2
 
-** Support for BrlTTY 3.8 final version.
+** Support for new BrlAPI protocol introduced in BRLTTY 3.8.
 
-Including BrlTTY error reporting cleanup.
+speechd-el now works with BRLTTY 3.8 final version and BRLTTY 3.9.
+Additionally BrlTTY error reporting cleanup was made.
 
-** New BrlTTY key handler for general character input.
+** New BRLTTY key handler for general character input.
 
 New macro `speechd-brltty-command-key-function' is provided to assign actions
 to Braille display general input keys, such as letters.

@@ -19,7 +19,7 @@
 EMACS = emacs
 
 NAME = speechd-el
-VERSION = 2.1
+VERSION = 2.2
 DISTDIR = $(NAME)-$(VERSION)
 TARFILE = $(NAME)-$(VERSION).tar
 
