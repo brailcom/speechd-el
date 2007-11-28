@@ -494,17 +494,23 @@ from 0."
                                  (format "%%-%ds" (- display-width
                                                      (length text)))
                                  ""))))
+               (protocol-version (brltty--connection-protocol-version connection))
+               (text-coding brltty-coding)
                (encoded-text (with-speechd-coding-protection
-                              (encode-coding-string text* brltty-coding))))
-          (brltty--send-packet connection nil 'write
-                               38
-                               1 display-width
-                               (length encoded-text) encoded-text
-                               ;; Cursor position may not be too high,
-                               ;; otherwise BrlTTY breaks the connection
-                               (if cursor
-                                   (1+ (min cursor display-width))
-                                 0)))))))
+                              (encode-coding-string text* text-coding)))
+               (arguments (list connection nil 'write
+                                (if (< protocol-version 8) 38 102)
+                                1 display-width
+                                (length encoded-text) encoded-text
+                                ;; Cursor position may not be too high,
+                                ;; otherwise BrlTTY breaks the connection
+                                (if cursor
+                                    (1+ (min cursor display-width))
+                                  0))))
+          (when (>= protocol-version 8)
+            (let ((charset (symbol-name text-coding)))
+              (setf arguments (append arguments (list (vector (length charset)) (upcase charset))))))
+          (apply #'brltty--send-packet arguments))))))
 
 
 ;;; Announce
