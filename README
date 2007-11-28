@@ -5,7 +5,7 @@ environment for Emacs.
 It is aimed primarily at visually impaired users who need non-visual
 communication with Emacs, but it can be used by anybody who needs sophisticated
 speech or other kind of alternative output from Emacs.  speechd-el can make
-Emacs a completely speech and BrlTTY enabled application suitable for visually
+Emacs a completely speech and BRLTTY enabled application suitable for visually
 impaired users or, depending on its configuration, it can only speak in certain
 situations or when asked, to serve needs of any Emacs user.
 
@@ -26,7 +26,7 @@ Installation:
 - Install the `speechd-log-extractor' script somewhere to your shell PATH (this
   step is optional, the script is used only for bug reporting).
 
-- Start Speech Dispatcher and/or BrlTTY.
+- Start Speech Dispatcher and/or BRLTTY.
 
 - Start Emacs and call the commands
 

@@ -38,7 +38,7 @@ General Public License''.
 
 @dircategory Emacs
 @direntry
-* speechd-el: (speechd-el).	Emacs interface to Speech Dispatcher and BrlTTY.
+* speechd-el: (speechd-el).	Emacs interface to Speech Dispatcher and BRLTTY.
 @end direntry
 
 @titlepage
@@ -82,7 +82,7 @@ Braille output environment for Emacs.
 It is aimed primarily at visually impaired users who need non-visual
 communication with Emacs, but it can be used by anybody who needs
 sophisticated speech or other kind of alternative output from Emacs.
-speechd-el can make Emacs a completely speech and BrlTTY enabled
+speechd-el can make Emacs a completely speech and BRLTTY enabled
 application suitable for visually impaired users or, depending on its
 configuration, it can only speak in certain situations or when asked,
 to serve needs of any Emacs user.
@@ -92,7 +92,7 @@ for communication with the output devices.
 
 This manual describes the speech/Braille output user interface, how to
 customize and extend the interface, and the Emacs Lisp libraries.
-Some degree of familiarity with Speech Dispatcher or BrlTTY on the
+Some degree of familiarity with Speech Dispatcher or BRLTTY on the
 user level is recommended, although not absolutely necessary.
 
 @menu
@@ -216,7 +216,7 @@ Dectalk, IBM TTS, Cicero, etc.) and you can use multiple speech
 synthesizers inside a single Emacs session.
 
 @item
-Braille displays are handled through BrlTTY drivers and APIs.
+Braille displays are handled through BRLTTY drivers and APIs.
 
 @item
 Programming libraries for those who want to extend speechd-el
@@ -246,7 +246,7 @@ independently of higher level features.
 @cindex BrlAPI
 The lowest level components are access libraries to output devices,
 especially to SSIP (the Speech Dispatcher TCP communication protocol
-for speech output) and BrlAPI (interface to BrlTTY drivers for
+for speech output) and BrlAPI (interface to BRLTTY drivers for
 communication with Braille displays).  They can be used to talk to the
 output devices directly from Elisp programs.
 
@@ -281,11 +281,11 @@ Speech Dispatcher installation is necessary to produce any speech
 output.  Please look at @url{http://www.freebsoft.org/speechd} for
 more information about Speech Dispatcher.
 
-@cindex BrlTTY
-For the Braille output BrlTTY is used through its BrlAPI interface.
-To make the Braille output work, BrlTTY must be running and properly
+@cindex BRLTTY
+For the Braille output BRLTTY is used through its BrlAPI interface.
+To make the Braille output work, BRLTTY must be running and properly
 configured.  Please look at @url{http://www.mielke.cc/brltty/} for
-more information about BrlTTY.
+more information about BRLTTY.
 
 @menu
 * Installation::                Installing speechd-el.
@@ -342,9 +342,9 @@ Add the following lines to your @file{~/.emacs}:
 To receive speech output, Speech Dispatcher must be installed and
 running.  Speech Dispatcher version 0.5 or higher is recommended.
 
-@cindex BrlTTY
-To receive Braille output, BrlTTY must be installed and running.
-BrlTTY version 3.7 or higher is required.
+@cindex BRLTTY
+To receive Braille output, BRLTTY must be installed and running.
+BRLTTY version 3.7 or higher is required.
 
 @node Starting Alternative Output, Commands, Installation, speechd-el User Manual
 @section Starting Speech and Braille Output
@@ -366,12 +366,12 @@ Set up Emacs for alternative output and start speaking or
 communicating with the Braille display.
 
 Please don't forget Speech Dispatcher must be running in order to get
-any speech output and BrlTTY must be running in order to get Braille
+any speech output and BRLTTY must be running in order to get Braille
 output!
 
 After the initial setup, the command can be used again to restart the
 speech or Braille output when needed.  Especially, you must run it
-again if Speech Dispatcher or BrlTTY gets restarted.
+again if Speech Dispatcher or BRLTTY gets restarted.
 
 After the first invocation, the command is available under the
 @kbd{C-e C-s} key.
@@ -858,7 +858,7 @@ List of names of active output drivers.
 @end vtable
 
 If a driver that does not work is present in the variable (e.g. the
-list contains the @code{brltty} symbol while BrlTTY is not actually
+list contains the @code{brltty} symbol while BRLTTY is not actually
 running), you receive an error message.  To prevent the error message,
 remove the driver from this variable.
 
@@ -879,7 +879,7 @@ Disable the given output driver.
 @subsection Speech Dispatcher Host Connection Configuration
 
 Host connection variables allow you connect to Speech Dispatcher or
-BrlTTY running on a remote host or a non-default port and to specify
+BRLTTY running on a remote host or a non-default port and to specify
 other TCP connection parameters.
 
 Speech Dispatcher connection options:
@@ -915,11 +915,11 @@ spdsend is not used.
 Usually you shouldn't care about this variable.
 @end vtable
 
-BrlTTY connection options:
+BRLTTY connection options:
 
 @vtable @code
 @item brltty-default-host
-Name of the host running BrlTTY to connect to, given as a string.
+Name of the host running BRLTTY to connect to, given as a string.
 Default is @code{"localhost"}.
 
 @item brltty-default-port
@@ -930,24 +930,24 @@ is the list of the standard BrlAPI ports.
 
 @item brltty-authentication-file
 File containing the BrlAPI authentication key.  It is important to set
-the variable properly, otherwise the connection to BrlTTY gets
+the variable properly, otherwise the connection to BRLTTY gets
 rejected.  Default is @code{"/etc/brlapi.key"}.
 
 @item brltty-coding
-Coding in which texts should be sent to BrlTTY.  Default is
+Coding in which texts should be sent to BRLTTY.  Default is
 @code{iso-8859-1}; if you use non-Western language, you may need to
 change it to display its characters correctly on the Braille display.
 
 @item brltty-tty
 Number of the Linux console on which speechd-el runs.  If this value
 is not set correctly, speechd-el may not interact well with other
-applications communicating with BrlTTY.  speechd-el tries to find the
+applications communicating with BRLTTY.  speechd-el tries to find the
 correct value itself, if this doesn't work, set this variable properly
 or set the @code{CONTROLVT} environment variable.
 
 @item brltty-timeout
-Maximum number of seconds to wait for a BrlTTY answer.  If it is
-exceeded, speechd-el closes the connection.  Normally, BrlTTY should
+Maximum number of seconds to wait for a BRLTTY answer.  If it is
+exceeded, speechd-el closes the connection.  Normally, BRLTTY should
 answer protocol commands immediately, but if you talk to BrlAPI in a
 strange way through a lagging network, you may want to increase the
 limit.
@@ -1536,8 +1536,8 @@ If the given key is pressed, the corresponding function is called with
 a @code{speechd-brltty-driver} instance as its single argument (read
 the source code for information about speechd-el output drivers).
 
-The key codes are either integers (for BrlTTY 3.7 and older) or lists
-containing three integers (for BrlTTY 3.8 and newer).  See the default
+The key codes are either integers (for BRLTTY 3.7 and older) or lists
+containing three integers (for BRLTTY 3.8 and newer).  See the default
 variable value for examples of possible key codes.
 
 The assigned functions needn't be interactive.  Actually as the
@@ -1910,7 +1910,7 @@ User interface implemented in @file{speechd-speak.el}.
 @end itemize
 
 You can use the libraries to communicate with Speech Dispatcher,
-BrlTTY or other devices in your own programs.
+BRLTTY or other devices in your own programs.
 
 Right now, there's no real programmer's manual to the libraries.
 Please read docstrings of available variables, functions and macros.

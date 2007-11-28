@@ -1,4 +1,4 @@
-;;; brltty.el --- Interface to BrlTTY
+;;; brltty.el --- Interface to BRLTTY
 
 ;; Copyright (C) 2004, 2005, 2006, 2007 Brailcom, o.p.s.
 
@@ -33,16 +33,16 @@
 
 
 (defgroup brltty ()
-  "BrlTTY interface."
+  "BRLTTY interface."
   :group 'speechd-el)
   
 (defcustom brltty-default-host "localhost"
-  "Default BrlTTY host to connect to."
+  "Default BRLTTY host to connect to."
   :type 'string
   :group 'brltty)
 
 (defcustom brltty-default-port '(4101 4102 4103 4104 35751)
-  "Default BrlTTY port to connect to.
+  "Default BRLTTY port to connect to.
 If it is a list, the given port numbers are attempted in the order they are
 given until Emacs connects to something."
   :type 'integer
@@ -54,7 +54,7 @@ given until Emacs connects to something."
   :group 'brltty)
 
 (defcustom brltty-coding 'iso-8859-1
-  "Coding in which texts should be sent to BrlTTY."
+  "Coding in which texts should be sent to BRLTTY."
   :type 'coding-system
   :group 'brltty)
 
@@ -73,7 +73,7 @@ available, from the  environment variable CONTROLVT."
   :group 'brltty)
 
 (defcustom brltty-timeout 3
-  "Maximum number of seconds to wait for a BrlTTY answer."
+  "Maximum number of seconds to wait for a BRLTTY answer."
   :type 'integer
   :group 'brltty)
 
@@ -227,7 +227,7 @@ available, from the  environment variable CONTROLVT."
     (when process
       (delete-process process)
       (setf (brltty--connection-process connection) nil)))
-  (error "Error in communication with BrlTTY: %s" error))
+  (error "Error in communication with BRLTTY: %s" error))
 
 (defun brltty--process-filter* (process output)
   (let ((connection (brltty--process-connection process)))
@@ -289,7 +289,7 @@ available, from the  environment variable CONTROLVT."
       (let ((err-number (brltty--read-integer data)))
         (if (= err-number brltty--protocol-version-error)
             (brltty--add-answer connection (list type err-number))
-          (error (format "BrlTTY error %d: %s"
+          (error (format "BRLTTY error %d: %s"
                          err-number (cdr (assoc err-number brltty--errors)))))))
      (key
       (let ((handler (brltty--connection-key-handler connection)))
@@ -344,7 +344,7 @@ available, from the  environment variable CONTROLVT."
         (brltty--accept-process-output process)
         (setq answer (brltty--next-answer connection))))
     (when (and (not answer) (not none-ok))
-      (error "BrlTTY answer not received"))
+      (error "BRLTTY answer not received"))
     (cdr answer)))
 
 (defun brltty--send-packet (connection answer packet-id &rest data-list)
@@ -408,10 +408,10 @@ available, from the  environment variable CONTROLVT."
 (put 'brltty-connection-error 'error-conditions
      '(error speechd-connection-error brltty-connection-error))
 (put 'brltty-connection-error 'error-message
-     "Error on opening BrlTTY connection")
+     "Error on opening BRLTTY connection")
 
 (defun brltty-open (&optional host port key-handler)
-  "Open and return connection to a BrlTTY server running on HOST and PORT.
+  "Open and return connection to a BRLTTY server running on HOST and PORT.
 If HOST or PORT is nil, `brltty-default-host' or `brltty-default-port' is used
 respectively."
   (condition-case err
@@ -452,7 +452,7 @@ respectively."
      (signal 'brltty-connection-error err))))
 
 (defun brltty-close (connection)
-  "Close BrlTTY CONNECTION."
+  "Close BRLTTY CONNECTION."
   (when connection
     (when (brltty--connection-terminal-spec connection)
       (brltty--send-packet connection 'ack 'leavetty))
@@ -476,7 +476,7 @@ respectively."
             (setf (brltty--connection-display-width connection) size))))))
 
 (defun brltty-write (connection text &optional cursor)
-  "Display TEXT in BrlTTY accessed through CONNECTION.
+  "Display TEXT in BRLTTY accessed through CONNECTION.
 TEXT is encoded in the coding given by `brltty-coding' before it is sent.
 CURSOR, if non-nil, is a position of the cursor on the display, starting
 from 0."
@@ -502,7 +502,7 @@ from 0."
                                 1 display-width
                                 (length encoded-text) encoded-text
                                 ;; Cursor position may not be too high,
-                                ;; otherwise BrlTTY breaks the connection
+                                ;; otherwise BRLTTY breaks the connection
                                 (if cursor
                                     (1+ (min cursor display-width))
                                   0))))

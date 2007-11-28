@@ -1,4 +1,4 @@
-;;; speechd-brltty.el --- BrlTTY output driver
+;;; speechd-brltty.el --- BRLTTY output driver
 
 ;; Copyright (C) 2004, 2005, 2006 Brailcom, o.p.s.
 
@@ -210,7 +210,7 @@ is not recommended to assign or call user commands here."
   (setq unread-command-events (append unread-command-events (list key))))
 
 (defmacro speechd-brltty-command-key-function (key)
-  "Insert BrlTTY function handling general character KEY event."
+  "Insert BRLTTY function handling general character KEY event."
   `(lambda (driver) (speechd-brltty-command-key driver ,key)))
 
 

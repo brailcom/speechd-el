@@ -8,11 +8,11 @@ The Free(b)soft project is pleased to announce speechd-el 2.2.
   speechd-el is an Emacs client to speech synthesizers, Braille displays
   and other alternative output interfaces.  It provides full speech and
   Braille output environment for Emacs using the Speech Dispatcher and
-  BrlTTY backends.  It is focused especially on (but not limited to) the
+  BRLTTY backends.  It is focused especially on (but not limited to) the
   blind and visually impaired users.  It allows the user to work with
   Emacs without looking on the screen, by listening to speech output
   produced by the speech synthesizers supported in Speech Dispatcher and
-  watching Braille output on Braille displays supported by BrlTTY.
+  watching Braille output on Braille displays supported by BRLTTY.
   
   Key speechd-el features are:
 
