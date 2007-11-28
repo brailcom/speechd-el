@@ -16,6 +16,8 @@ to Braille display general input keys, such as letters.
 It allows setting speech synthesizer voice directly by its name.  Note this
 only works with Speech Dispatcher 0.6.3 or higher.
 
+** Moved to GPL3.
+
 
 * Changes in speechd-el 2.1
 
