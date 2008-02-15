@@ -1,6 +1,6 @@
 ;;; speechd-ssip.el --- SSIP driver
 
-;; Copyright (C) 2004, 2006 Brailcom, o.p.s.
+;; Copyright (C) 2004, 2006, 2008 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -64,9 +64,11 @@
   (speechd-say-key key))
 
 (defmethod speechd.set ((driver speechd-ssip-driver) parameter value)
-  (when (eq parameter 'priority)
+  (cond
+   ((eq parameter 'priority)
     (setq parameter 'message-priority))
-  (speechd--set-parameter parameter value))
+   ((memq parameter speechd--parameter-names)
+    (speechd--set-parameter parameter value))))
 
 (defmethod speechd.shutdown ((driver speechd-ssip-driver))
   (speechd-close-all))
