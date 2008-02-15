@@ -1,6 +1,6 @@
 ;;; speechd.el --- Library for accessing Speech Dispatcher
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007 Brailcom, o.p.s.
+;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -67,7 +67,7 @@
 (defcustom speechd-spdsend nil
   "If string, it names the spdsend binary to be used to talk to SSIP.
 If the new version of accept-process-output is available or the value of this
-variable is nil, Emacs talks to SSIP directly."
+variable is nil, Emacs talks to an SSIP server (Speech Dispatcher) directly."
   :type '(choice (const :tag "Don't use spdsend" nil)
                  (string :tag "spdsend binary"))
   :group 'speechd)
