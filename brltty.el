@@ -118,6 +118,8 @@ available, from the  environment variable CONTROLVT."
     (leavetty . ?L)
     (getdisplaysize . ?s)
     (write . ?w)
+    (ignorekeyranges . ?m)
+    (acceptkeyranges . ?u)
     ;; answers
     (ack . ?A)
     (err . ?e)
@@ -353,6 +355,9 @@ available, from the  environment variable CONTROLVT."
                         :key #'(lambda (data)
                                  (cond 
 				  ((integerp data) 4)
+                                  ((consp data)
+                                   (ecase (car data)
+                                     (integer64 8)))
 				  (t (length data))))))
         (process (brltty--connection-process connection)))
     (when process
@@ -379,6 +384,16 @@ available, from the  environment variable CONTROLVT."
                     (process-send-string
                      process
                      (string-make-unibyte (format "%c" (aref data i))))))
+                 ((consp data)
+                  (destructuring-bind (n1 n2 n3) (cdr data)
+                    (ecase (car data)
+                      (integer64
+                       (process-send-string
+                        process
+                        (string-make-unibyte (format "%c%c%c%c%c%c%c%c"
+                                                     (/ n1 256) (% n1 256)
+                                                     (/ n2 (* 256 256)) (% (/ n2 256) 256) (% n2 256)
+                                                     (/ n3 (* 256 256)) (% (/ n3 256) 256) (% n3 256))))))))
                  (t
                   (process-send-string process data))))
               (when answer
@@ -511,6 +526,14 @@ from 0."
             (let ((charset (symbol-name text-coding)))
               (setf arguments (append arguments (list (vector (length charset)) (upcase charset))))))
           (apply #'brltty--send-packet arguments))))))
+
+(defun brltty-ignore-keys (connection)
+  "Let BrlTTY handle all keys itself."
+  (brltty--send-packet connection nil 'ignorekeyranges '(integer64 0 0 0) '(integer64 #xFFFF #xFFFFFF #xFFFFFF)))
+
+(defun brltty-accept-keys (connection)
+  "Let BrlTTY send all keys to us."
+  (brltty--send-packet connection nil 'acceptkeyranges '(integer64 0 0 0) '(integer64 #xFFFF #xFFFFFF #xFFFFFF)))
 
 
 ;;; Announce
