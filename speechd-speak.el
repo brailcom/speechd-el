@@ -1,6 +1,6 @@
 ;;; speechd-speak.el --- simple speechd-el based Emacs client
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007 Brailcom, o.p.s.
+;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -1700,6 +1700,13 @@ Only single characters are allowed in the keymap.")
 (speechd-speak--command-feedback indent-for-tab-command after
   (speechd-speak--speak-current-column))
 
+(defvar speechd-speak--handle-braille-keys t)
+(defun speechd-speak-toggle-braille-keys ()
+  (interactive)
+  (speechd-out-set 'brltty-accept-keys (not speechd-speak--handle-braille-keys))
+  (setq speechd-speak--handle-braille-keys (not speechd-speak--handle-braille-keys))
+  (message "Braille keys handled by %s" (if speechd-speak--handle-braille-keys "speechd-el" "BrlTTY")))
+
 
 ;;; Spelling
 
@@ -1970,6 +1977,7 @@ The following symbols are valid state change identifiers: `buffer-name',
 (define-key speechd-speak-mode-map "\C-r" 'speechd-speak-read-rectangle)
 (define-key speechd-speak-mode-map "\C-s" 'speechd-speak)
 (define-key speechd-speak-mode-map "\C-x" 'speechd-unspeak)
+(define-key speechd-speak-mode-map "\C-bk" 'speechd-speak-toggle-braille-keys)
 (dotimes (i 9)
   (define-key speechd-speak-mode-map (format "%s" (1+ i))
               'speechd-speak-key-set-predefined-rate))

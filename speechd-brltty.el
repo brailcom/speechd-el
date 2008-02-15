@@ -1,6 +1,6 @@
 ;;; speechd-brltty.el --- BRLTTY output driver
 
-;; Copyright (C) 2004, 2005, 2006 Brailcom, o.p.s.
+;; Copyright (C) 2004, 2005, 2006, 2008 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -225,7 +225,15 @@ is not recommended to assign or call user commands here."
 (defmethod speechd-braille--make-message
     ((driver speechd-braille-emu-driver) text message)
   (list (speechd-brltty--connection driver) text message))
-  
+
+(defmethod speechd.set ((driver speechd-brltty-driver) parameter value)
+  (cond
+   ((eq parameter 'brltty-accept-keys)
+    (funcall (if value 'brltty-accept-keys 'brltty-ignore-keys)
+             (speechd-brltty--connection driver)))
+   (t
+    (call-next-method))))
+
 (defmethod speechd.shutdown ((driver speechd-brltty-driver))
   (mmanager-cancel (slot-value driver 'manager) nil)
   (brltty-close (speechd-brltty--connection driver t))
