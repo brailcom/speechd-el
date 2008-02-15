@@ -1,6 +1,6 @@
 ;;; brltty.el --- Interface to BRLTTY
 
-;; Copyright (C) 2004, 2005, 2006, 2007 Brailcom, o.p.s.
+;; Copyright (C) 2004, 2005, 2006, 2007, 2008 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -100,13 +100,14 @@ available, from the  environment variable CONTROLVT."
     (7 . "Invalid size")
     (8 . "Connection refused")
     (9 . "Operation not supported")
-    (10 . " Getaddrinfo error")
-    (11 . " Libc error")
-    (12 . " Couldn't find out the tty number")
-    (13 . " Bad protocol version")
-    (14 . " Unexpected end of file")
-    (15 . " Key file empty")
-    (16 . " Packet returned by driver too large")))
+    (10 . "Getaddrinfo error")
+    (11 . "Libc error")
+    (12 . "Couldn't find out the tty number")
+    (13 . "Bad protocol version")
+    (14 . "Unexpected end of file")
+    (15 . "Key file empty")
+    (16 . "Packet returned by driver too large")
+    (17 . "Authentication failed")))
 
 (defconst brltty--packet-types
   '(;; commands
