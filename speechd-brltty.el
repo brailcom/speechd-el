@@ -229,7 +229,7 @@ is not recommended to assign or call user commands here."
    (brltty-last-try-time :initform 0)))
 
 (defmethod speechd-braille--make-message
-    ((driver speechd-braille-emu-driver) text message)
+    ((driver speechd-brltty-driver) text message)
   (list (speechd-brltty--connection driver) text message))
 
 (defmethod speechd.set ((driver speechd-brltty-driver) parameter value)
