@@ -305,6 +305,7 @@ current voice."
   host
   port
   (failure-p nil)
+  (last-try-time nil)
   process
   (process-output "")
   (paused-p nil)
@@ -318,6 +319,8 @@ current voice."
 
 (defvar speechd--connections (make-hash-table :test 'equal)
   "Hash table mapping client names to `speechd-connection' instances.")
+
+(defvar speechd--retry-time 1.0)
 
 
 ;;; Utilities
@@ -338,6 +341,11 @@ current voice."
 
 (defmacro speechd--with-current-connection (&rest body)
   `(let ((connection (speechd--connection)))
+     (when (and (speechd--connection-failure-p connection)
+                (>= (- (float-time) (speechd--connection-last-try-time connection))
+                    speechd--retry-time))
+       (ignore-errors (speechd-reopen t))
+       (setq connection (speechd--connection)))
      (unless (speechd--connection-failure-p connection)
        ,@body)))
 
@@ -593,8 +601,9 @@ Return the opened connection on success, nil otherwise."
   "Close all speechd connections."
   (speechd--iterate-clients (speechd-close)))
 
-(defun speechd-reopen ()
-  "Close and open again all the connections to speechd."
+(defun speechd-reopen (&optional quiet)
+  "Close and open again all the connections to speechd.
+If QUIET is non-nil, don't echo success report."
   (interactive)
   (let ((number-of-connections 0)
 	(number-of-failures 0))
@@ -604,8 +613,9 @@ Return the opened connection on success, nil otherwise."
 		       (incf number-of-connections)
 		     (incf number-of-failures))))
 	     speechd--connections)
-    (message (format "%d connections successfully reopened, %d failures"
-		     number-of-connections number-of-failures))))
+    (unless quiet
+      (message (format "%d connections successfully reopened, %d failures"
+                       number-of-connections number-of-failures)))))
 
 
 ;;; Process communication functions
@@ -621,6 +631,7 @@ Return the opened connection on success, nil otherwise."
 (defun speechd--permanent-connection-failure (connection)
   (speechd--close-connection connection)
   (setf (speechd--connection-failure-p connection) t
+        (speechd--connection-last-try-time connection) (float-time)
 	(speechd--connection-paused-p connection) nil
 	(speechd--connection-parameters connection) ()))
 

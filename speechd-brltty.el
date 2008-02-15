@@ -81,24 +81,29 @@ is not recommended to assign or call user commands here."
     (mmanager-put manager 'braille-display #'brltty-write)
     manager))
 
+(defvar speechd-brltty--retry-time 1.0)
+
 (defun speechd-brltty--connection (driver &optional dont-open)
   (let ((connection (slot-value driver 'brltty-connection))
         (connection-error nil))
-    (when (eq connection 'uninitialized)
-      (if dont-open
-          (setq connection nil)
-        (lexical-let ((driver driver))
-          (setq connection (condition-case err 
-                               (brltty-open
-                                nil nil
-                                (lambda (key)
-                                  (speechd-brltty--handle-key driver key)))
-                             (brltty-connection-error
-                              (setq connection-error err)
-                              nil))))
-        (setf (slot-value driver 'brltty-connection) connection)
-        (when connection-error
-          (signal (car connection-error) (cdr connection-error)))))
+    (when (or (eq connection 'uninitialized)
+              (> (- (float-time) (slot-value driver 'brltty-last-try-time))
+                 speechd-brltty--retry-time))
+      (let ((first-time (eq connection 'uninitialized)))
+        (if dont-open
+            (setq connection nil)
+          (lexical-let ((driver driver))
+            (setq connection (condition-case err 
+                                 (brltty-open
+                                  nil nil
+                                  (lambda (key)
+                                    (speechd-brltty--handle-key driver key)))
+                               (brltty-connection-error
+                                (setq connection-error err)
+                                nil))))
+          (setf (slot-value driver 'brltty-connection) connection)
+          (when (and connection-error first-time)
+            (signal (car connection-error) (cdr connection-error))))))
     connection))
 
 (defun speechd-brltty--display (manager message &optional scroll)
@@ -220,7 +225,8 @@ is not recommended to assign or call user commands here."
 (defclass speechd-brltty-driver (speechd-braille-emu-driver)
   ((name :initform 'brltty)
    (manager :initform (lambda () (speechd-brltty--create-manager)))
-   (brltty-connection :initform 'uninitialized)))
+   (brltty-connection :initform 'uninitialized)
+   (brltty-last-try-time :initform 0)))
 
 (defmethod speechd-braille--make-message
     ((driver speechd-braille-emu-driver) text message)
