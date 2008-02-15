@@ -229,8 +229,9 @@ is not recommended to assign or call user commands here."
 (defmethod speechd.set ((driver speechd-brltty-driver) parameter value)
   (cond
    ((eq parameter 'brltty-accept-keys)
-    (funcall (if value 'brltty-accept-keys 'brltty-ignore-keys)
-             (speechd-brltty--connection driver)))
+    (let ((connection (speechd-brltty--connection driver)))
+      (when connection
+        (funcall (if value 'brltty-accept-keys 'brltty-ignore-keys) connection))))
    (t
     (call-next-method))))
 
