@@ -63,12 +63,12 @@
 (defmethod speechd.key ((driver speechd-ssip-driver) key)
   (speechd-say-key key))
 
+(defconst speechd-ssip--parameter-names (mapcar 'car speechd--parameter-names))
 (defmethod speechd.set ((driver speechd-ssip-driver) parameter value)
-  (cond
-   ((eq parameter 'priority)
+  (when (eq parameter 'priority)
     (setq parameter 'message-priority))
-   ((memq parameter speechd--parameter-names)
-    (speechd--set-parameter parameter value))))
+  (when (memq parameter speechd-ssip--parameter-names)
+    (speechd--set-parameter parameter value)))
 
 (defmethod speechd.shutdown ((driver speechd-ssip-driver))
   (speechd-close-all))
