@@ -572,8 +572,9 @@ If the prefix argument is given, output the line only from the current point
 to the end of the line."
   (interactive "P")
   (speechd-speak--interactive
-   (let ((beg (if rest-only (point) (line-beginning-position)))
-         (end (line-end-position)))
+   (let* ((inhibit-field-text-motion t)
+          (beg (if rest-only (point) (line-beginning-position)))
+          (end (line-end-position)))
      (when speechd-speak-separator-regexp
        (save-match-data
          (save-excursion
