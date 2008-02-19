@@ -87,8 +87,9 @@ is not recommended to assign or call user commands here."
   (let ((connection (slot-value driver 'brltty-connection))
         (connection-error nil))
     (when (or (eq connection 'uninitialized)
-              (> (- (float-time) (slot-value driver 'brltty-last-try-time))
-                 speechd-brltty--retry-time))
+              (and (not connection)
+                   (> (- (float-time) (slot-value driver 'brltty-last-try-time))
+                      speechd-brltty--retry-time)))
       (let ((first-time (eq connection 'uninitialized)))
         (if dont-open
             (setq connection nil)
