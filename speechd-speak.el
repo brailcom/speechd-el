@@ -437,7 +437,8 @@ This variable is reset to nil before each command in pre-command-hook.")
                             result)
                           ;; buffer name
                           (let ((buffer-name (buffer-name)))
-                            (assoc-if (lambda (key) (string-match key buffer-name))
+                            (assoc-if (lambda (key)
+                                        (when (stringp key) (string-match key buffer-name)))
                                       speechd-speak-connections))
                           ;; minibuffer
                           (and (speechd-speak--in-minibuffer-p)
