@@ -10,7 +10,7 @@
 @copying
 This manual is for speechd-el, @value{VERSION}.
 
-Copyright @copyright{} 2003, 2004, 2005, 2006, 2007 Brailcom, o.p.s.
+Copyright @copyright{} 2003, 2004, 2005, 2006, 2007, 2008 Brailcom, o.p.s.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1461,7 +1461,7 @@ a list, representing a function call that should return a
 non-@code{nil} value if and only if the element should be applied
 
 @item
-buffer name 
+regular expression matching desired buffer names
 
 @item
 the symbol @code{:minibuffer}, representing minibuffers

@@ -269,7 +269,7 @@ created."
                         (const :tag "Non-buffers" nil)
                         (const :tag "Minibuffer" :value :minibuffer)
                         (symbol :tag "Major mode" :value fundamental-mode)
-                        (string :tag "Buffer name" :value "")
+                        (regexp :tag "Buffer name regexp" :value "")
                         (restricted-sexp :tag "Function call"
                                          :match-alternatives (listp)))
                 :value-type (string :tag "Connection name"))
@@ -436,7 +436,9 @@ This variable is reset to nil before each command in pre-command-hook.")
                                 (setq specs (cdr specs))))
                             result)
                           ;; buffer name
-                          (assoc (buffer-name) speechd-speak-connections)
+                          (let ((buffer-name (buffer-name)))
+                            (assoc-if (lambda (key) (string-match key buffer-name))
+                                      speechd-speak-connections))
                           ;; minibuffer
                           (and (speechd-speak--in-minibuffer-p)
                                (assoc :minibuffer speechd-speak-connections))
