@@ -1,6 +1,6 @@
 ;;; speechd-braille.el --- Emacs braille emulator driver
 
-;; Copyright (C) 2004, 2005, 2006 Brailcom, o.p.s.
+;; Copyright (C) 2004, 2005, 2006, 2008 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -44,11 +44,9 @@
 (defvar speechd-braille--vetoed-icons '("message"))
 
 
-(defconst speechd-braille--empty-message '("" nil))
+(defvar speechd-braille--paused-messages '())
 
-(defvar speechd-braille--paused-message speechd-braille--empty-message)
-
-(defvar speechd-braille--last-message speechd-braille--empty-message)
+(defvar speechd-braille--last-message nil)
 
 (defvar speechd-braille--last-message-time 0)
 
@@ -81,11 +79,12 @@
   (setq speechd-braille--display-timer nil))
 
 (defun speechd-braille--pause (manager)
-  (setq speechd-braille--paused-message speechd-braille--last-message))
+  (push speechd-braille--last-message speechd-braille--paused-messages))
 
 (defun speechd-braille--resume (manager)
-  (speechd-braille--display manager speechd-braille--paused-message)
-  (setq speechd-braille--paused-message speechd-braille--empty-message))
+  (let ((message (pop speechd-braille--paused-messages)))
+    (when message
+      (speechd-braille--display manager message))))
 
 (defun speechd-braille--busy (manager)
   (and speechd-braille--display-timer
