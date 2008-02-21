@@ -104,7 +104,8 @@ is not recommended to assign or call user commands here."
                                 nil))))
           (setf (slot-value driver 'brltty-connection) connection)
           (when (and connection-error first-time)
-            (signal (car connection-error) (cdr connection-error))))))
+            (signal (car connection-error) (cdr connection-error)))
+          (speechd-brltty--ignore-most-keys connection))))
     connection))
 
 (defun speechd-brltty--display (manager message &optional scroll)
@@ -219,6 +220,16 @@ is not recommended to assign or call user commands here."
   "Insert BRLTTY function handling general character KEY event."
   `(lambda (driver) (speechd-brltty-command-key driver ,key)))
 
+(defun speechd-brltty--ignore-most-keys (connection)
+  (brltty-ignore-keys connection)
+  (brltty-accept-keys connection
+                      (mapcar (lambda (key-spec)
+                                (let ((key (car key-spec)))
+                                  (when (numberp key)
+                                    (setq key (list 0 0 key)))
+                                  key))
+                              speechd-braille-key-functions)))
+
 
 ;;; Driver definition, methods and registration
 
@@ -238,7 +249,7 @@ is not recommended to assign or call user commands here."
    ((eq parameter 'brltty-accept-keys)
     (let ((connection (speechd-brltty--connection driver)))
       (when connection
-        (funcall (if value 'brltty-accept-keys 'brltty-ignore-keys) connection))))
+        (funcall (if value 'brltty-accept-keys 'speechd-brltty--ignore-most-keys) connection))))
    (t
     (call-next-method))))
 

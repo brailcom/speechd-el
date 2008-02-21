@@ -1704,7 +1704,7 @@ Only single characters are allowed in the keymap.")
 (speechd-speak--command-feedback indent-for-tab-command after
   (speechd-speak--speak-current-column))
 
-(defvar speechd-speak--handle-braille-keys t)
+(defvar speechd-speak--handle-braille-keys nil)
 (defun speechd-speak-toggle-braille-keys ()
   (interactive)
   (speechd-out-set 'brltty-accept-keys (not speechd-speak--handle-braille-keys))

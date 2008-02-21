@@ -1598,6 +1598,25 @@ function assigned in @code{speechd-braille-key-functions}.  This is
 useful to figure out the Braille key codes.
 @end vtable
 
+With BrlTTY 3.8 and higher BrlTTY can handle many braille keys itself
+in X environment.  So speechd-el doesn't try to handle most keys
+itself by default.  Instead it handles only keys assigned in
+@code{speechd-braille-key-functions}.  If this is a problem, typically
+when looking for braille key codes, the following command can be
+useful:
+
+@table @kbd
+@item C-e C-b k
+@kindex C-e C-b k
+@findex speechd-speak-toggle-braille-keys
+Toggle handling braille keys by speechd-el.  If BrlTTY handles the
+keys (this is the default behavior), speechd-el receives only keys
+which are assigned to commands in
+@code{speechd-braille-key-functions}.  If speechd-el handles the keys,
+then BrlTTY sends all the pressed keys to speechd-el without
+processing them itself.
+@end table
+
 @node Modes, Debugging, Braille Display Keys, Customization
 @subsection Minor mode hooks
 @cindex minor modes
