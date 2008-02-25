@@ -222,13 +222,14 @@ is not recommended to assign or call user commands here."
 
 (defun speechd-brltty--ignore-most-keys (connection)
   (brltty-ignore-keys connection)
-  (brltty-accept-keys connection
-                      (mapcar (lambda (key-spec)
-                                (let ((key (car key-spec)))
-                                  (when (numberp key)
-                                    (setq key (list 0 0 key)))
-                                  key))
-                              speechd-braille-key-functions)))
+  (when speechd-braille-key-functions
+    (brltty-accept-keys connection
+                        (mapcar (lambda (key-spec)
+                                  (let ((key (car key-spec)))
+                                    (when (numberp key)
+                                      (setq key (list 0 0 key)))
+                                    key))
+                                speechd-braille-key-functions))))
 
 
 ;;; Driver definition, methods and registration
