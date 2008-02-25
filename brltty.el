@@ -529,17 +529,19 @@ from 0."
 
 (defun brltty-ignore-keys (connection)
   "Let BrlTTY handle all keys itself."
-  (brltty--send-packet connection nil 'ignorekeyranges '(integer64 0 0 0) '(integer64 #xFFFF #xFFFFFF #xFFFFFF)))
+  (when connection
+    (brltty--send-packet connection nil 'ignorekeyranges '(integer64 0 0 0) '(integer64 #xFFFF #xFFFFFF #xFFFFFF))))
 
 (defun brltty-accept-keys (connection &optional keys)
   "Let BrlTTY send all keys to us.
 If optional argument KEYS is non-nil, allow to send us only the given keys.
 Then KEYS must be a list of key codes represented by integer triplets."
-  (let ((key-ranges (if keys
-                        (mapcar #'(lambda (key) (cons (cons 'integer64 key) (cons 'integer64 key))) keys)
-                      (list (cons '(integer64 0 0 0) '(integer64 #xFFFF #xFFFFFF #xFFFFFF))))))
-    (dolist (range key-ranges)
-      (brltty--send-packet connection nil 'acceptkeyranges (car range) (cdr range)))))
+  (when connection
+    (let ((key-ranges (if keys
+                          (mapcar #'(lambda (key) (cons (cons 'integer64 key) (cons 'integer64 key))) keys)
+                        (list (cons '(integer64 0 0 0) '(integer64 #xFFFF #xFFFFFF #xFFFFFF))))))
+      (dolist (range key-ranges)
+        (brltty--send-packet connection nil 'acceptkeyranges (car range) (cdr range))))))
 
 
 ;;; Announce
