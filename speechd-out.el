@@ -1,6 +1,6 @@
 ;;; speechd-out.el --- Alternative output interface
 
-;; Copyright (C) 2004, 2005, 2006 Brailcom, o.p.s.
+;; Copyright (C) 2004, 2005, 2006, 2008 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -102,13 +102,13 @@
                  (cons (car list) (replace (cdr list)))))))
       (setq speechd-out--drivers (replace speechd-out--drivers)))))
 
-(defmethod speechd.cancel ((driver speechd-driver)) all)
+(defmethod speechd.cancel ((driver speechd-driver) all))
 
-(defmethod speechd.stop ((driver speechd-driver)) all)
+(defmethod speechd.stop ((driver speechd-driver) all))
 
-(defmethod speechd.pause ((driver speechd-driver)) all)
+(defmethod speechd.pause ((driver speechd-driver) all))
 
-(defmethod speechd.resume ((driver speechd-driver)) all)
+(defmethod speechd.resume ((driver speechd-driver) all))
 
 (defmethod speechd.repeat ((driver speechd-driver)))
 
