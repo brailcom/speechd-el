@@ -1,6 +1,6 @@
 ;;; speechd-common.el --- Code common to all parts of speechd-el
 
-;; Copyright (C) 2004, 2005 Brailcom, o.p.s.
+;; Copyright (C) 2004, 2005, 2008 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -23,7 +23,8 @@
 
 
 (defgroup speechd-el ()
-  "Speechd-el alternative output system.")
+  "Speechd-el alternative output system."
+  :group 'environment)
 
 (defcustom speechd-default-text-priority 'text
   "Default Speech Dispatcher priority of sent texts."
