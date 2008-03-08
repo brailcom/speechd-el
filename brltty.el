@@ -439,22 +439,21 @@ respectively."
         (if (> version 7)
             (progn
               (unless (member version brltty--supported-protocol-versions)
-                (setq version (apply max brltty--supported-protocol-versions)))
-              (setq auth-methods (brltty--send-packet connection 'auth
-                                                      'version version))
-              (cond
-               ((memq 'none auth-methods)
-                (brltty--send-packet
-                 connection 'ack 'auth
-                 (car (rassoc 'none brltty--authentication-codes))))
-               ((memq 'key auth-methods)
-                (brltty--send-packet
-                 connection 'ack 'auth
-                 (car (rassoc 'key brltty--authentication-codes))
-                 (brltty--authentication-key)))
-               (t
-                (signal 'brltty-connection-error
-                        "No supported BrlAPI authentication method"))))
+                (setq version (apply 'max brltty--supported-protocol-versions)))
+              (let ((auth-methods (brltty--send-packet connection 'auth 'version version)))
+                (cond
+                 ((memq 'none auth-methods)
+                  (brltty--send-packet
+                   connection 'ack 'auth
+                   (car (rassoc 'none brltty--authentication-codes))))
+                 ((memq 'key auth-methods)
+                  (brltty--send-packet
+                   connection 'ack 'auth
+                   (car (rassoc 'key brltty--authentication-codes))
+                   (brltty--authentication-key)))
+                 (t
+                  (signal 'brltty-connection-error
+                          "No supported BrlAPI authentication method")))))
           ;; No server initial message, assume protocol version 7 (older
           ;; versions are not supported)
           (let ((answer (brltty--send-packet

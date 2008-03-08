@@ -210,7 +210,7 @@ is not recommended to assign or call user commands here."
 
 (defun speechd-brltty-cancel (driver)
   "Discard all messages from the display queue."
-  (speechd.cancel driver all))
+  (speechd.cancel driver 'all))
 
 (defun speechd-brltty-command-key (driver key)
   "Put given key to the command queue."
