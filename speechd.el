@@ -117,6 +117,10 @@ is a symbol under which the voice will be accessed and PARAMETERS is an alist
 of parameter identifiers and parameter values.  Valid parameter names are the
 following symbols: language, gender, age, style, name, rate, pitch, volume,
 punctuation-mode, capital-character-mode, message-priority, output-module.
+Please note that any parameter entry present will change the corresponding
+parameter, even if the parameter value is nil or empty; if you don't want to
+change the parameter in any way by the voice, don't put it to the list (and
+don't enable its entry in customize).
 
 Name is a string identifying Speech Dispatcher voice name.  If it is not given,
 the parameters gender, age, and style are considered to select a Speech

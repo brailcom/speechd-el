@@ -1365,7 +1365,11 @@ identifiers and parameter values.  Valid parameter names are the
 following symbols: @code{language}, @code{gender}, @code{age},
 @code{style}, @code{name}, @code{rate}, @code{pitch}, @code{volume},
 @code{punctuation-mode}, @code{capital-character-mode},
-@code{message-priority}, @code{output-module}.
+@code{message-priority}, @code{output-module}.  Please note that any
+parameter entry present will change the corresponding parameter, even
+if the parameter value is @code{nil} or empty; if you don't want to
+change the parameter in any way by the voice, don't put it to the list
+(and don't enable its entry in customize).
 
 @code{name} value is a string identifying Speech Dispatcher voice
 name.  If it is not given, the parameters @code{gender}, @code{age},
