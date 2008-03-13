@@ -1745,6 +1745,22 @@ Add the following code to your @file{~/.emacs}:
     ad-do-it))
 @end lisp
 
+@cindex TAB characters
+@item
+@emph{How to avoid excessive occurrences of TAB (C-i) and NL (C-j)
+characters on a Braille display in some buffers
+(e.g. @code{*Completion*} buffer)?}
+
+Braille displays generally display exact content, which is usually
+what you want.  But sometimes TAB characters are inserted to Emacs
+buffers for the sole purpose of visual formatting.  You can tell Emacs
+to suppress this behavior when possible by adding the following code
+to your @file{~/.emacs}:
+
+@lisp
+(setq-default indent-tabs-mode nil)
+@end lisp
+
 @cindex repeated reading
 @item
 @emph{In some situations, when a modified text is read after
