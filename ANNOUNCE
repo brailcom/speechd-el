@@ -1,7 +1,7 @@
-speechd-el 2.2 released
+speechd-el 2.3 released
 =======================
 
-The Free(b)soft project is pleased to announce speechd-el 2.2.
+The Free(b)soft project is pleased to announce speechd-el 2.3.
 
 * What is speechd-el?
 
@@ -44,23 +44,20 @@ The Free(b)soft project is pleased to announce speechd-el 2.2.
   Emacspeak) can be found on its web page, see
   http://www.freebsoft.org/speechd-el .
 
-* What is new in the 2.2 version?
+* What is new in the 2.3 version?
 
-  - Support for new BrlAPI protocol introduced in BRLTTY 3.8.
+  - Buffer names in speechd-speak-connections are regexps now.
 
-  - New BRLTTY key handler for general character input.
+  - Braille key handling improvements.
 
-  - New command speechd-set-synthesizer-voice to select synthesizer
-    voices directly.
-
-  - Moved to GPL3.
+  - Automatic restarts of broken SSIP and BrlAPI connections.
 
   See the NEWS file for more details.
 
 * Where to get it?
   
   You can get the distribution tarball of the released version from
-  http://www.freebsoft.org/pub/projects/speechd-el/speechd-el-2.2.tar.gz .
+  http://www.freebsoft.org/pub/projects/speechd-el/speechd-el-2.3.tar.gz .
 
   The home page of the project is http://www.freebsoft.org/speechd-el .
 

@@ -1,5 +1,14 @@
 User-visible changes to speechd-el:
 
+* Changes in speechd-el 2.3
+
+** Buffer names in speechd-speak-connections are regexps now.
+
+** Braille key handling improvements.
+
+** Automatic restarts of broken SSIP and BrlAPI connections.
+
+
 * Changes in speechd-el 2.2
 
 ** Support for new BrlAPI protocol introduced in BRLTTY 3.8.
