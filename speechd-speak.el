@@ -44,6 +44,17 @@
   "Speechd-el user client customization."
   :group 'speechd-el)
 
+(defcustom speechd-speak-echo 'character
+  "Symbol determining how to read typed characters.
+It can have one of the following values:
+`character' -- read characters when they are typed
+`word' -- read only whole words when they are written
+`nil' -- don't echo anything on typing"
+  :type '(choice (const :tag "Characters" character)
+                 (const :tag "Words" word)
+                 (const :tag "Nothing" nil))
+  :group 'speechd-speak)
+
 (defcustom speechd-speak-deleted-char t
   "If non-nil, speak the deleted char, otherwise speak the adjacent char."
   :type 'boolean
@@ -1310,7 +1321,9 @@ Only single characters are allowed in the keymap.")
 (defun speechd-speak--pre-command-hook ()
   (condition-case err
       (progn
-        (unless (memq this-command speechd-speak--dont-cancel-on-commands)
+        (unless (or (memq this-command speechd-speak--dont-cancel-on-commands)
+                    (and (eq this-command 'self-insert-command)
+                         (eq speechd-speak-echo 'word)))
           (speechd-out-cancel))
         (speechd-speak--set-command-start-info)
         (setq speechd-speak--last-report "")
@@ -1468,10 +1481,18 @@ Only single characters are allowed in the keymap.")
                                    (string-match "^.*$" text)
                                    (match-string 0 text))))))))
     (when (and self-insert
+               speechd-speak-echo
                (not (memq 'self-insert-command
                           speechd-speak-ignore-command-keys)))
-      (speechd-speak--with-updated-text
-        (speechd-speak--command-keys 'notification)))))
+      (case speechd-speak-echo
+        (word
+         (let ((point (point)))
+           (when (and (> point 1)
+                      (not (save-match-data (string-match "\\w" (buffer-substring (1- point) point)))))
+             (speechd-speak--text (buffer-substring (save-excursion (forward-word -1) (point)) point)))))
+        (character
+         (speechd-speak--with-updated-text
+          (speechd-speak--command-keys 'notification)))))))
 
 (speechd-speak--post-defun completions t t
   ;; *Completions* buffer

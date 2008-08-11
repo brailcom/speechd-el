@@ -988,6 +988,20 @@ Default priority of typed keys.
 @subsection Basic Customization of Speaking
 
 @vtable @code
+@item speechd-speak-echo
+@cindex echoing
+Symbol determining how to read typed characters.  It can have one of
+the following values:
+
+@table @code
+@item character
+Read characters when they are typed.
+@item word
+Read only whole words once they are written.
+@item nil
+Don't echo anything on typing.
+@end table
+
 @item speechd-speak-deleted-char
 @cindex deletions
 Defines which character to speak when deleting a character.  If
