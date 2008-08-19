@@ -19,9 +19,38 @@ Installation:
   http://cedet.sourceforge.net/eieio.shtml or perhaps from your favorite
   operating system distribution.
 
-- Copy the speechd-el *.el files somewhere to your Emacs load path.
+- Copy the speechd-el *.el files somewhere to your Emacs load path.  This may
+  be typically the directory /usr/local/share/emacs/site-lisp/.
 
-- If you like, byte compile them.
+- It is recommended to byte compile the *.el files, otherwise you may
+  experience performance problems.  You can compile the files by running
+
+    make compile
+
+  Then copy the resulting *.elc files to your Emacs path as described in the
+  previous step.
+
+- Make sure all the installed files are world-readable at their target
+  location, e.g.
+
+    cd /usr/local/share/emacs/site-lisp
+    chmod 755 *.el *.elc
+
+- If you want to build online manual, run
+
+    make info
+
+  You need makeinfo from Texinfo package for this.  Then you can install the
+  resulting *.info files by copying them to the location where *.info files
+  reside on your system (typically /usr/share/info) and editing `dir' file
+  there.  Alternatively you can open the manual directly in Emacs using
+  `C-u C-h i'.
+
+  In case you'd like to print the manual, run
+
+    make pdf
+
+  You need Texinfo to produce PDF version of the manual.
 
 - Install the `speechd-log-extractor' script somewhere to your shell PATH (this
   step is optional, the script is used only for bug reporting).
