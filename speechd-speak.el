@@ -587,7 +587,8 @@ to the end of the line."
   (interactive "P")
   (speechd-speak--interactive
    (let* ((inhibit-field-text-motion t)
-          (beg (if rest-only (point) (line-beginning-position)))
+          (in-isearch-p (and isearch-mode (not (called-interactively-p))))
+          (beg (if (and rest-only (not in-isearch-p)) (point) (line-beginning-position)))
           (end (line-end-position)))
      (when speechd-speak-separator-regexp
        (save-match-data
@@ -842,7 +843,18 @@ FUNCTION is invoked interactively."
 
 (defun* speechd-speak--previous-property-change (&optional (point (point))
                                                            (limit (point-min)))
-  (previous-char-property-change point limit))
+  ;; Let's be careful about isearch overlays not to cut texts in isearch
+  (let* ((i-overlays (and isearch-mode
+                          (intersection (overlays-at (- point 2))
+                                        (append (list isearch-overlay)
+                                                isearch-opened-overlays
+                                                isearch-lazy-highlight-overlays))))
+         (i-overlays-start (1- (apply #'min (1+ point) (mapcar #'overlay-start i-overlays)))))
+    (when (>= i-overlays-start limit)
+      ;; This may omit other property borders as well.  But in isearch we
+      ;; should retain enough context anyway.
+      (setq point i-overlays-start))
+    (previous-char-property-change point limit)))
 
 (defmacro speechd-speak--with-updated-text (&rest body)
   `(speechd-out-with-updated-text (speechd-speak--updated-text)
@@ -1697,10 +1709,6 @@ Only single characters are allowed in the keymap.")
 
 ;;; Other functions and packages
 
-
-(speechd-speak--command-feedback (isearch-search isearch-delete-char) after
-  (speechd-speak--text isearch-string)
-  (speechd-speak-read-line))
 
 (speechd-speak--command-feedback (occur-prev occur-next
 				  occur-mode-goto-occurence)
