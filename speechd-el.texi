@@ -686,8 +686,8 @@ Commands affecting basic parameters of the text-to-speech process:
 @kindex C-e d l
 @findex speechd-speak-set-language
 @cindex language
-Set default language of the connection.  Specify it as an ISO 639
-language code.
+Set default language of the connection.  Specify it as an RFC 1766
+language code (e.g. @code{en}, @code{cs}, etc.).
 
 @item C-e d .
 @kindex C-e d .
@@ -1321,7 +1321,7 @@ the variable @code{speechd-language}.  Each time speechd-el is about
 to speak a piece of text, it checks the variable for the language code
 and if it is non-@code{nil}, it speaks the text in the corresponding
 language.  The non-@code{nil} value must be a string of the RFC 1766
-language code.
+language code (e.g. @code{en}, @code{cs}, etc.).
 
 Most often you will probably want to set the variable in a particular
 file, see @ref{File Variables,,,emacs,GNU Emacs Manual}, or as a
@@ -1348,9 +1348,10 @@ current input method:
 Alist mapping input methods to languages.  Each of the alist elements
 is of the form @code{(@var{input-method-name} . @var{language})},
 where @var{input-method-name} is a string naming the input method and
-@var{language} is an ISO language code accepted by SSIP.  If the
-current input method is present in the alist, the corresponding
-language is selected unless overridden by another setting.
+@var{language} is an RFC 1766 language code accepted by SSIP
+(e.g. @code{en}, @code{cs}, etc.).  If the current input method is
+present in the alist, the corresponding language is selected unless
+overridden by another setting.
 @end vtable
 
 @node Voices, Connection Voices, Languages, Customization
