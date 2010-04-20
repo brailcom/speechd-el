@@ -456,7 +456,7 @@ current voice."
 (defun speechd--use-spdsend ()
   (and (not speechd--advanced-apo) speechd-spdsend))
 
-(defun speechd--open-connection (host port)
+(defun speechd--open-connection (method host port socket-name)
   (if (speechd--use-spdsend)
       (let* ((answer (speechd--call-spdsend
                       (list "--open" host (format "%d" port))))
@@ -464,7 +464,17 @@ current voice."
         (when (and alen (> alen 1))
           (setq answer (substring answer 0 (1- alen))))
         answer)
-    (let ((process (open-network-stream "speechd" nil host port)))
+    (let ((process
+	   (if (string= method "unix-socket")
+	       (make-network-process
+		:name "speechd" :family "local"
+		:remote (or socket-name
+			 (concat (or (getenv "TMPDIR") "/tmp") "/" "speechd-sock-"
+				(number-to-string (user-uid)))))
+	     (if (string= method "inet-socket")
+		 (open-network-stream "speechd" nil host port))
+	     )
+	   ))
       (when process
         (set-process-coding-system process
                                    speechd--coding-system
@@ -517,14 +527,21 @@ current voice."
      "Error on opening Speech Dispatcher connection")
 
 ;;;###autoload
-(defun* speechd-open (&optional host port &key quiet force-reopen)
-  "Open connection to Speech Dispatcher running on the given host and port.
+(defun* speechd-open (&optional method &key host port socket-name quiet force-reopen)
+  "Open connection to Speech Dispatcher using the given method.
 If the connection corresponding to the current `speechd-client-name' value
 already exists, close it and reopen again, with the same connection parameters.
 
-The optional arguments HOST and PORT identify the speechd server location.
-They can override default values stored in the variables `speechd-host' and
-`speechd-port'.
+Available methods are 'unix-socket' and 'inet-socket' for communication
+over UNIX sockets and TCP sockets respectively. Default is 'unix-socket'.
+
+The key arguments HOST and PORT are only relevant to the 'inet-socket' communication
+method and identify the speechd server location. They can override default values stored
+in the variables `speechd-host' and `speechd-port'.
+
+The SOCKET-NAME argument is only relevant to the 'unix-socket' communication
+method and can override the default path to the Dispatcher's unix socket for
+the given user.
 
 If the key argument QUIET is non-nil, don't report failures and quit silently.
 If the key argument FORCE-REOPEN is non-nil, try to reopen an existent
@@ -560,7 +577,7 @@ Return the opened connection on success, nil otherwise."
 		  ((or (not connection)
 		       (not (speechd--connection-failure-p connection))
 		       force-reopen)
-                   (condition-case err (speechd--open-connection host port)
+                   (condition-case err (speechd--open-connection (or method "unix-socket") host port socketname)
                      (file-error
                       (setq connection-error err)
                       nil)))
