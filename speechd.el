@@ -50,6 +50,14 @@
   "SSIP interface."
   :group 'speechd-el)
 
+(defcustom speechd-connection-method "unix-socket"
+  "Connection method to Speech Dispatcher. Possible values are 'unix-socket'
+for unix style system sockets and 'inet-socket' for inet sockets on
+a given host and port (see speechd-host and speechd-port variables)."
+  :type 'string
+  :group 'speechd)
+
+
 (defcustom speechd-host (or (getenv "SPEECHD_HOST") "localhost")
   "Name of the default host running speechd to connect to."
   :type 'string
@@ -550,7 +558,8 @@ connection even if it previously failed.
 Return the opened connection on success, nil otherwise."
   (interactive)
   (let ((connection (gethash speechd-client-name speechd--connections)))
-    (let ((host (or host speechd-host))
+    (let ((method (or method speechd-connection-method))
+	  (host (or host speechd-host))
 	  (port (or port speechd-port)))
       (when connection
 	(speechd--close-connection connection)
@@ -577,7 +586,7 @@ Return the opened connection on success, nil otherwise."
 		  ((or (not connection)
 		       (not (speechd--connection-failure-p connection))
 		       force-reopen)
-                   (condition-case err (speechd--open-connection (or method "unix-socket") host port socketname)
+                   (condition-case err (speechd--open-connection (or method "unix-socket") host port socket-name)
                      (file-error
                       (setq connection-error err)
                       nil)))
