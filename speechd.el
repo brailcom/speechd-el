@@ -464,7 +464,7 @@ current voice."
 (defun speechd--use-spdsend ()
   (and (not speechd--advanced-apo) speechd-spdsend))
 
-(defun speechd--open-connection (method host port socket-name)
+(defun speechd--open-connection (method host port socket-name autospawn)
   (if (speechd--use-spdsend)
       (let* ((answer (speechd--call-spdsend
                       (list "--open" host (format "%d" port))))
@@ -477,8 +477,9 @@ current voice."
 	       (make-network-process
 		:name "speechd" :family "local"
 		:remote (or socket-name
-			 (concat (or (getenv "TMPDIR") "/tmp") "/" "speechd-sock-"
-				(number-to-string (user-uid)))))
+			    (or (getenv "SPEECHD_SOCK")
+				(expand-file-name "~/.speech-dispatcher/speechd.sock"))
+			    ))
 	     (if (string= method "inet-socket")
 		 (open-network-stream "speechd" nil host port))
 	     )
