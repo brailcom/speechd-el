@@ -80,6 +80,13 @@ variable is nil, Emacs talks to an SSIP server (Speech Dispatcher) directly."
                  (string :tag "spdsend binary"))
   :group 'speechd)
 
+(defcustom speechd-autospawn t
+  "If enabled, Emacs will attempt to automatically start the Speech Dispatcher server
+ it is not running already."
+  :type '(choice (const :tag "Enable" t)
+                 (const :tag "Disable" nil))
+  :group 'speechd)
+
 (defcustom speechd-timeout 3
   "Number of seconds to wait for speechd response."
   :type 'integer
@@ -464,14 +471,14 @@ current voice."
 (defun speechd--use-spdsend ()
   (and (not speechd--advanced-apo) speechd-spdsend))
 
-(defun speechd--open-connection (method host port socket-name autospawn)
+(defun speechd--open-connection (method host port socket-name)
   (if (speechd--use-spdsend)
       (let* ((answer (speechd--call-spdsend
-                      (list "--open" host (format "%d" port))))
-             (alen (and answer (length answer))))
-        (when (and alen (> alen 1))
-          (setq answer (substring answer 0 (1- alen))))
-        answer)
+		      (list "--open" host (format "%d" port))))
+	     (alen (and answer (length answer))))
+	(when (and alen (> alen 1))
+	  (setq answer (substring answer 0 (1- alen))))
+	answer)
     (let ((process
 	   (if (string= method "unix-socket")
 	       (make-network-process
@@ -485,15 +492,15 @@ current voice."
 	     )
 	   ))
       (when process
-        (set-process-coding-system process
-                                   speechd--coding-system
-                                   (if speechd--advanced-apo
-                                       speechd--coding-system
-                                     'raw-text))
-        (if (fboundp 'set-process-query-on-exit-flag)
-            (set-process-query-on-exit-flag process nil)
-          (process-kill-without-query process))
-        (set-process-filter process #'speechd--process-filter))
+	(set-process-coding-system process
+				   speechd--coding-system
+				   (if speechd--advanced-apo
+				       speechd--coding-system
+				     'raw-text))
+	(if (fboundp 'set-process-query-on-exit-flag)
+	    (set-process-query-on-exit-flag process nil)
+	  (process-kill-without-query process))
+	(set-process-filter process #'speechd--process-filter))
       process)))
 
 (defun speechd--close-connection (connection)
@@ -566,6 +573,9 @@ Return the opened connection on success, nil otherwise."
 	(speechd--close-connection connection)
 	(setq host (speechd--connection-host connection)
 	      port (speechd--connection-port connection)))
+      (if speechd-autospawn
+	  (if (= 0 (call-process "speech-dispatcher" nil nil nil "--spawn"))
+	      (sleep-for 1)))
       (let* ((name speechd-client-name)
              (voice (cdr (assoc name speechd-connection-voices)))
              (default-parameters (append
