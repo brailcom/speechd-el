@@ -50,13 +50,13 @@
   "SSIP interface."
   :group 'speechd-el)
 
-(defcustom speechd-connection-method "unix-socket"
-  "Connection method to Speech Dispatcher. Possible values are 'unix-socket'
-for unix style system sockets and 'inet-socket' for inet sockets on
-a given host and port (see speechd-host and speechd-port variables)."
-  :type 'string
+(defcustom speechd-connection-method 'unix-socket
+  "Connection method to Speech Dispatcher.
+Possible values are `unix-socket' for unix style system sockets
+and `inet-socket' for inet sockets on a given host and port (see
+speechd-host and speechd-port variables)."
+  :type 'symbol
   :group 'speechd)
-
 
 (defcustom speechd-host (or (getenv "SPEECHD_HOST") "localhost")
   "Name of the default host running speechd to connect to."
@@ -81,10 +81,10 @@ variable is nil, Emacs talks to an SSIP server (Speech Dispatcher) directly."
   :group 'speechd)
 
 (defcustom speechd-autospawn t
-  "If enabled, Emacs will attempt to automatically start the Speech Dispatcher server
- it is not running already."
-  :type '(choice (const :tag "Enable" t)
-                 (const :tag "Disable" nil))
+  "If non-nil, Emacs will attempt to automatically start Speech Dispatcher.
+This means that if speechd-el gets a speech request and it determines that
+the Speech Dispatcher server is not running already, it will launch it first."
+  :type 'string
   :group 'speechd)
 
 (defcustom speechd-timeout 3
@@ -474,23 +474,23 @@ current voice."
 (defun speechd--open-connection (method host port socket-name)
   (if (speechd--use-spdsend)
       (let* ((answer (speechd--call-spdsend
-		      (list "--open" host (format "%d" port))))
-	     (alen (and answer (length answer))))
+                      (list "--open" host (format "%d" port))))
+             (alen (and answer (length answer))))
 	(when (and alen (> alen 1))
 	  (setq answer (substring answer 0 (1- alen))))
 	answer)
     (let ((process
-	   (if (string= method "unix-socket")
-	       (make-network-process
-		:name "speechd" :family "local"
+           (cond
+            ((eq method 'unix-socket)
+             (make-network-process
+              :name "speechd" :family "local"
 		:remote (or socket-name
 			    (or (getenv "SPEECHD_SOCK")
-				(expand-file-name "~/.speech-dispatcher/speechd.sock"))
-			    ))
-	     (if (string= method "inet-socket")
-		 (open-network-stream "speechd" nil host port))
-	     )
-	   ))
+				(expand-file-name
+				 "~/.speech-dispatcher/speechd.sock")))))
+            ((eq method 'inet-socket)
+             (open-network-stream "speechd" nil host port))
+            (t (error "Invalid communication method: `%s'" method)))))
       (when process
 	(set-process-coding-system process
 				   speechd--coding-system
@@ -551,9 +551,10 @@ already exists, close it and reopen again, with the same connection parameters.
 Available methods are 'unix-socket' and 'inet-socket' for communication
 over UNIX sockets and TCP sockets respectively. Default is 'unix-socket'.
 
-The key arguments HOST and PORT are only relevant to the 'inet-socket' communication
-method and identify the speechd server location. They can override default values stored
-in the variables `speechd-host' and `speechd-port'.
+The key arguments HOST and PORT are only relevant to the 'inet-socket'
+communication method and identify the speechd server location. They can
+override default values stored in the variables `speechd-host' and
+`speechd-port'.
 
 The SOCKET-NAME argument is only relevant to the 'unix-socket' communication
 method and can override the default path to the Dispatcher's unix socket for
@@ -573,9 +574,9 @@ Return the opened connection on success, nil otherwise."
 	(speechd--close-connection connection)
 	(setq host (speechd--connection-host connection)
 	      port (speechd--connection-port connection)))
-      (if speechd-autospawn
-	  (if (= 0 (call-process "speech-dispatcher" nil nil nil "--spawn"))
-	      (sleep-for 1)))
+      (when speechd-autospawn
+        (when (= (call-process "speech-dispatcher" nil nil nil "--spawn") 0)
+          (sleep-for 1)))
       (let* ((name speechd-client-name)
              (voice (cdr (assoc name speechd-connection-voices)))
              (default-parameters (append
@@ -597,7 +598,9 @@ Return the opened connection on success, nil otherwise."
 		  ((or (not connection)
 		       (not (speechd--connection-failure-p connection))
 		       force-reopen)
-                   (condition-case err (speechd--open-connection (or method "unix-socket") host port socket-name)
+                   (condition-case err (speechd--open-connection
+                                        (or method 'unix-socket)
+                                        host port socket-name)
                      (file-error
                       (setq connection-error err)
                       nil)))
