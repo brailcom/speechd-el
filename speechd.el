@@ -1,6 +1,6 @@
 ;;; speechd.el --- Library for accessing Speech Dispatcher
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008 Brailcom, o.p.s.
+;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2010 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -484,10 +484,10 @@ current voice."
             ((eq method 'unix-socket)
              (make-network-process
               :name "speechd" :family "local"
-		:remote (or socket-name
-			    (or (getenv "SPEECHD_SOCK")
-				(expand-file-name
-				 "~/.speech-dispatcher/speechd.sock")))))
+              :remote (or socket-name
+                          (or (getenv "SPEECHD_SOCK")
+                              (expand-file-name
+                               "~/.speech-dispatcher/speechd.sock")))))
             ((eq method 'inet-socket)
              (open-network-stream "speechd" nil host port))
             (t (error "Invalid communication method: `%s'" method)))))
@@ -548,15 +548,15 @@ current voice."
 If the connection corresponding to the current `speechd-client-name' value
 already exists, close it and reopen again, with the same connection parameters.
 
-Available methods are 'unix-socket' and 'inet-socket' for communication
-over UNIX sockets and TCP sockets respectively. Default is 'unix-socket'.
+Available methods are `unix-socket' and `inet-socket' for communication
+over UNIX sockets and TCP sockets respectively.  Default is 'unix-socket'.
 
-The key arguments HOST and PORT are only relevant to the 'inet-socket'
-communication method and identify the speechd server location. They can
+The key arguments HOST and PORT are only relevant to the `inet-socket'
+communication method and identify the speechd server location.  They can
 override default values stored in the variables `speechd-host' and
 `speechd-port'.
 
-The SOCKET-NAME argument is only relevant to the 'unix-socket' communication
+The SOCKET-NAME argument is only relevant to the `unix-socket' communication
 method and can override the default path to the Dispatcher's unix socket for
 the given user.
 
