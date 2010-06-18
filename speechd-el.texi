@@ -1,7 +1,7 @@
 \input texinfo    @c -*-texinfo-*-
 @comment %**start of header
 @setfilename speechd-el.info
-@set VERSION 2.3
+@set VERSION 2.4
 @settitle speechd-el @value{VERSION}
 @syncodeindex fn cp
 @syncodeindex ky cp
@@ -10,7 +10,7 @@
 @copying
 This manual is for speechd-el, @value{VERSION}.
 
-Copyright @copyright{} 2003, 2004, 2005, 2006, 2007, 2008 Brailcom, o.p.s.
+Copyright @copyright{} 2003, 2004, 2005, 2006, 2007, 2008, 2010 Brailcom, o.p.s.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

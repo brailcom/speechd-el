@@ -1,5 +1,24 @@
 User-visible changes to speechd-el:
 
+* Changes in speechd-el 2.4
+
+** Support for new Speech Dispatcher autospawn mechanism.
+
+speechd-el uses Speech Dispatcher autospawn feature by default, see
+`speechd-autospawn' user option.
+
+** Support for new Unix socket communication with Speech Dispatcher.
+
+Unix socket communication is used by default, see `speechd-connection-method'
+user option.
+
+** Isearch reading adjustments.
+
+** New user option speechd-speak-echo.
+
+It allows you to set what speechd-el speaks when you type characters.
+
+
 * Changes in speechd-el 2.3
 
 ** Buffer names in speechd-speak-connections are regexps now.

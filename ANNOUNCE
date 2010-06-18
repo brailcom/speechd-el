@@ -1,7 +1,7 @@
-speechd-el 2.3 released
+speechd-el 2.4 released
 =======================
 
-The Free(b)soft project is pleased to announce speechd-el 2.3.
+The Free(b)soft project is pleased to announce speechd-el 2.4.
 
 * What is speechd-el?
 
@@ -44,20 +44,22 @@ The Free(b)soft project is pleased to announce speechd-el 2.3.
   Emacspeak) can be found on its web page, see
   http://www.freebsoft.org/speechd-el .
 
-* What is new in the 2.3 version?
+* What is new in the 2.4 version?
 
-  - Buffer names in speechd-speak-connections are regexps now.
+  - Support for new Speech Dispatcher autospawn mechanism.
 
-  - Braille key handling improvements.
+  - Support for new Unix socket communication with Speech Dispatcher.
 
-  - Automatic restarts of broken SSIP and BrlAPI connections.
+  - Isearch reading adjustments.
+
+  - New user option speechd-speak-echo.
 
   See the NEWS file for more details.
 
 * Where to get it?
   
   You can get the distribution tarball of the released version from
-  http://www.freebsoft.org/pub/projects/speechd-el/speechd-el-2.3.tar.gz .
+  http://www.freebsoft.org/pub/projects/speechd-el/speechd-el-2.4.tar.gz .
 
   The home page of the project is http://www.freebsoft.org/speechd-el .
 
