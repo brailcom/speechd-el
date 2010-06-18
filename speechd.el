@@ -52,7 +52,7 @@
 
 (defcustom speechd-connection-method 'unix-socket
   "Connection method to Speech Dispatcher.
-Possible values are `unix-socket' for unix style system sockets
+Possible values are `unix-socket' for Unix style system sockets
 and `inet-socket' for inet sockets on a given host and port (see
 speechd-host and speechd-port variables)."
   :type 'symbol
@@ -549,7 +549,7 @@ If the connection corresponding to the current `speechd-client-name' value
 already exists, close it and reopen again, with the same connection parameters.
 
 Available methods are `unix-socket' and `inet-socket' for communication
-over UNIX sockets and TCP sockets respectively.  Default is 'unix-socket'.
+over Unix sockets and TCP sockets respectively.  Default is 'unix-socket'.
 
 The key arguments HOST and PORT are only relevant to the `inet-socket'
 communication method and identify the speechd server location.  They can
@@ -557,7 +557,7 @@ override default values stored in the variables `speechd-host' and
 `speechd-port'.
 
 The SOCKET-NAME argument is only relevant to the `unix-socket' communication
-method and can override the default path to the Dispatcher's unix socket for
+method and can override the default path to the Dispatcher's Unix socket for
 the given user.
 
 If the key argument QUIET is non-nil, don't report failures and quit silently.
