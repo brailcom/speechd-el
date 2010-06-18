@@ -52,14 +52,16 @@
 
 (defcustom speechd-connection-method 'unix-socket
   "Connection method to Speech Dispatcher.
-Possible values are `unix-socket' for Unix style system sockets
-and `inet-socket' for inet sockets on a given host and port (see
-speechd-host and speechd-port variables)."
+Possible values are `unix-socket' for Unix domain sockets and
+`inet-socket' for Internet sockets on a given host and port (see
+`speechd-host' and `speechd-port' variables)."
   :type 'symbol
   :group 'speechd)
 
 (defcustom speechd-host (or (getenv "SPEECHD_HOST") "localhost")
-  "Name of the default host running speechd to connect to."
+  "Name of the default host running speechd to connect to.
+Value of this variable matters only when Internet sockets are
+used for communication with Speech Dispatcher."
   :type 'string
   :group 'speechd)
 
@@ -68,7 +70,9 @@ speechd-host and speechd-port variables)."
           (car (read-from-string (getenv "SPEECHD_PORT")))
         (error))
       6560)
-  "Default port of speechd."
+  "Default port of speechd.
+Value of this variable matters only when Internet sockets are
+used for communication with Speech Dispatcher."
   :type 'integer
   :group 'speechd)
 
@@ -82,8 +86,9 @@ variable is nil, Emacs talks to an SSIP server (Speech Dispatcher) directly."
 
 (defcustom speechd-autospawn t
   "If non-nil, Emacs will attempt to automatically start Speech Dispatcher.
-This means that if speechd-el gets a speech request and it determines that
-the Speech Dispatcher server is not running already, it will launch it first."
+This means that if speechd-el gets a speech request and the
+Speech Dispatcher server is not running already, speechd-el will
+launch it."
   :type 'string
   :group 'speechd)
 

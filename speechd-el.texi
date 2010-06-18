@@ -828,7 +828,7 @@ customization group @samp{speechd-el} and its subgroups.
 
 @menu
 * Driver Selection::            Choosing output devices.
-* Host Configuration::          Where to connect to.
+* Connection Setup::            Where to connect to.
 * Default Priorities::          Priorities of various kinds of messages.
 * Basic Speaking::              Simple options.
 * Auto-Reading Buffers::        Making certain buffers speak automatically.
@@ -845,7 +845,7 @@ customization group @samp{speechd-el} and its subgroups.
 * Debugging::                   Make debugger quiet.
 @end menu
 
-@node Driver Selection, Host Configuration, Customization, Customization
+@node Driver Selection, Connection Setup, Customization, Customization
 @subsection Selecting Drivers
 
 By default speechd-el speaks to @code{ssip} and @code{brltty}
@@ -875,27 +875,41 @@ Enable the given output driver.
 Disable the given output driver.
 @end ftable
 
-@node Host Configuration, Default Priorities, Driver Selection, Customization
-@subsection Speech Dispatcher Host Connection Configuration
+@node Connection Setup, Default Priorities, Driver Selection, Customization
+@subsection Speech Dispatcher Connection Configuration
 
-Host connection variables allow you connect to Speech Dispatcher or
-BRLTTY running on a remote host or a non-default port and to specify
-other TCP connection parameters.
+Connection configuration variables allow you connect to Speech
+Dispatcher or BRLTTY running on a remote host or a non-default port
+and to specify other TCP connection parameters.
 
 Speech Dispatcher connection options:
 
 @vtable @code
+@item speechd-connection-method
+Connection method to Speech Dispatcher.  Possible values are symbols
+@code{unix-socket} for Unix domain sockets and @code{inet-socket} for
+Internet sockets on a given host and port.
+
 @item speechd-host
 @cindex host
 Name of the host running Speech Dispatcher to connect to, given as a
 string.  Default is either the contents of the shell variable
-@code{SPEECHD_HOST} variable if set, or @code{"localhost"}.
+@code{SPEECHD_HOST} variable if set, or @code{"localhost"}.  Value of
+this variable matters only when Internet sockets are used for
+communication with Speech Dispatcher.
 
 @item speechd-port
 @cindex port
 Port number to connect to.  Default is either the contents of the
 shell variable @code{SPEECHD_PORT} if set, or the default Speech
-Dispatcher port.
+Dispatcher port.  Value of this variable matters only when Internet
+sockets are used for communication with Speech Dispatcher.
+
+@item speechd-autospawn
+If non-@code{nil}, Emacs will attempt to automatically start Speech
+Dispatcher.  This means that if speechd-el gets a speech request and
+the Speech Dispatcher server is not running already, speechd-el will
+launch it.
 
 @item speechd-timeout
 @cindex timeout
@@ -953,7 +967,7 @@ strange way through a lagging network, you may want to increase the
 limit.
 @end vtable
 
-@node Default Priorities, Basic Speaking, Host Configuration, Customization
+@node Default Priorities, Basic Speaking, Connection Setup, Customization
 @subsection Default Priorities
 @cindex priorities
 
@@ -1312,7 +1326,7 @@ speechd-el some hints.
 The language settings described below currently apply only to the
 spoken output, to select the proper voice.  They don't affect the
 Braille output; but you may want to set language coding for Braille,
-@xref{Host Configuration}.
+@xref{Connection Setup}.
 
 @vindex speechd-language
 @cindex RFC 1766
