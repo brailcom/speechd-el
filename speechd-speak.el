@@ -1,6 +1,6 @@
 ;;; speechd-speak.el --- simple speechd-el based Emacs client
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008 Brailcom, o.p.s.
+;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2010 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -159,7 +159,7 @@ and the keys are read after the command is performed."
   :group 'speechd-speak)
 
 (defcustom speechd-speak-ignore-command-keys
-  '(forward-char backward-char next-line previous-line
+  '(forward-char backward-char right-char left-char next-line previous-line
     delete-char comint-delchar-or-maybe-eof delete-backward-char
     backward-delete-char-untabify
     c-electric-backspace c-electric-delete-forward)
@@ -1380,7 +1380,7 @@ Only single characters are allowed in the keymap.")
 (speechd-speak--post-defun special-commands t t
   ;; Speak commands that can't speak in a regular way
   (and (not speechd-speak-command-done)
-       (memq this-command '(forward-char backward-char)))
+       (memq this-command '(forward-char backward-char right-char left-char)))
   (speechd-speak--with-updated-text
     (cond
      ((looking-at "^")
