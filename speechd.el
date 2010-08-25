@@ -55,7 +55,8 @@
 Possible values are `unix-socket' for Unix domain sockets and
 `inet-socket' for Internet sockets on a given host and port (see
 `speechd-host' and `speechd-port' variables)."
-  :type 'symbol
+  :type '(choice (const :tag "Unix domain socket" unix-socket)
+                 (const :tag "Internet socket" inet-socket))
   :group 'speechd)
 
 (defcustom speechd-host (or (getenv "SPEECHD_HOST") "localhost")
