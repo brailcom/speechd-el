@@ -305,9 +305,9 @@ speechd-el installation consists of the following steps:
 
 @enumerate
 @item
-Install the @samp{eieio} Elisp library, available from
-@url{http://cedet.sourceforge.net/eieio.shtml} or perhaps your
-favorite operating system distribution.
+If you use Emacs older than 23.2 then install the @samp{eieio} Elisp
+library, available from @url{http://cedet.sourceforge.net/eieio.shtml}
+or perhaps your favorite operating system distribution.
 
 @item
 Copy the speechd-el @file{*.el} files contained in the distribution
@@ -331,7 +331,7 @@ e.g. @file{/usr/local/bin/}.  Installing this script is optional, it
 is used only for bug reporting.
 
 @item
-Add the following lines to your @file{~/.emacs}:
+Add the following line to your @file{~/.emacs}:
 
 @lisp
 (autoload 'speechd-speak "speechd-speak" nil t)
