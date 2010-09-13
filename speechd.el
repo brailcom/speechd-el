@@ -659,7 +659,7 @@ If QUIET is non-nil, don't echo success report."
 	(number-of-failures 0))
     (maphash #'(lambda (name _)
 		 (let ((speechd-client-name name))
-		   (if (speechd-open :quiet t :force-reopen t)
+		   (if (speechd-open nil :quiet t :force-reopen t)
 		       (incf number-of-connections)
 		     (incf number-of-failures))))
 	     speechd--connections)
