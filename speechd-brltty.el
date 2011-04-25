@@ -237,9 +237,14 @@ is not recommended to assign or call user commands here."
 
 (defclass speechd-brltty-driver (speechd-braille-emu-driver)
   ((name :initform 'brltty)
-   (manager :initform (lambda () (speechd-brltty--create-manager)))
+   (manager)
    (brltty-connection :initform 'uninitialized)
    (brltty-last-try-time :initform 0)))
+
+(defmethod initialize-instance :after
+    ((this speechd-brltty-driver) slots)
+  (if (not (slot-boundp this 'manager))
+    (oset this manager (speechd-brltty--create-manager))))
 
 (defmethod speechd-braille--make-message
     ((driver speechd-brltty-driver) text message)

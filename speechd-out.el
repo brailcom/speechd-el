@@ -87,8 +87,13 @@
 
 
 (defclass speechd-driver ()
-  ((name :initform (error "Driver name not given") :initarg :name
+  ((name :initarg :name
          :reader speechd-driver.name)))
+
+(defmethod initialize-instance :after
+    ((this speechd-driver) slots)
+  (if (not (slot-boundp this 'name))
+    (error "Driver name not given")))
 
 (defun speechd-out-register-driver (driver)
   (let ((class (class-of driver)))
