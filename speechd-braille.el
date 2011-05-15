@@ -116,9 +116,8 @@
 
 (defclass speechd-braille-emu-driver (speechd-driver)
   ((name :initform 'braille-emu)
-   (manager :initform (lambda () (speechd-braille--create-manager
-                                  #'speechd-braille--display)))
-   (priority :initform (lambda () speechd-default-text-priority))))
+  (manager)
+  (priority)))
 
 (defmethod initialize-instance :after
     ((this speechd-braille-emu-driver) slots)
