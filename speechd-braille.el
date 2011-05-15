@@ -122,10 +122,8 @@
 (defmethod initialize-instance :after
     ((this speechd-braille-emu-driver) slots)
   (progn
-    (if (not (slot-boundp this 'priority))
-      (oset this priority speechd-default-text-priority))
-    (if (not (slot-boundp this 'manager))
-      (oset this manager (speechd-braille--create-manager #'speechd-braille--display)))))
+    (oset this priority speechd-default-text-priority)
+    (oset this manager (speechd-braille--create-manager #'speechd-braille--display))))
 
 (defmethod speechd-braille--make-message
     ((driver speechd-braille-emu-driver) text cursor)

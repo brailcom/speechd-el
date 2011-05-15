@@ -243,8 +243,7 @@ is not recommended to assign or call user commands here."
 
 (defmethod initialize-instance :after
     ((this speechd-brltty-driver) slots)
-  (if (not (slot-boundp this 'manager))
-    (oset this manager (speechd-brltty--create-manager))))
+  (oset this manager (speechd-brltty--create-manager)))
 
 (defmethod speechd-braille--make-message
     ((driver speechd-brltty-driver) text message)
