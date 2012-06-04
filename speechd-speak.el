@@ -1,6 +1,7 @@
 ;;; speechd-speak.el --- simple speechd-el based Emacs client
 
 ;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2010 Brailcom, o.p.s.
+;; Copyright (C) 2012 Milan Zamazal
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -390,7 +391,7 @@ Level 1 is the slowest, level 9 is the fastest."
   "Set speech rate to one of nine predefined levels via a key binding.
 Level 1 is the slowest, level 9 is the fastest."
   (interactive)
-  (let ((level (cdr (assoc last-input-char speechd-speak--char-to-number))))
+  (let ((level (cdr (assoc last-input-event speechd-speak--char-to-number))))
     (when level
       (speechd-speak-set-predefined-rate level))))
 
@@ -486,10 +487,10 @@ This variable is reset to nil before each command in pre-command-hook.")
        ,@body)))
 
 (defmacro speechd-speak--interactive (&rest body)
-  `(let ((speechd-speak-mode (or (interactive-p)
+  `(let ((speechd-speak-mode (or (called-interactively-p 'interactive)
                                  (and speechd-speak-mode
                                       (not (speechd-speak--in-debugger)))))
-         (speechd-default-text-priority (if (interactive-p)
+         (speechd-default-text-priority (if (called-interactively-p 'interactive)
                                             'message
                                           speechd-default-text-priority)))
      ,@body))
@@ -587,7 +588,7 @@ to the end of the line."
   (interactive "P")
   (speechd-speak--interactive
    (let* ((inhibit-field-text-motion t)
-          (in-isearch-p (and isearch-mode (not (called-interactively-p))))
+          (in-isearch-p (and isearch-mode (not (called-interactively-p 'interactive))))
           (beg (if (and rest-only (not in-isearch-p)) (point) (line-beginning-position)))
           (end (line-end-position)))
      (when speechd-speak-separator-regexp
@@ -811,7 +812,7 @@ The arguments are the same as in `speechd-speak-function-feedback'.
 Unlike `speechd-speak-function-feedback', the feedback is reported only when
 FUNCTION is invoked interactively."
   `(speechd-speak--defadvice ,(list function) ,position
-     (when (interactive-p)
+     (when (called-interactively-p 'interactive)
        (speechd-speak--report ,feedback :priority 'message))))
 
 (defmacro speechd-speak--command-feedback (commands position &rest body)
@@ -822,10 +823,10 @@ FUNCTION is invoked interactively."
        ,@(mapcar #'(lambda (command)
 		     `(speechd-speak--defadvice ,command ,position*
 			,(if (eq position* 'around)
-			     `(if (interactive-p)
+			     `(if (called-interactively-p 'interactive)
 				  ,body*
 				ad-do-it)
-			   `(when (interactive-p)
+			   `(when (called-interactively-p 'interactive)
 			      ,body*))))
 		 commands*)
        ,(unless (eq position 'before)
@@ -1512,8 +1513,7 @@ Only single characters are allowed in the keymap.")
        (get-buffer speechd-speak--c-buffer-name)
        (/= (speechd-speak--cinfo completion-buffer-modified)
            (buffer-modified-tick (get-buffer speechd-speak--c-buffer-name))))
-  (save-excursion
-    (set-buffer speechd-speak--c-buffer-name)
+  (with-current-buffer speechd-speak--c-buffer-name
       (let ((speechd-language "en")
             (speechd-speak-input-method-languages nil))
         (goto-char (point-min))
@@ -1681,8 +1681,7 @@ Only single characters are allowed in the keymap.")
 
 (defun speechd-speak--speak-completion ()
   ;; Taken from `choose-completion'
-  (let (beg end completion (buffer completion-reference-buffer)
-	(base-size completion-base-size))
+  (let (beg end completion (buffer completion-reference-buffer))
     (if (and (not (eobp)) (get-text-property (point) 'mouse-face))
 	(setq end (point) beg (1+ (point))))
     (if (and (not (bobp)) (get-text-property (1- (point)) 'mouse-face))
@@ -2085,7 +2084,7 @@ the value of the `speechd-speak-prefix' variable:
     ;; disabling if there are many buffers present.  So `speechd-cancel' is
     ;; called only on global mode disabling now.
     )
-  (when (interactive-p)
+  (when (called-interactively-p 'interactive)
     (let ((state (if speechd-speak-mode "on" "off"))
           (speechd-speak-mode t))
       (message "Speaking turned %s" state))))
@@ -2119,7 +2118,7 @@ When prefix ARG is non-nil, toggle it locally, otherwise toggle it globally."
   (if arg
       (speechd-speak-mode)
     (global-speechd-speak-mode))
-  (when (interactive-p)
+  (when (called-interactively-p 'interactive)
     (let ((state (if speechd-speak-mode "on" "off"))
           (speechd-speak-mode t))
       (message "Speaking turned %s %s" state (if arg "locally" "globally")))))

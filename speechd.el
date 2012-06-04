@@ -1,6 +1,7 @@
 ;;; speechd.el --- Library for accessing Speech Dispatcher
 
 ;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2010 Brailcom, o.p.s.
+;; Copyright (C) 2012 Milan Zamazal
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -505,7 +506,7 @@ current voice."
 				     'raw-text))
 	(if (fboundp 'set-process-query-on-exit-flag)
 	    (set-process-query-on-exit-flag process nil)
-	  (process-kill-without-query process))
+	  (set-process-query-on-exit-flag process nil))
 	(set-process-filter process #'speechd--process-filter))
       process)))
 

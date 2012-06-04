@@ -1,6 +1,7 @@
 ;;; brltty.el --- Interface to BRLTTY
 
 ;; Copyright (C) 2004, 2005, 2006, 2007, 2008 Brailcom, o.p.s.
+;; Copyright (C) 2012 Milan Zamazal
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -211,7 +212,7 @@ available, from the  environment variable CONTROLVT."
       (set-process-coding-system process 'binary 'binary)
       (if (fboundp 'set-process-query-on-exit-flag)
           (set-process-query-on-exit-flag process nil)
-        (process-kill-without-query process))
+        (set-process-query-on-exit-flag process nil))
       (let ((connection (make-brltty--connection :process process
                                                  :key-handler key-handler)))
         (if brltty--emacs-process-ok

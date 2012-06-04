@@ -1,6 +1,7 @@
 ;;; braille.el --- Simple Emacs braille display emulator
 
 ;; Copyright (C) 2004 Brailcom, o.p.s.
+;; Copyright (C) 2012 Milan Zamazal
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -143,8 +144,7 @@ instead of undefined characters.")
 
 
 (defun braille-display (string &optional cursor-position)
-  (save-excursion
-    (set-buffer (get-buffer-create braille-buffer-name))
+  (with-current-buffer (get-buffer-create braille-buffer-name)
     (braille-display-mode)
     (let ((inhibit-read-only t))
       (erase-buffer)

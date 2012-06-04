@@ -1,6 +1,7 @@
 ;;; speechd-bug.el --- reporting speechd-el and speechd bugs
 
 ;; Copyright (C) 2003, 2004, 2005 Brailcom, o.p.s.
+;; Copyright (C) 2012 Milan Zamazal
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -130,8 +131,7 @@
   (speechd-bug--insert "===" file-name ":logend==="))
 
 (defun speechd-bug--dotconf-option (file-name option)
-  (save-excursion
-    (set-buffer (find-file-noselect file-name))
+  (with-current-buffer (find-file-noselect file-name)
     (save-match-data
       (goto-char (point-min))
       (when (re-search-forward (concat "^[ \t]*" option "[ \t]+\"\\(.*\\)\"")
