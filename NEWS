@@ -1,5 +1,11 @@
 User-visible changes to speechd-el:
 
+* Changes in speechd-el 2.5
+
+This is a maintenance release, primarily fixing problems with newer Emacs
+versions.
+
+
 * Changes in speechd-el 2.4
 
 ** Support for new Speech Dispatcher autospawn mechanism.

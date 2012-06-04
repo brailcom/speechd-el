@@ -1,5 +1,6 @@
 # Makefile for speechd-el
 # Copyright (C) 2003, 2004, 2005, 2006, 2008, 2010 Brailcom, o.p.s.
+# Copyright (C) 2012 Milan Zamazal
 
 # COPYRIGHT NOTICE
 #
@@ -19,7 +20,7 @@
 EMACS = emacs
 
 NAME = speechd-el
-VERSION = 2.4
+VERSION = 2.5
 DISTDIR = $(NAME)-$(VERSION)
 TARFILE = $(NAME)-$(VERSION).tar
 
