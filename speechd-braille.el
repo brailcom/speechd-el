@@ -1,6 +1,7 @@
 ;;; speechd-braille.el --- Emacs braille emulator driver
 
 ;; Copyright (C) 2004, 2005, 2006, 2008 Brailcom, o.p.s.
+;; Copyright (C) 2012 Milan Zamazal
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -168,7 +169,7 @@
      driver text (speechd-braille--make-message driver text nil))))
 
 (defmethod speechd.key ((driver speechd-braille-emu-driver) key)
-  (let ((key-string (format (if (numberp key) "%c" "%s") key)))
+  (let ((key-string (if (numberp key) (key-description (list key)) (format "%s" key))))
     (speechd-braille--maybe-enqueue
      driver key-string (speechd-braille--make-message driver key-string nil))))
 
