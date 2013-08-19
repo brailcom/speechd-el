@@ -1,7 +1,7 @@
 ;;; braille.el --- Simple Emacs braille display emulator
 
 ;; Copyright (C) 2004 Brailcom, o.p.s.
-;; Copyright (C) 2012 Milan Zamazal
+;; Copyright (C) 2012 Milan Zamazal <pdm@zamazal.org>
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 

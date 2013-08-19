@@ -1,7 +1,7 @@
 ;;; brltty.el --- Interface to BRLTTY
 
 ;; Copyright (C) 2004, 2005, 2006, 2007, 2008 Brailcom, o.p.s.
-;; Copyright (C) 2012 Milan Zamazal
+;; Copyright (C) 2012 Milan Zamazal <pdm@zamazal.org>
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
