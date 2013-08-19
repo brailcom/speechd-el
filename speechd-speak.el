@@ -132,7 +132,9 @@ This is typically useful in comint buffers."
 If nil, additional cursor movement doesn't cause speaking the text around the
 new cursor position in modified buffers.
 If `read-only', speak the text around cursor in read-only buffers only."
-  :type 'boolean
+  :type '(choice (const :tag "Always" t)
+                 (const :tag "Never" nil)
+                 (const :tag "In read-only buffers" read-only))
   :group 'speechd-speak)
 
 (defcustom speechd-speak-read-command-keys t
