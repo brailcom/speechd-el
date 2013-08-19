@@ -1,7 +1,7 @@
 ;;; speechd-speak.el --- simple speechd-el based Emacs client
 
 ;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2010 Brailcom, o.p.s.
-;; Copyright (C) 2012 Milan Zamazal
+;; Copyright (C) 2012, 2013 Milan Zamazal
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -1176,7 +1176,8 @@ Only single characters are allowed in the keymap.")
   (if speechd-speak-allow-prompt-commands
       (let ((char nil))
         (while (not char)
-          (setq char ad-do-it)
+          ad-do-it
+          (setq char ad-return-value)
           (let ((command (lookup-key speechd-speak-read-char-keymap
                                      (vector char))))
             (when command
