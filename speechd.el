@@ -1,7 +1,7 @@
 ;;; speechd.el --- Library for accessing Speech Dispatcher
 
 ;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2010 Brailcom, o.p.s.
-;; Copyright (C) 2012 Milan Zamazal
+;; Copyright (C) 2012, 2013 Milan Zamazal
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -91,7 +91,7 @@ variable is nil, Emacs talks to an SSIP server (Speech Dispatcher) directly."
 This means that if speechd-el gets a speech request and the
 Speech Dispatcher server is not running already, speechd-el will
 launch it."
-  :type 'string
+  :type 'boolean
   :group 'speechd)
 
 (defcustom speechd-timeout 3
