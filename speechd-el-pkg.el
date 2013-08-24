@@ -1,6 +1,6 @@
-;;; speechd-compile.el --- Maintenance utilities
+;;; speechd-el-pkg.el --- speechd-el package definition
 
-;; Copyright (C) 2004, 2013 Milan Zamazal <pdm@zamazal.org>
+;; Copyright (C) 2013 Milan Zamazal
 
 ;; Author: Milan Zamazal <pdm@zamazal.org>
 
@@ -21,21 +21,11 @@
 
 ;;; Code:
 
-
-(require 'cl)
-
-(defun speechd-compile ()
-  (let ((load-path (cons default-directory load-path)))
-    (dolist (file (directory-files "." nil "\\.el$"))
-      (unless (member file '("speechd-compile.el"
-                             "speechd-el-pkg.el"))
-        (load file)
-        (byte-compile-file file)))))
-
+(define-package "speechd-el" "2.6"
+  "Client to speech synthesizers and Braille displays.")
 
 ;;; Announce
 
-(provide 'speechd-compile)
+(provide 'speechd-el-pkg)
 
-
-;;; speechd-compile.el ends here
+;;; speechd-el-pkg.el ends here

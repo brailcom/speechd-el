@@ -1,6 +1,6 @@
 # Makefile for speechd-el
 # Copyright (C) 2003, 2004, 2005, 2006, 2008, 2010 Brailcom, o.p.s.
-# Copyright (C) 2012 Milan Zamazal
+# Copyright (C) 2012, 2013 Milan Zamazal
 
 # COPYRIGHT NOTICE
 #
@@ -53,16 +53,18 @@ distclean: clean
 	rm -rf $(DISTDIR) $(TARFILE)* *.orig *.rej TAGS
 
 maintainer-clean: distclean
-	rm -f *.info*
+	rm -f *.info* dir
 
 TAGS:
 	etags *.el
 
 doc: info pdf
 
-info: speechd-el.info
+info: speechd-el.info dir
 %.info: %.texi
 	makeinfo $<
+dir: speechd-el.info
+	install-info $< dir
 
 info-cs: speechd-el.cs.info
 
