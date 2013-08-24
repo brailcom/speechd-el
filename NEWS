@@ -1,5 +1,14 @@
 User-visible changes to speechd-el:
 
+* Changes in speechd-el 2.6
+
+** Minor bug fixes.
+
+Thanks to Kevin Ryde for identifying the bugs.
+
+** Packaging support.
+
+
 * Changes in speechd-el 2.5
 
 This is a maintenance release, primarily fixing problems with newer Emacs
