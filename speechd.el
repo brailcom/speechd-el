@@ -582,7 +582,9 @@ Return the opened connection on success, nil otherwise."
 	(setq host (speechd--connection-host connection)
 	      port (speechd--connection-port connection)))
       (when speechd-autospawn
-        (when (= (call-process "speech-dispatcher" nil nil nil "--spawn") 0)
+        (when (eql (ignore-errors
+                     (call-process "speech-dispatcher" nil nil nil "--spawn"))
+                   0)
           (sleep-for 1)))
       (let* ((name speechd-client-name)
              (voice (cdr (assoc name speechd-connection-voices)))
