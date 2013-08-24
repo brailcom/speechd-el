@@ -1,7 +1,7 @@
-speechd-el 2.5 released
+speechd-el 2.6 released
 =======================
 
-The Free(b)soft project is pleased to announce speechd-el 2.5.
+The Free(b)soft project is pleased to announce speechd-el 2.6.
 
 * What is speechd-el?
 
@@ -44,15 +44,18 @@ The Free(b)soft project is pleased to announce speechd-el 2.5.
   Emacspeak) can be found on its web page, see
   http://devel.freebsoft.org/speechd-el .
 
-* What is new in the 2.5 version?
+* What is new in the 2.6 version?
 
-  This is a maintenance release, primarily fixing problems with newer
-  Emacs versions.
+  ** Minor bug fixes.
+
+  Thanks to Kevin Ryde for identifying the bugs.
+
+  ** Packaging support.
 
 * Where to get it?
   
   You can get the distribution tarball of the released version from
-  http://devel.freebsoft.org/pub/projects/speechd-el/speechd-el-2.5.tar.gz .
+  http://devel.freebsoft.org/pub/projects/speechd-el/speechd-el-2.6.tar.gz .
 
   The home page of the project is http://devel.freebsoft.org/speechd-el .
 
