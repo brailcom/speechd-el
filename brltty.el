@@ -1,7 +1,7 @@
 ;;; brltty.el --- Interface to BRLTTY
 
 ;; Copyright (C) 2004, 2005, 2006, 2007, 2008 Brailcom, o.p.s.
-;; Copyright (C) 2012 Milan Zamazal <pdm@zamazal.org>
+;; Copyright (C) 2012, 2013 Milan Zamazal <pdm@zamazal.org>
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -131,14 +131,6 @@ available, from the  environment variable CONTROLVT."
     (?K . key)
     (?C . credentials)))
 
-(defun brltty--add-answer (connection answer)
-  (setf (brltty--connection-answers connection)
-        (append (brltty--connection-answers connection) (list answer)))
-  answer)
-
-(defun brltty--next-answer (connection)
-  (pop (brltty--connection-answers connection)))
-
 (defstruct brltty--connection
   process
   (protocol-version nil)
@@ -147,6 +139,14 @@ available, from the  environment variable CONTROLVT."
   (key-handler nil)
   (answers '())
   (terminal-spec nil))
+
+(defun brltty--add-answer (connection answer)
+  (setf (brltty--connection-answers connection)
+        (append (brltty--connection-answers connection) (list answer)))
+  answer)
+
+(defun brltty--next-answer (connection)
+  (pop (brltty--connection-answers connection)))
 
 (unless brltty--emacs-process-ok
   (defvar brltty--process-connections '()))
