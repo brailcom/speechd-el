@@ -53,8 +53,12 @@ The Free(b)soft project is pleased to announce speechd-el 2.6.
   ** Packaging support.
 
 * Where to get it?
+
+  The easiest way to install speechd-el is to use the package from MELPA
+  (http://melpa.milkbox.net/) or from Debian (if you use Debian or one
+  of its derivatives).  You'll also need Speech Dispatcher and/or BRLTTY.
   
-  You can get the distribution tarball of the released version from
+  The source package of the released version is available at
   http://devel.freebsoft.org/pub/projects/speechd-el/speechd-el-2.6.tar.gz .
 
   The home page of the project is http://devel.freebsoft.org/speechd-el .
