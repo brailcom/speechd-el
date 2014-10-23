@@ -2119,8 +2119,8 @@ the value of the `speechd-speak-prefix' variable:
 When prefix ARG is non-nil, toggle it locally, otherwise toggle it globally."
   (interactive "P")
   (if arg
-      (speechd-speak-mode)
-    (global-speechd-speak-mode))
+      (speechd-speak-mode 'toggle)
+    (global-speechd-speak-mode 'toggle))
   (when (called-interactively-p 'interactive)
     (let ((state (if speechd-speak-mode "on" "off"))
           (speechd-speak-mode t))
