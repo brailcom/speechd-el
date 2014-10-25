@@ -1,5 +1,12 @@
 User-visible changes to speechd-el:
 
+* Changes in speechd-el 2.8
+
+** XDG_RUNTIME_DIR environment variable is honored now.
+
+Thanks to Alain Kalker for this change.
+
+
 * Changes in speechd-el 2.7
 
 ** Minor bug fixes.

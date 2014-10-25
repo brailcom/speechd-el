@@ -494,7 +494,9 @@ current voice."
               :remote (or socket-name
                           (or (getenv "SPEECHD_SOCK")
                               (expand-file-name
-                               "~/.speech-dispatcher/speechd.sock")))))
+			       (let ((runtime-dir (getenv "XDG_RUNTIME_DIR")))
+				 (concat (if runtime-dir (concat runtime-dir "/") "~/.")
+                                         "speech-dispatcher/speechd.sock")))))))
             ((eq method 'inet-socket)
              (open-network-stream "speechd" nil host port))
             (t (error "Invalid communication method: `%s'" method)))))
