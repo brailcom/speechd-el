@@ -1,4 +1,4 @@
-speechd-el 2.7 released
+speechd-el 2.8 released
 =======================
 
 * What is speechd-el?
@@ -42,20 +42,23 @@ speechd-el 2.7 released
   Emacspeak) can be found on its web page, see
   http://devel.freebsoft.org/speechd-el .
 
-* What is new in the 2.7 version?
+* What is new in the 2.8 version?
 
-  ** Minor bug fixes.
+  ** XDG_RUNTIME_DIR environment variable is honored now.
 
-  Thanks to Alain Kalker for help.
+  Thanks to Alain Kalker for this change.
 
 * Where to get it?
 
   The easiest way to install speechd-el is to use the package from MELPA
   (http://melpa.milkbox.net/) or from Debian (if you use Debian or one
   of its derivatives).  You'll also need Speech Dispatcher and/or BRLTTY.
-  
+
+  The source code is available in git repository
+  git://git.freebsoft.org/git/speechd-el
+
   The source package of the released version is available at
-  http://devel.freebsoft.org/pub/projects/speechd-el/speechd-el-2.7.tar.gz .
+  http://devel.freebsoft.org/pub/projects/speechd-el/speechd-el-2.8.tar.gz .
 
   The home page of the project is http://devel.freebsoft.org/speechd-el .
 
