@@ -112,7 +112,7 @@
       (setf (mmanager--message-priority last) 'message))
     (setf (mmanager--manager-queue manager)
           (if (eq priority 'important)
-              (labels ((add (list)
+              (cl-labels ((add (list)
                          (if (and list
                                   (eq (mmanager--message-priority (car list))
                                       'important))

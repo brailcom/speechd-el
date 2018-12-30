@@ -241,24 +241,24 @@ is not recommended to assign or call user commands here."
    (brltty-connection :initform 'uninitialized)
    (brltty-last-try-time :initform 0)))
 
-(defmethod initialize-instance :after
+(cl-defmethod initialize-instance :after
     ((this speechd-brltty-driver) slots)
   (oset this manager (speechd-brltty--create-manager)))
 
-(defmethod speechd-braille--make-message
+(cl-defmethod speechd-braille--make-message
     ((driver speechd-brltty-driver) text message)
   (list (speechd-brltty--connection driver) text message))
 
-(defmethod speechd.set ((driver speechd-brltty-driver) parameter value)
+(cl-defmethod speechd.set ((driver speechd-brltty-driver) parameter value)
   (cond
    ((eq parameter 'brltty-accept-keys)
     (let ((connection (speechd-brltty--connection driver)))
       (when connection
         (funcall (if value 'brltty-accept-keys 'speechd-brltty--ignore-most-keys) connection))))
    (t
-    (call-next-method))))
+    (cl-call-next-method))))
 
-(defmethod speechd.shutdown ((driver speechd-brltty-driver))
+(cl-defmethod speechd.shutdown ((driver speechd-brltty-driver))
   (mmanager-cancel (slot-value driver 'manager) nil)
   (brltty-close (speechd-brltty--connection driver t))
   (setf (slot-value driver 'brltty-connection) 'uninitialized))

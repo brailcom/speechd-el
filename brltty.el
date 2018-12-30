@@ -265,7 +265,7 @@ available, from the  environment variable CONTROLVT."
 (defun brltty--read-packet (connection)
   (condition-case err
       (let ((process (brltty--connection-process connection)))
-        (flet ((read-enough-output (size)
+        (cl-flet ((read-enough-output (size)
                  (while (< (length (brltty--connection-output connection)) size)
                    (brltty--accept-process-output process)))
                (read-integer ()
@@ -364,10 +364,10 @@ available, from the  environment variable CONTROLVT."
     (when process
       (with-speechd-coding-protection
         (condition-case err
-            (flet ((send-integer (n)
+            (cl-flet ((send-integer (n)
                      (process-send-string
                       process
-                      (string-make-unibyte
+                      (encode-coding-string
                        (apply #'format "%c%c%c%c"
                               (funcall #'reverse
                                        (loop for i from 1 to 4
@@ -384,14 +384,14 @@ available, from the  environment variable CONTROLVT."
                   (dotimes (i (length data))
                     (process-send-string
                      process
-                     (string-make-unibyte (format "%c" (aref data i))))))
+                     (encode-coding-string (format "%c" (aref data i))))))
                  ((consp data)
                   (destructuring-bind (n1 n2 n3) (cdr data)
                     (ecase (car data)
                       (integer64
                        (process-send-string
                         process
-                        (string-make-unibyte (format "%c%c%c%c%c%c%c%c"
+                        (encode-coding-string (format "%c%c%c%c%c%c%c%c"
                                                      (/ n1 256) (% n1 256)
                                                      (/ n2 (* 256 256)) (% (/ n2 256) 256) (% n2 256)
                                                      (/ n3 (* 256 256)) (% (/ n3 256) 256) (% n3 256))))))))
