@@ -1,7 +1,7 @@
 ;;; speechd-speak.el --- simple speechd-el based Emacs client
 
 ;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2010 Brailcom, o.p.s.
-;; Copyright (C) 2012, 2013 Milan Zamazal <pdm@zamazal.org>
+;; Copyright (C) 2012, 2013, 2016 Milan Zamazal <pdm@zamazal.org>
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -803,8 +803,10 @@ FUNCTION is a function name.
 POSITION may be one of the symbols `before' (the feedback is run before the
 function is invoked) or `after' (the feedback is run after the function is
 invoked.
-FEEDBACK is a string to be given as the argument of the `speechd-speak-report'
-function or a sexp to be evaluated."
+FEEDBACK is a string or a sexp.  If it is a string, it is simply passed as an
+argument to `speechd-speak-report'.  If it is a sexp then it is evaluated as it
+is when the feedback is run; the expression must itself deliver something to
+output (by using speechd-speak-report or other function)."
   `(speechd-speak--defadvice ,(list function) ,position
      (speechd-speak--report ,feedback :priority 'message)))
 
