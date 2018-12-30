@@ -33,44 +33,44 @@
    (host :initform speechd-host :initarg :host)
    (port :initform speechd-port :initarg :port)))
   
-(defmethod speechd.cancel ((driver speechd-ssip-driver) all)
+(cl-defmethod speechd.cancel ((driver speechd-ssip-driver) all)
   (speechd-cancel all))
 
-(defmethod speechd.stop ((driver speechd-ssip-driver) all)
+(cl-defmethod speechd.stop ((driver speechd-ssip-driver) all)
   (speechd-stop all))
 
-(defmethod speechd.pause ((driver speechd-ssip-driver) all)
+(cl-defmethod speechd.pause ((driver speechd-ssip-driver) all)
   (speechd-pause all))
 
-(defmethod speechd.resume ((driver speechd-ssip-driver) all)
+(cl-defmethod speechd.resume ((driver speechd-ssip-driver) all)
   (speechd-resume all))
 
-(defmethod speechd.repeat ((driver speechd-ssip-driver))
+(cl-defmethod speechd.repeat ((driver speechd-ssip-driver))
   (speechd-repeat))
 
-(defmethod speechd.block ((driver speechd-ssip-driver) function)
+(cl-defmethod speechd.block ((driver speechd-ssip-driver) function)
   (speechd-block function))
 
-(defmethod speechd.text ((driver speechd-ssip-driver) text cursor)
+(cl-defmethod speechd.text ((driver speechd-ssip-driver) text cursor)
   (speechd-say-text text))
 
-(defmethod speechd.icon ((driver speechd-ssip-driver) icon)
+(cl-defmethod speechd.icon ((driver speechd-ssip-driver) icon)
   (speechd-say-sound icon))
 
-(defmethod speechd.char ((driver speechd-ssip-driver) char)
+(cl-defmethod speechd.char ((driver speechd-ssip-driver) char)
   (speechd-say-char char))
 
-(defmethod speechd.key ((driver speechd-ssip-driver) key)
+(cl-defmethod speechd.key ((driver speechd-ssip-driver) key)
   (speechd-say-key key))
 
 (defconst speechd-ssip--parameter-names (mapcar 'car speechd--parameter-names))
-(defmethod speechd.set ((driver speechd-ssip-driver) parameter value)
+(cl-defmethod speechd.set ((driver speechd-ssip-driver) parameter value)
   (when (eq parameter 'priority)
     (setq parameter 'message-priority))
   (when (memq parameter speechd-ssip--parameter-names)
     (speechd--set-parameter parameter value)))
 
-(defmethod speechd.shutdown ((driver speechd-ssip-driver))
+(cl-defmethod speechd.shutdown ((driver speechd-ssip-driver))
   (speechd-close-all))
 
 

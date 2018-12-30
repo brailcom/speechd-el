@@ -1009,7 +1009,7 @@ is empty."
   (interactive "sText: ")
   (when (or say-if-empty
             (not (string= text "")))
-    (flet ((properties (point)
+    (cl-flet ((properties (point)
              (let ((voice (cdr (assq (get-text-property point 'face text)
                                      speechd-face-voices)))
                    (language (get-text-property point 'language text)))

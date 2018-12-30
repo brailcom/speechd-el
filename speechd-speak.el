@@ -1895,7 +1895,7 @@ When the mode is enabled, all spoken text is spelled."
                         (cadr mode-spec)
                       mode)))
   :on-change #'(lambda (old new)
-                 (flet ((set-difference (x y)
+                 (cl-flet ((set-difference (x y)
                           (loop for i in x
                                 unless (memq i y)
                                 collect i)))
@@ -2108,7 +2108,7 @@ the value of the `speechd-speak-prefix' variable:
 ;; is called.  So we have to be a bit more aggressive about it sometimes.  The
 ;; same applies to global-speechd-speak-mode.
 (defun speechd-speak--enforce-speak-mode ()
-  (flet ((enforce-mode (global-mode local-mode-var)
+  (cl-flet ((enforce-mode (global-mode local-mode-var)
            (when (and global-mode
                       (not (symbol-value local-mode-var))
                       (not (local-variable-p local-mode-var)))

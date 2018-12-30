@@ -120,64 +120,64 @@
   (manager)
   (priority)))
 
-(defmethod initialize-instance :after
+(cl-defmethod initialize-instance :after
     ((this speechd-braille-emu-driver) slots)
   (progn
     (oset this priority speechd-default-text-priority)
     (oset this manager (speechd-braille--create-manager #'speechd-braille--display))))
 
-(defmethod speechd-braille--make-message
+(cl-defmethod speechd-braille--make-message
     ((driver speechd-braille-emu-driver) text cursor)
   (list text cursor))
 
-(defmethod speechd.cancel ((driver speechd-braille-emu-driver) all)
+(cl-defmethod speechd.cancel ((driver speechd-braille-emu-driver) all)
   (mmanager-cancel (slot-value driver 'manager) speechd-client-name))
 
-(defmethod speechd.stop ((driver speechd-braille-emu-driver) all)
+(cl-defmethod speechd.stop ((driver speechd-braille-emu-driver) all)
   (mmanager-next (slot-value driver 'manager)))
 
-(defmethod speechd.pause ((driver speechd-braille-emu-driver) all)
+(cl-defmethod speechd.pause ((driver speechd-braille-emu-driver) all)
   ;; do nothing
   )
 
-(defmethod speechd.resume ((driver speechd-braille-emu-driver) all)
+(cl-defmethod speechd.resume ((driver speechd-braille-emu-driver) all)
   ;; do nothing
   )
 
-(defmethod speechd.repeat ((driver speechd-braille-emu-driver))
+(cl-defmethod speechd.repeat ((driver speechd-braille-emu-driver))
   ;; do nothing
   )
 
-(defmethod speechd.block ((driver speechd-braille-emu-driver) function)
+(cl-defmethod speechd.block ((driver speechd-braille-emu-driver) function)
   (mmanager-start-block (slot-value driver 'manager) speechd-client-name
                         (slot-value driver 'priority))
   (unwind-protect (funcall function)
     (mmanager-finish-block (slot-value driver 'manager) speechd-client-name)))  
 
-(defmethod speechd.text ((driver speechd-braille-emu-driver) text cursor)
+(cl-defmethod speechd.text ((driver speechd-braille-emu-driver) text cursor)
   (speechd-braille--maybe-enqueue
    driver text (speechd-braille--make-message driver text cursor)))
 
-(defmethod speechd.icon ((driver speechd-braille-emu-driver) icon)
+(cl-defmethod speechd.icon ((driver speechd-braille-emu-driver) icon)
   (unless (member icon speechd-braille--vetoed-icons)
     (speechd-braille--maybe-enqueue
      driver icon (speechd-braille--make-message driver icon nil))))
 
-(defmethod speechd.char ((driver speechd-braille-emu-driver) char)
+(cl-defmethod speechd.char ((driver speechd-braille-emu-driver) char)
   (let ((text (char-to-string char)))
     (speechd-braille--maybe-enqueue
      driver text (speechd-braille--make-message driver text nil))))
 
-(defmethod speechd.key ((driver speechd-braille-emu-driver) key)
+(cl-defmethod speechd.key ((driver speechd-braille-emu-driver) key)
   (let ((key-string (if (numberp key) (key-description (list key)) (format "%s" key))))
     (speechd-braille--maybe-enqueue
      driver key-string (speechd-braille--make-message driver key-string nil))))
 
-(defmethod speechd.set ((driver speechd-braille-emu-driver) parameter value)
+(cl-defmethod speechd.set ((driver speechd-braille-emu-driver) parameter value)
   (when (eq parameter 'priority)
     (setf (slot-value driver 'priority) value)))
 
-(defmethod speechd.shutdown ((driver speechd-braille-emu-driver))
+(cl-defmethod speechd.shutdown ((driver speechd-braille-emu-driver))
   ;; do nothing
   )
 
