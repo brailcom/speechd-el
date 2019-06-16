@@ -293,7 +293,7 @@ created."
   '(empty whitespace beginning-of-line end-of-line start finish minibuffer
     message)
   "List of symbolic names of events to signal with a standard icon.
-The following actions are supported: `empty', `beginning-of-line',
+The following actions are supported: `empty', `whitespace', `beginning-of-line',
 `end-of-line', `start', `finish', `minibuffer', `message'."
   :type '(set (const empty)
               (const whitespace)
