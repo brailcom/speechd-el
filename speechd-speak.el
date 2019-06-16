@@ -164,7 +164,7 @@ and the keys are read after the command is performed."
 (defcustom speechd-speak-ignore-command-keys
   '(forward-char backward-char right-char left-char next-line previous-line
     delete-char comint-delchar-or-maybe-eof delete-backward-char
-    backward-delete-char-untabify
+    backward-delete-char-untabify delete-forward-char
     c-electric-backspace c-electric-delete-forward)
   "List of commands for which their keys are never read."
   :type '(repeat function)
@@ -936,7 +936,7 @@ Language must be an RFC 1766 language code, as a string."
                                              (format "%c" (preceding-char))))))
     ad-do-it))
   
-(speechd-speak--defadvice (delete-char) around
+(speechd-speak--defadvice (delete-forward-char delete-char) around
   (let ((speechd-speak--deleted-chars
          (when speechd-speak-deleted-char
            (speechd-speak--buffer-substring
