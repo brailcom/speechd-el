@@ -1,7 +1,7 @@
 ;;; speechd-speak.el --- simple speechd-el based Emacs client
 
 ;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2010 Brailcom, o.p.s.
-;; Copyright (C) 2012, 2013, 2016 Milan Zamazal <pdm@zamazal.org>
+;; Copyright (C) 2012, 2013, 2016, 2019 Milan Zamazal <pdm@zamazal.org>
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -919,10 +919,7 @@ Language must be an RFC 1766 language code, as a string."
 
 (defun speechd-speak--store-deleted-chars (text)
   (speechd-speak--with-command-start-info
-    (setf (speechd-speak--cinfo deleted-chars)
-          (if (speechd-speak--cinfo deleted-chars)
-              t
-            text))))
+    (setf (speechd-speak--cinfo deleted-chars) text)))
 
 (speechd-speak--defadvice (delete-backward-char backward-delete-char) around
   (if (speechd-speak--command-start-info)
