@@ -880,17 +880,6 @@ Language must be an RFC 1766 language code, as a string."
 
 ;;; Basic speaking
 
-
-;; These two simply don't work in Emacs 21.3 when invoked via key binding.
-;; They're called directly in Emacs 21, to speed them up; no advice is invoked
-;; in such a case.
-
-;; (speechd-speak--command-feedback (self-insert-command) after
-;;   (speechd-speak--char (preceding-char)))
-
-;; (speechd-speak--command-feedback (forward-char backward-char) after
-;;   (speechd-speak-read-char))
-
 (speechd-speak--command-feedback (next-line previous-line) after
   (speechd-speak-read-line))
 
