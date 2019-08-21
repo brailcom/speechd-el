@@ -54,8 +54,8 @@ speechd-el 2.8 released
   (http://melpa.milkbox.net/) or from Debian (if you use Debian or one
   of its derivatives).  You'll also need Speech Dispatcher and/or BRLTTY.
 
-  The source code is available in git repository
-  git://git.freebsoft.org/git/speechd-el
+  The source code is available on GitHub:
+  https://github.com/brailcom/speechd-el
 
   The source package of the released version is available at
   http://devel.freebsoft.org/pub/projects/speechd-el/speechd-el-2.8.tar.gz .
