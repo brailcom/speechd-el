@@ -249,7 +249,7 @@ generating new bug report."
   (let ((package (completing-read "Package: " speechd-bug-packages))
         (reporter-prompt-for-summary-p t))
     (reporter-submit-bug-report
-     (format "%s@bugs.freebsoft.org" package)
+     "speechd-discuss@nongnu.org"
      package
      (append '(speechd-speak--debug)
              (apropos-internal "^speechd\\(-[a-z]+\\)+$" 'boundp)))

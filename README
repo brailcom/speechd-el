@@ -74,6 +74,6 @@ Now, your Emacs should speak and/or output to your Braille display.
 See the Texinfo manual for complete documentation.
 
 You can send bug reports, patches, suggestions, etc. to the mailing list
-speechd@lists.freebsoft.org.
+speechd-discuss@nongnu.org.
 
 -- Milan Zamazal <pdm@zamazal.org>

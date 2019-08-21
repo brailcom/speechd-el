@@ -1622,7 +1622,7 @@ Mo¾ná vás je¹tì mù¾e zajímat @ref{Pokroèilá konfigurace}.
 @cindex kontakty
 
 Pokud chcete oznámit chybu speechd-el, za¹lete nám kompletní informaci
-o@tie{}chybì na adresu @email{speechd-el@@bugs.freebsoft.org}.  Pokud
+o@tie{}chybì na adresu @email{speechd-discuss@@nongnu.org}.  Pokud
 nám chcete poslat záplatu speechd-el, mù¾ete pou¾ít tuté¾ adresu.
 
 @emph{Prosíme}, pøed zasláním oznámení o@tie{}chybì si pøeètìte pokyny
@@ -1631,7 +1631,7 @@ uvedenými radami, umo¾níte nám zpracovat va¹e oznámení o@tie{}chybì
 efektivnìji a tím pádem s@tie{}lep¹í a rychlej¹í odezvou.
 
 Máte-li jakékoliv otázky, námìty nebo cokoliv dal¹ího, co nám chcete
-sdìlit, neváhejte se obrátit na adresu @email{speechd@@freebsoft.org}.
+sdìlit, neváhejte se obrátit na adresu @email{speechd-discuss@@nongnu.org}.
 
 @c ****************************************************************************
 

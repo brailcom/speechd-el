@@ -2024,7 +2024,7 @@ You can also look at @ref{Advanced Customization}.
 
 If you want to report a bug on speechd-el, send complete information
 regarding the bug to the bug tracking address
-@email{speechd-el@@bugs.freebsoft.org}.  If you have a patch to
+@email{speechd-discuss@@nongnu.org}.  If you have a patch to
 speechd-el, you can send it to the same address.
 
 @emph{Please}, before sending us any bug report, read the bug
@@ -2034,7 +2034,7 @@ response to the report and faster resolving of the issue.
 
 If you have any questions, suggestions, or anything else to tell us,
 feel free to contact us at the e-mail address
-@email{speechd@@freebsoft.org}.
+@email{speechd-discuss@@nongnu.org}.
 
 @c ****************************************************************************
 
