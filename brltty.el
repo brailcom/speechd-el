@@ -446,9 +446,7 @@ respectively."
               (let ((auth-methods (brltty--send-packet connection 'auth 'version version)))
                 (cond
                  ((memq 'none auth-methods)
-                  (brltty--send-packet
-                   connection 'ack 'auth
-                   (car (rassoc 'none brltty--authentication-codes))))
+                  nil)
                  ((memq 'key auth-methods)
                   (brltty--send-packet
                    connection 'ack 'auth
