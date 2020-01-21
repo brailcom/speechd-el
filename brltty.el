@@ -1,7 +1,7 @@
 ;;; brltty.el --- Interface to BRLTTY
 
 ;; Copyright (C) 2004, 2005, 2006, 2007, 2008 Brailcom, o.p.s.
-;; Copyright (C) 2012, 2013 Milan Zamazal <pdm@zamazal.org>
+;; Copyright (C) 2012, 2013, 2020 Milan Zamazal <pdm@zamazal.org>
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -373,7 +373,8 @@ available, from the  environment variable CONTROLVT."
                                        (loop for i from 1 to 4
                                              for x = n then (/ x 256)
                                              for rem = (% x 256)
-                                             collect rem)))))))
+                                             collect rem)))
+                       brltty-coding))))
               (send-integer length)
               (send-integer (cdr (assoc packet-id brltty--packet-types)))
               (dolist (data data-list)
@@ -384,7 +385,7 @@ available, from the  environment variable CONTROLVT."
                   (dotimes (i (length data))
                     (process-send-string
                      process
-                     (encode-coding-string (format "%c" (aref data i))))))
+                     (encode-coding-string (format "%c" (aref data i)) brltty-coding))))
                  ((consp data)
                   (destructuring-bind (n1 n2 n3) (cdr data)
                     (ecase (car data)
@@ -394,7 +395,8 @@ available, from the  environment variable CONTROLVT."
                         (encode-coding-string (format "%c%c%c%c%c%c%c%c"
                                                      (/ n1 256) (% n1 256)
                                                      (/ n2 (* 256 256)) (% (/ n2 256) 256) (% n2 256)
-                                                     (/ n3 (* 256 256)) (% (/ n3 256) 256) (% n3 256))))))))
+                                                     (/ n3 (* 256 256)) (% (/ n3 256) 256) (% n3 256))
+                                              brltty-coding))))))
                  (t
                   (process-send-string process data))))
               (when answer
