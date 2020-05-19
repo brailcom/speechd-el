@@ -1,7 +1,7 @@
 ;;; speechd-speak.el --- simple speechd-el based Emacs client
 
 ;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2010 Brailcom, o.p.s.
-;; Copyright (C) 2012, 2013, 2016, 2019 Milan Zamazal <pdm@zamazal.org>
+;; Copyright (C) 2012, 2013, 2016, 2019, 2020 Milan Zamazal <pdm@zamazal.org>
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -881,7 +881,7 @@ Language must be an RFC 1766 language code, as a string."
 ;;; Basic speaking
 
 (speechd-speak--command-feedback (next-line previous-line) after
-  (speechd-speak-read-line))
+  (speechd-speak-read-line (not speechd-speak-whole-line)))
 
 (speechd-speak--command-feedback (forward-word backward-word) after
   (speechd-speak-read-word))
