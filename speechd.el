@@ -1077,7 +1077,7 @@ of the symbols `important', `message', `text', `notification' or
                       ((and (>= character 128) (< character 160)) "?")
                       ((= character ? ) "space")
                       ((= character ?_) "underscore")
-                      ((= character ?_) "double-quote")
+                      ((= character ?\") "double-quote")
                       ((= character 127) "backspace")
                       (t (format "%c" character)))
                    (format "%s" character))))
