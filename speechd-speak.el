@@ -316,6 +316,17 @@ is selected unless overridden by another setting."
                 :value-type (string :tag "Language code"))
   :group 'speechd-speak)
 
+(defcustom speechd-speak-emacs-language "en"
+  "Language to use for texts originating from Emacs.
+Messages, minibuffer prompts, completions often contain English texts,
+so it is desirable to speak them in English.  This variable allows to
+speak them in English, in another language or in the current language.
+The value is an ISO language code string accepted by SSIP.
+If nil, use the current language."
+  :type '(choice (string :tag "Language code")
+                 (const :tag "Current" nil))
+  :group 'speechd-speak)
+
 (defcustom speechd-speak-in-debugger t
   "If nil, speechd-speak functions won't speak in Elisp debuggers.
 This may be useful when debugging speechd-el itself."
@@ -872,6 +883,9 @@ Language must be an RFC 1766 language code, as a string."
   (speechd-set-language language)
   (setq speechd-language language))
 
+(defun speechd-speak--language (&optional special)
+  (or (and special speechd-speak-emacs-language) speechd-language))
+
 (defun speechd-speak--in-comint-p ()
   "Return non-nil if the current buffer is any sort of a comint buffer."
   (and (boundp 'comint-accum-marker)
@@ -992,7 +1006,7 @@ Language must be an RFC 1766 language code, as a string."
   (interactive)
   (speechd-speak--interactive
    (let ((speechd-speak-input-method-languages nil)
-         (speechd-language "en"))
+         (speechd-language (speechd-speak--language t)))
      (speechd-speak--text speechd-speak--last-message))))
 
 (defun speechd-speak--read-message (message)
@@ -1062,7 +1076,7 @@ Language must be an RFC 1766 language code, as a string."
    ;; Discard changes, otherwise they would be read *after* the prompt, perhaps
    ;; confusing the user
    (setf (speechd-speak--cinfo changes) '()))
-  (let ((speechd-language "en")
+  (let ((speechd-language (speechd-speak--language t))
         (speechd-speak-input-method-languages nil))
     (speechd-speak--prompt (minibuffer-prompt)))
   (speechd-speak--prompt (minibuffer-contents) t))
@@ -1115,7 +1129,7 @@ This command applies to buffers defined in
 
 (defun speechd-speak--minibuffer-prompt (prompt &rest args)
   (speechd-speak--read-other-changes)
-  (let ((speechd-language "en")
+  (let ((speechd-language (speechd-speak--language t))
         (speechd-speak-input-method-languages nil))
     (apply #'speechd-speak--text prompt args)))
                           
@@ -1147,7 +1161,7 @@ This command applies to buffers defined in
   (let ((prompt (ad-get-arg 0)))
     (when prompt
       (let ((speechd-speak--emulate-minibuffer t)
-            (speechd-language (if (ad-get-arg 1) speechd-language "en")))
+            (speechd-language (speechd-speak--language (not (ad-get-arg 1)))))
         (speechd-speak--minibuffer-prompt prompt :priority 'message)))))
 
 
@@ -1505,7 +1519,7 @@ Only single characters are allowed in the keymap.")
        (/= (speechd-speak--cinfo completion-buffer-modified)
            (buffer-modified-tick (get-buffer speechd-speak--c-buffer-name))))
   (with-current-buffer speechd-speak--c-buffer-name
-      (let ((speechd-language "en")
+      (let ((speechd-language (speechd-speak--language t))
             (speechd-speak-input-method-languages nil))
         (goto-char (point-min))
         (save-match-data
@@ -1783,7 +1797,7 @@ When the mode is enabled, all spoken text is spelled."
         `(defun ,(speechd-speak--name 'speechd-speak--update name) (old new)
            (speechd-speak--maybe-speak
             (let ((speechd-default-text-priority 'message)
-                  (speechd-language "en")
+                  (speechd-language (speechd-speak--language t))
                   (speechd-speak-input-method-languages nil))
               (funcall ,on-change old new)))))
      ,(when on-change
