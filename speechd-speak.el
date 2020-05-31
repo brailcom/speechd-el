@@ -314,7 +314,7 @@ If the current input method is present in the alist, the corresponding language
 is selected unless overridden by another setting."
   :type '(alist :key-type (string :tag "Input method")
                 :value-type (string :tag "Language code"))
-  :group 'speechd)
+  :group 'speechd-speak)
 
 (defcustom speechd-speak-in-debugger t
   "If nil, speechd-speak functions won't speak in Elisp debuggers.
