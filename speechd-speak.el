@@ -973,7 +973,7 @@ Language must be an RFC 1766 language code, as a string."
     (speechd-speak-read-word)))
 
 (speechd-speak--command-feedback (kill-line) before
-  (speechd-speak-read-line))
+  (speechd-speak-read-line t))
 
 (speechd-speak--command-feedback (kill-sexp) before
   (speechd-speak-read-sexp))
