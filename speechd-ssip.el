@@ -1,6 +1,7 @@
 ;;; speechd-ssip.el --- SSIP driver
 
-;; Copyright (C) 2004, 2006, 2008 Brailcom, o.p.s.
+;; Copyright (C) 2018 Milan Zamazal <pdm@zamazal.org>
+;; Copyright (C) 2004, 2006, 2008, 2018 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -51,8 +52,8 @@
 (cl-defmethod speechd.block ((driver speechd-ssip-driver) function)
   (speechd-block function))
 
-(cl-defmethod speechd.text ((driver speechd-ssip-driver) text cursor)
-  (speechd-say-text text))
+(cl-defmethod speechd.text ((driver speechd-ssip-driver) text cursor markers)
+  (speechd-say-text text :markers markers))
 
 (cl-defmethod speechd.icon ((driver speechd-ssip-driver) icon)
   (speechd-say-sound icon))

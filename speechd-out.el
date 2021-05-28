@@ -1,5 +1,6 @@
 ;;; speechd-out.el --- Alternative output interface
 
+;; Copyright (C) 2018 Milan Zamazal <pdm@zamazal.org>
 ;; Copyright (C) 2004, 2005, 2006, 2008 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
@@ -119,7 +120,7 @@
 
 (cl-defmethod speechd.block ((driver speechd-driver) function))
 
-(cl-defmethod speechd.text ((driver speechd-driver) text cursor))
+(cl-defmethod speechd.text ((driver speechd-driver) text cursor markers))
 
 (cl-defmethod speechd.icon ((driver speechd-driver) icon))
 
@@ -197,21 +198,22 @@
                               (dolist (k keys%)
                                 (speechd.key driver% k))
                               (when text%
-                                (speechd.text driver% text% nil)))))))
+                                (speechd.text driver% text% nil nil)))))))
 
 (defun* speechd-out-text (text &key (priority speechd-default-text-priority)
-                               icon cursor)
+                               icon cursor markers)
   (let ((icon-name (speechd-out--icon-name icon)))
     (speechd-out--loop-drivers (driver)
       (speechd.set driver 'priority priority)
       (lexical-let ((icon-name% icon-name)
                     (driver% driver)
                     (text% text)
-                    (cursor% cursor))
+                    (cursor% cursor)
+                    (markers% markers))
         (speechd.block driver (lambda ()
                                 (when icon-name%
                                   (speechd.icon driver% icon-name%))
-                                (speechd.text driver% text% cursor%)))))))
+                                (speechd.text driver% text% cursor% markers%)))))))
 
 (defun speechd-out-set (parameter value)
   (speechd-out--loop-drivers (driver)

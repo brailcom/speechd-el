@@ -1,7 +1,7 @@
 ;;; speechd.el --- Library for accessing Speech Dispatcher
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2010 Brailcom, o.p.s.
-;; Copyright (C) 2012, 2013 Milan Zamazal <pdm@zamazal.org>
+;; Copyright (C) 2012-2021 Milan Zamazal <pdm@zamazal.org>
+;; Copyright (C) 2003-2010 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -40,6 +40,8 @@
 
 
 (eval-when-compile (require 'cl))
+
+(require 'xml)
 
 (require 'speechd-common)
 
@@ -264,7 +266,9 @@ current voice."
     voice male1
     rate 0
     pitch 0
-    volume 100))
+    volume 100
+    index-marks t
+    ssml-mode nil))
 
 (defconst speechd--coding-system (if (featurep 'xemacs)
 				     'no-conversion-dos ;; No utf yet
@@ -283,6 +287,8 @@ current voice."
     (pitch . "PITCH")
     (volume . "VOLUME")
     (spelling-mode . "SPELLING")
+    (index-marks . "NOTIFICATION INDEX_MARKS")
+    (ssml-mode . "SSML_MODE")
     (output-module . "OUTPUT_MODULE")	; TODO: to be removed sometimes
     ))
 
@@ -309,6 +315,12 @@ current voice."
      (spell . "spell")
      (icon . "icon"))
     (spelling-mode
+     (t . "on")
+     (nil . "off"))
+    (index-marks
+     (t . "on")
+     (nil . "off"))
+    (ssml-mode
      (t . "on")
      (nil . "off"))))
 
@@ -442,10 +454,48 @@ current voice."
 	   (let ((speechd-client-name name))
 	     (speechd-open)))))
 
+(defun speechd--jump-to-marker (index-mark)
+  (let ((marker (cdr (assoc index-mark speechd--markers))))
+    (when marker
+      (let ((buffer (marker-buffer marker))
+            (position (marker-position marker)))
+        (when buffer
+          (select-window (or (get-buffer-window buffer) (selected-window)))
+          (unless (eq (window-buffer) buffer)
+            (switch-to-buffer buffer))
+          (goto-char position))))))
+
+(defun speechd--process-notifications (output)
+  ;; 700-msg_id
+  ;; 700-client_id
+  ;; 700-index_mark
+  ;; 700 END
+  (let ((notifications '())
+        (pos 0))
+    (while (string-match speechd--notification-regexp output pos)
+      (push (list (match-string 1 output) (match-string 2 output) (match-string 3 output))
+            notifications)
+      (setq pos (match-end 0)))
+    ;; There can be additional index marks inserted by Speech Dispatcher,
+    ;; let's skip them and find the first meaningful index mark.
+    (while notifications
+      (destructuring-bind (code separator message) (car notifications)
+        (setq notifications (cdr notifications))
+        (when (and (equal code speechd--index-mark-code)
+                   (equal separator " "))
+          (when notifications
+            (destructuring-bind (code separator message) (car notifications)
+              (when (and (equal code speechd--index-mark-code)
+                         (equal separator "-"))
+                (speechd--jump-to-marker message)
+                (setq notifications nil))))))))
+  output)
+
 (defun speechd--process-filter (process output)
   (speechd--with-current-connection
    (setf (speechd--connection-process-output connection)
-         (concat (speechd--connection-process-output connection) output))))
+         (speechd--process-notifications
+          (concat (speechd--connection-process-output connection) output)))))
 
 (defun speechd--open-connection (method host port socket-name)
   (let ((process
@@ -485,14 +535,20 @@ current voice."
         (condition-case _
             (progn
               (process-send-string process command)
-              (while (not (string-match
-                           speechd--end-regexp
-                           (speechd--connection-process-output connection)))
-                (unless (accept-process-output process speechd-timeout nil 1)
-                  (signal 'ssip-connection-error
-                          "Timeout in communication with Speech Dispatcher")))
-              (prog1 (speechd--connection-process-output connection)
-                (setf (speechd--connection-process-output connection) "")))
+              (let ((output (speechd--connection-process-output connection)))
+                (while (not (string-match speechd--end-regexp output))
+                  (unless (accept-process-output process speechd-timeout nil 1)
+                    (signal 'ssip-connection-error
+                            "Timeout in communication with Speech Dispatcher"))
+                  (setq output (speechd--connection-process-output connection)))
+                (let ((pos (match-end 0)))
+                  ;; If there are more responses, try to get in sync:
+                  (while (string-match speechd--end-regexp output pos)
+                    (setq output (substring output pos))
+                    (setq pos (- (match-end 0) pos)))
+                  (setf (speechd--connection-process-output connection)
+                        (substring output pos))
+                  (substring output 0 pos))))
           (error
            (speechd--permanent-connection-failure connection)
            (signal 'ssip-connection-error
@@ -629,11 +685,14 @@ If QUIET is non-nil, don't echo success report."
 
 
 (defconst speechd--eol "\n")
-(defconst speechd--end-regexp (format "^[0-9][0-9][0-9] .*%s" speechd--eol))
+(defconst speechd--end-regexp (format "^[0-6][0-9][0-9] .*%s" speechd--eol))
 (defconst speechd--result-regexp
   (format "\\`[0-9][0-9][0-9]-\\(.*\\)%s" speechd--eol))
 (defconst speechd--success-regexp
   (format "^[1-2][0-9][0-9] .*%s" speechd--eol))
+(defconst speechd--notification-regexp
+  (format "^\\(7[0-9][0-9]\\)\\([- ]\\)\\(.*\\)%s" speechd--eol))
+(defconst speechd--index-mark-code "700")
 
 (defun speechd--permanent-connection-failure (connection)
   (speechd--close-connection connection)
@@ -809,6 +868,11 @@ Language must be an RFC 1766 language code, as a string."
   (interactive (list (read-string "Language: ")))
   (speechd--set-parameter 'language language))
 
+(defun speechd-set-ssml-mode (value)
+  "Set SSML mode value.
+SSML is reset to \"off\" when connection is reopened."
+  (speechd--set-parameter 'ssml-mode value))
+
 (defmacro speechd--generate-set-command (parameter prompt argdesc)
   (let* ((prompt* (concat prompt ": "))
          (argdesc* (eval argdesc))
@@ -944,9 +1008,29 @@ the `speechd--set-parameter' function."
 ;;; Speaking functions
 
 
+(defconst speechd--index-mark-prefix "index-")
+(defvar speechd--markers '())  ; assoc list of (INDEX . MARKER)
+
+(defun speechd--ssml (text beg markers)
+  (let ((end (1- (+ beg (length text)))))
+    (dolist (m markers)
+      (destructuring-bind (pos index marker) m
+        (when (<= beg pos end)
+          (let ((text-pos (- pos beg)))
+            (put-text-property text-pos (1+ text-pos) 'index index text))))))
+  (setq text (xml-escape-string text))
+  (let ((pos 0))
+    (while (setq pos (next-single-property-change pos 'index text))
+      (let ((mark (format "<mark name=\"%s%s\"/>"
+                          speechd--index-mark-prefix
+                          (get-text-property pos 'index text))))
+        (setq text (concat (substring text 0 pos) mark (substring text pos)))
+        (setq pos (+ pos (length mark) 1)))))
+  (concat "<speak>" text "</speak>"))
+
 ;;;###autoload
 (defun* speechd-say-text (text &key (priority speechd-default-text-priority)
-                               say-if-empty)
+                               say-if-empty markers)
   "Speak the given TEXT, represented by a string.
 The key argument `priority' defines the priority of the message and must be one
 of the symbols `important', `message', `text', `notification' or
@@ -978,9 +1062,18 @@ is empty."
                                              (properties change-point)))))
                         change-point))
                  (substring (substring text beg end)))
+            (when markers
+              (setq speechd--markers
+                    (mapcar #'(lambda (m)
+                                (cons (format "%s%s" speechd--index-mark-prefix
+                                              (second m))
+                                      (third m)))
+                            markers))
+              (setq substring (speechd--ssml substring beg markers)))
             (speechd-block* `(message-priority ,priority
                               language ,(speechd--current-language)
                               spelling-mode ,speechd-spell
+                              ssml-mode ,(not (null markers))
                               ,@properties)
               (speechd--send-text substring))
             (setq beg end)))))))

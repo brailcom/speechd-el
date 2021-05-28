@@ -836,6 +836,7 @@ customization group @samp{speechd-el} and its subgroups.
 * Reading State::               Speaking Emacs state changes.
 * Signalling::                  Signalling empty lines, etc.
 * Text Properties::             Handling faces and special pieces of text.
+* Index marking::               Moving cursor when speaking.
 * Languages::                   Using multiple languages.
 * Voices::                      Defining different voices.
 * Connection Voices::           Setting connection parameters.
@@ -1241,7 +1242,7 @@ Messages in echo area follow.
 @end table
 @end vtable
 
-@node Text Properties, Languages, Signalling, Customization
+@node Text Properties, Index marking, Signalling, Customization
 @subsection Text Properties
 @cindex text properties
 @cindex faces
@@ -1305,7 +1306,33 @@ Note that the mapping takes the effect only if font lock mode is
 enabled.
 @end vtable
 
-@node Languages, Voices, Text Properties, Customization
+@node Index marking, Languages, Text Properties, Customization
+@subsection Index marking
+@cindex index marking
+@cindex cursor movement
+
+Reading a text with index marking means the cursor is moved over the
+text as the text is read, whenever an inserted index mark is reached.
+Index marking is switched off by default but you can set it up for
+@code{speechd-speak-read-buffer} and
+@code{speechd-speak-read-rest-of-buffer} commands using the following
+variables:
+
+@vtable @code
+@item speechd-speak-use-index-marks
+If non-@code{nil}, index marking is enabled for
+@code{speechd-speak-read-buffer} and
+@code{speechd-speak-read-rest-of-buffer} commands.
+
+@item speechd-speak-index-mark-regexp
+Regular expression defining the places where to put index marks to.
+An index mark is put at the end of the regexp at each of the places.
+If the regular expression is empty (the default), it's taken from
+@code{sentence-end} variable.  If @code{sentence-end} is @code{nil}, a
+default regular expression matching common punctuation is used.
+@end vtable
+
+@node Languages, Voices, Index marking, Customization
 @subsection Using multiple languages
 @cindex languages
 

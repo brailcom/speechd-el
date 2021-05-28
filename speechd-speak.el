@@ -1,7 +1,7 @@
 ;;; speechd-speak.el --- simple speechd-el based Emacs client
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008, 2010 Brailcom, o.p.s.
-;; Copyright (C) 2012, 2013, 2016, 2019, 2020 Milan Zamazal <pdm@zamazal.org>
+;; Copyright (C) 2012-2021 Milan Zamazal <pdm@zamazal.org>
+;; Copyright (C) 2003-2010 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -173,6 +173,19 @@ and the keys are read after the command is performed."
 (defcustom speechd-speak-read-command-name nil
   "If non-nil, read command name instead of command keys."
   :type 'boolean
+  :group 'speechd-speak)
+
+(defcustom speechd-speak-use-index-marks nil
+  "If non-nil, move point over text in spoken buffers."
+  :type 'boolean
+  :group 'speechd-speak)
+
+(defcustom speechd-speak-index-mark-regexp ""
+  "Regular expression defining the places where to put index marks to.
+An index mark is put at the end of the regexp at each of the places.
+If the regexp is empty, `sentence-end' is used.  If `sentence-end' is nil,
+a default regexp matching common punctuation is used."
+  :type 'regexp
   :group 'speechd-speak)
 
 (defcustom speechd-speak-by-properties-on-movement t
@@ -571,12 +584,13 @@ If CHAR is nil, output the character just after current point."
   (speechd-speak--interactive
    (speechd-speak--char (or char (following-char)))))
 
-(defun speechd-speak-read-region (&optional beg end empty-text)
+(defun speechd-speak-read-region (&optional beg end empty-text index-marks)
   "Output region of the current buffer between BEG and END.
 If BEG is nil, current mark is used instead.
 If END is nil, current point is used instead.
 EMPTY-TEXT is a text to output if the region is empty; if nil, empty text icon
-is output."
+is output.
+If INDEX-MARKS is non-nil, insert index marks to the spoken text."
   (interactive "r")
   (speechd-speak--interactive
    (let* ((beg (or beg (mark)))
@@ -591,8 +605,9 @@ is output."
                              :priority speechd-default-text-priority))
       (t
        (let* ((point (point))
-              (cursor (and (>= point beg) (<= point end) (- (point) beg))))
-         (speechd-speak--text text :cursor cursor)))))))
+              (cursor (and (>= point beg) (<= point end) (- (point) beg)))
+              (markers (when index-marks (speechd-speak--markers beg end))))
+         (speechd-speak--text text :cursor cursor :markers markers)))))))
 
 (defun speechd-speak-read-line (&optional rest-only)
   "Output current line.
@@ -643,13 +658,15 @@ If BUFFER is nil, read current buffer."
    (save-excursion
      (when buffer
        (set-buffer buffer))
-     (speechd-speak-read-region (point-min) (point-max)))))
+     (speechd-speak-read-region (point-min) (point-max) nil
+                                speechd-speak-use-index-marks))))
 
 (defun speechd-speak-read-rest-of-buffer ()
   "Read current buffer from the current point to the end of the buffer."
   (interactive)
   (speechd-speak--interactive
-   (speechd-speak-read-region (point) (point-max))))
+   (speechd-speak-read-region (point) (point-max) nil
+                              speechd-speak-use-index-marks)))
 
 (defun speechd-speak-read-rectangle (beg end)
   "Read text in the region-rectangle."
@@ -890,6 +907,22 @@ Language must be an RFC 1766 language code, as a string."
   "Return non-nil if the current buffer is any sort of a comint buffer."
   (and (boundp 'comint-accum-marker)
        comint-accum-marker))
+
+(defvar speechd-speak--marker-counter 0)
+
+(defun speechd-speak--markers (beg end)
+  ;; Return list of (POSITION INDEX MARKER)
+  (let ((regexp speechd-speak-index-mark-regexp)
+        (markers '()))
+    (when (string= regexp "")
+      (setq regexp (or sentence-end "[.,;!?]+")))
+    (save-excursion
+      (goto-char beg)
+      (while (re-search-forward regexp nil t)
+        (push (list (cl-incf speechd-speak--marker-counter) (point-marker))
+              markers)))
+    (mapcar #'(lambda (m) (cons (- (marker-position (second m)) beg) m))
+            markers)))
 
 
 ;;; Basic speaking

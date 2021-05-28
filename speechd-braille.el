@@ -1,7 +1,7 @@
 ;;; speechd-braille.el --- Emacs braille emulator driver
 
+;; Copyright (C) 2012, 2018 Milan Zamazal <pdm@zamazal.org>
 ;; Copyright (C) 2004, 2005, 2006, 2008 Brailcom, o.p.s.
-;; Copyright (C) 2012 Milan Zamazal <pdm@zamazal.org>
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -154,7 +154,7 @@
   (unwind-protect (funcall function)
     (mmanager-finish-block (slot-value driver 'manager) speechd-client-name)))  
 
-(cl-defmethod speechd.text ((driver speechd-braille-emu-driver) text cursor)
+(cl-defmethod speechd.text ((driver speechd-braille-emu-driver) text cursor markers)
   (speechd-braille--maybe-enqueue
    driver text (speechd-braille--make-message driver text cursor)))
 
