@@ -1,6 +1,6 @@
 ;;; speechd-el-pkg.el --- speechd-el package definition
 
-;; Copyright (C) 2013, 2016 Milan Zamazal
+;; Copyright (C) 2013-2021 Milan Zamazal
 
 ;; Author: Milan Zamazal <pdm@zamazal.org>
 
@@ -21,7 +21,7 @@
 
 ;;; Code:
 
-(define-package "speechd-el" "2.9"
+(define-package "speechd-el" "2.10"
   "Client to speech synthesizers and Braille displays.")
 
 ;;; Announce

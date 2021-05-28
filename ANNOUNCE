@@ -1,5 +1,5 @@
-speechd-el 2.9 released
-=======================
+speechd-el 2.10 released
+========================
 
 * What is speechd-el?
 
@@ -39,10 +39,14 @@ speechd-el 2.9 released
   - Free Software, distributed under the GPL.
 
   More information about speechd-el (including comparison with
-  Emacspeak) can be found on its web page, see
+  Emacspeak) can be found on its (a bit outdated) web page, see
   http://devel.freebsoft.org/speechd-el .
 
-* What is new in the 2.9 version?
+* What is new in the 2.10 version?
+
+  ** New user option speechd-speak-emacs-language.
+
+  It sets the language for messages read in English by default.
 
   ** Bug fixes.
 
@@ -56,7 +60,7 @@ speechd-el 2.9 released
   https://github.com/brailcom/speechd-el
 
   The source package of the released version is available at
-  https://github.com/brailcom/speechd-el/releases/download/speechd-el-2.9/speechd-el-2.9.tar.gz .
+  https://github.com/brailcom/speechd-el/releases/download/speechd-el-2.10/speechd-el-2.10.tar.gz .
 
   The home page of the project is http://devel.freebsoft.org/speechd-el .
 

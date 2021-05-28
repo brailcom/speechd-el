@@ -1,5 +1,14 @@
 User-visible changes to speechd-el:
 
+* Changes in speechd-el 2.10
+
+** New user option speechd-speak-emacs-language.
+
+It sets the language for messages read in English by default.
+
+** Bug fixes.
+
+
 * Changes in speechd-el 2.9
 
 ** Bug fixes.
