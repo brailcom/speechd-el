@@ -720,16 +720,6 @@ spojení.  Za normálních okolností by Speech Dispatcher mìlo odpovídat
 na pøíkazu protokolu okam¾itì, av¹ak pokud se pøipojujete na Speech
 Dispatcher nìjakým zvlá¹tním zpùsobem po pomalé síti, mù¾ete
 potøebovat tento limit zvý¹it.
-
-@item speechd-spdsend
-@cindex spdsend
-Je-li hodnotou promìnné nìco jiného ne¾ @code{nil}, musí to být
-øetìzec urèující jméno binárky @emph{spdsend} (obvykle
-@code{"spdsend"}), která má být pou¾ita pro komunikaci se Speech
-Dispatcher.  Je-li hodnotou promìnné @code{nil} nebo pokud je verze
-Emacsu vy¹¹í ne¾ 21.3, spdsend se nepou¾ívá.
-
-O@tie{}hodnotu této promìnné se obvykle nemusíte starat.
 @end vtable
 
 @node Implicitní priority, Základní mluvení, Konfigurace serveru, Konfigurace

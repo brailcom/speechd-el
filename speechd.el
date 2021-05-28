@@ -78,14 +78,6 @@ used for communication with Speech Dispatcher."
   :type 'integer
   :group 'speechd)
 
-(defcustom speechd-spdsend nil
-  "If string, it names the spdsend binary to be used to talk to SSIP.
-If the new version of accept-process-output is available or the value of this
-variable is nil, Emacs talks to an SSIP server (Speech Dispatcher) directly."
-  :type '(choice (const :tag "Don't use spdsend" nil)
-                 (string :tag "spdsend binary"))
-  :group 'speechd)
-
 (defcustom speechd-autospawn t
   "If non-nil, Emacs will attempt to automatically start Speech Dispatcher.
 This means that if speechd-el gets a speech request and the
@@ -450,74 +442,40 @@ current voice."
 	   (let ((speechd-client-name name))
 	     (speechd-open)))))
 
-(defvar speechd--advanced-apo (condition-case _
-                                  (progn
-                                    (accept-process-output nil 0 0 1)
-                                    t)
-                                (error)))
-
-(defun speechd--call-spdsend (args &optional input)
-  (with-temp-buffer
-    (if input
-        (with-speechd-coding-protection
-          (insert input)
-          (let ((default-process-coding-system
-                  (cons speechd--coding-system speechd--coding-system))
-                (process-coding-system-alist nil))
-            (apply #'call-process-region (point-min) (point-max)
-                   speechd-spdsend t t nil args)))
-      (apply #'call-process speechd-spdsend nil t nil args))
-    (buffer-string)))
-
 (defun speechd--process-filter (process output)
-  (when speechd--advanced-apo
-    (speechd--with-current-connection
-     (setf (speechd--connection-process-output connection)
-           (concat (speechd--connection-process-output connection) output)))))
-
-(defun speechd--use-spdsend ()
-  (and (not speechd--advanced-apo) speechd-spdsend))
+  (speechd--with-current-connection
+   (setf (speechd--connection-process-output connection)
+         (concat (speechd--connection-process-output connection) output))))
 
 (defun speechd--open-connection (method host port socket-name)
-  (if (speechd--use-spdsend)
-      (let* ((answer (speechd--call-spdsend
-                      (list "--open" host (format "%d" port))))
-             (alen (and answer (length answer))))
-	(when (and alen (> alen 1))
-	  (setq answer (substring answer 0 (1- alen))))
-	answer)
-    (let ((process
-           (cond
-            ((eq method 'unix-socket)
-             (make-network-process
-              :name "speechd" :family "local"
-              :remote (or socket-name
-                          (or (getenv "SPEECHD_SOCK")
-                              (expand-file-name
-			       (let ((runtime-dir (getenv "XDG_RUNTIME_DIR")))
-				 (concat (if runtime-dir (concat runtime-dir "/") "~/.")
-                                         "speech-dispatcher/speechd.sock")))))))
-            ((eq method 'inet-socket)
-             (open-network-stream "speechd" nil host port))
-            (t (error "Invalid communication method: `%s'" method)))))
-      (when process
-	(set-process-coding-system process
-				   speechd--coding-system
-				   (if speechd--advanced-apo
-				       speechd--coding-system
-				     'raw-text))
-	(if (fboundp 'set-process-query-on-exit-flag)
-	    (set-process-query-on-exit-flag process nil)
-	  (set-process-query-on-exit-flag process nil))
-	(set-process-filter process #'speechd--process-filter))
-      process)))
+  (let ((process
+         (cond
+          ((eq method 'unix-socket)
+           (make-network-process
+            :name "speechd" :family "local"
+            :remote (or socket-name
+                        (or (getenv "SPEECHD_SOCK")
+                            (expand-file-name
+			     (let ((runtime-dir (getenv "XDG_RUNTIME_DIR")))
+			       (concat (if runtime-dir (concat runtime-dir "/") "~/.")
+                                       "speech-dispatcher/speechd.sock")))))))
+          ((eq method 'inet-socket)
+           (open-network-stream "speechd" nil host port))
+          (t (error "Invalid communication method: `%s'" method)))))
+    (when process
+      (set-process-coding-system process
+				 speechd--coding-system
+				 speechd--coding-system)
+      (if (fboundp 'set-process-query-on-exit-flag)
+	  (set-process-query-on-exit-flag process nil)
+	(set-process-query-on-exit-flag process nil))
+      (set-process-filter process #'speechd--process-filter))
+    process))
 
 (defun speechd--close-connection (connection)
   (let ((process (speechd--connection-process connection)))
     (when process
-      (if (speechd--use-spdsend)
-          (speechd--call-spdsend (list "--close" process))
-        (delete-process (speechd--connection-process connection)))
+      (delete-process (speechd--connection-process connection))
       (setf (speechd--connection-process connection) nil))))
 
 (defun speechd--send-connection (connection command)
@@ -525,20 +483,14 @@ current voice."
     (when process
       (with-speechd-coding-protection
         (condition-case _
-            (if (speechd--use-spdsend)
-                (speechd--call-spdsend (list "--send" process) command)
-              (process-send-string
-               process
-               (if speechd--advanced-apo
-                   command
-                 (encode-coding-string command speechd--coding-system)))
-              (when speechd--advanced-apo
-                (while (not (string-match
-                             speechd--end-regexp
-                             (speechd--connection-process-output connection)))
-                  (unless (accept-process-output process speechd-timeout nil 1)
-                    (signal 'ssip-connection-error
-                            "Timeout in communication with Speech Dispatcher"))))
+            (progn
+              (process-send-string process command)
+              (while (not (string-match
+                           speechd--end-regexp
+                           (speechd--connection-process-output connection)))
+                (unless (accept-process-output process speechd-timeout nil 1)
+                  (signal 'ssip-connection-error
+                          "Timeout in communication with Speech Dispatcher")))
               (prog1 (speechd--connection-process-output connection)
                 (setf (speechd--connection-process-output connection) "")))
           (error
@@ -701,19 +653,14 @@ If QUIET is non-nil, don't echo success report."
                      (string-match speechd--result-regexp answer))
            (push (match-string 1 answer) data)
            (setq answer (substring answer (match-end 0))))
-         (if (or speechd--advanced-apo (speechd--use-spdsend))
-             (progn
-               (setq success (and answer
-                                  (string-match speechd--success-regexp
-                                                answer)))
-               (unless success
-                 (setq data nil))
-               (list success
-                     data
-                     (and success (substring answer 0 3))
-                     (and success (substring answer 4))))
-           '(t nil nil nil)))))))
-
+         (setq success (and answer
+                            (string-match speechd--success-regexp answer)))
+         (unless success
+           (setq data nil))
+         (list success
+               data
+               (and success (substring answer 0 3))
+               (and success (substring answer 4))))))))
 
 (defconst speechd--block-commands
   '(("speak")
