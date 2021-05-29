@@ -1,2 +1,4 @@
 *.elc
 *.info*
+dir
+speechd-el-[0-9]*
