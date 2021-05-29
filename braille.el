@@ -1,7 +1,7 @@
 ;;; braille.el --- Simple Emacs braille display emulator
 
+;; Copyright (C) 2012-2021 Milan Zamazal <pdm@zamazal.org>
 ;; Copyright (C) 2004 Brailcom, o.p.s.
-;; Copyright (C) 2012 Milan Zamazal <pdm@zamazal.org>
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -25,8 +25,7 @@
 ;;; Code:
 
 
-(eval-when-compile
-  (require 'cl))
+(require 'cl-lib)
 
 
 (defvar braille-buffer-name "*braille-monitor*")

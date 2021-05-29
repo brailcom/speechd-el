@@ -1,7 +1,7 @@
 ;;; brltty.el --- Interface to BRLTTY
 
-;; Copyright (C) 2004, 2005, 2006, 2007, 2008 Brailcom, o.p.s.
-;; Copyright (C) 2012, 2013, 2020 Milan Zamazal <pdm@zamazal.org>
+;; Copyright (C) 2012-2021 Milan Zamazal <pdm@zamazal.org>
+;; Copyright (C) 2004-2008 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -25,7 +25,7 @@
 ;;; Code:
 
 
-(require 'cl)
+(require 'cl-lib)
 
 (require 'speechd-common)
 
@@ -352,14 +352,14 @@ available, from the  environment variable CONTROLVT."
     (cdr answer)))
 
 (defun brltty--send-packet (connection answer packet-id &rest data-list)
-  (let ((length (reduce #'+ data-list :initial-value 0
-                        :key #'(lambda (data)
-                                 (cond 
-				  ((integerp data) 4)
-                                  ((consp data)
-                                   (ecase (car data)
-                                     (integer64 8)))
-				  (t (length data))))))
+  (let ((length (cl-reduce #'+ data-list :initial-value 0
+                           :key #'(lambda (data)
+                                    (cond
+				     ((integerp data) 4)
+                                     ((consp data)
+                                      (ecase (car data)
+                                        (integer64 8)))
+				     (t (length data))))))
         (process (brltty--connection-process connection)))
     (when process
       (with-speechd-coding-protection
@@ -412,7 +412,7 @@ available, from the  environment variable CONTROLVT."
 (defun brltty--update-terminal-spec (connection)
   (let ((terminal-spec (brltty--terminal-spec))
         (orig-terminal-spec (brltty--connection-terminal-spec connection)))
-    (unless (equalp terminal-spec orig-terminal-spec)
+    (unless (cl-equalp terminal-spec orig-terminal-spec)
       (when orig-terminal-spec
         (brltty--send-packet connection 'ack 'leavetty))
       (apply 'brltty--send-packet

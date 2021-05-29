@@ -1,6 +1,6 @@
 ;;; speechd-out.el --- Alternative output interface
 
-;; Copyright (C) 2018 Milan Zamazal <pdm@zamazal.org>
+;; Copyright (C) 2018-2021 Milan Zamazal <pdm@zamazal.org>
 ;; Copyright (C) 2004, 2005, 2006, 2008 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
@@ -233,7 +233,7 @@
           (completing-read "Enable driver: "
                            (mapcar 'list
                                    (mapcar 'symbol-name
-                                           (set-difference
+                                           (cl-set-difference
                                             (mapcar 'speechd-driver.name
                                                     speechd-out--drivers)
                                             speechd-out-active-drivers)))

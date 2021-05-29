@@ -28,7 +28,7 @@
 ;;; Code:
 
 
-(eval-when-compile (require 'cl))
+(require 'cl-lib)
 
 (require 'speechd)
 (require 'speechd-common)
@@ -475,9 +475,9 @@ This variable is reset to nil before each command in pre-command-hook.")
                             result)
                           ;; buffer name
                           (let ((buffer-name (buffer-name)))
-                            (assoc-if (lambda (key)
-                                        (when (stringp key) (string-match key buffer-name)))
-                                      speechd-speak-connections))
+                            (cl-assoc-if (lambda (key)
+                                           (when (stringp key) (string-match key buffer-name)))
+                                         speechd-speak-connections))
                           ;; minibuffer
                           (and (speechd-speak--in-minibuffer-p)
                                (assoc :minibuffer speechd-speak-connections))
@@ -536,7 +536,7 @@ This variable is reset to nil before each command in pre-command-hook.")
 		      ((eq invisibility-spec t)
 		       invisibility)
 		      ((consp invisibility)
-		       (intersection invisibility-spec invisibility))
+		       (cl-intersection invisibility-spec invisibility))
 		      (t
 		       (memq invisibility buffer-invisibility-spec)))))
           (push (substring text pos next-pos) pieces))
@@ -878,10 +878,10 @@ FUNCTION is invoked interactively."
                                                            (limit (point-min)))
   ;; Let's be careful about isearch overlays not to cut texts in isearch
   (let* ((i-overlays (and isearch-mode
-                          (intersection (overlays-at (- point 2))
-                                        (append (list isearch-overlay)
-                                                isearch-opened-overlays
-                                                isearch-lazy-highlight-overlays))))
+                          (cl-intersection (overlays-at (- point 2))
+                                           (append (list isearch-overlay)
+                                                   isearch-opened-overlays
+                                                   isearch-lazy-highlight-overlays))))
          (i-overlays-start (1- (apply #'min (1+ point) (mapcar #'overlay-start i-overlays)))))
     (when (>= i-overlays-start limit)
       ;; This may omit other property borders as well.  But in isearch we

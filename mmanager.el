@@ -1,5 +1,6 @@
 ;;; mmanager.el --- Message manager
 
+;; Copyright (C) 2021 Milan Zamazal <pdm@zamazal.org>
 ;; Copyright (C) 2004, 2005 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
@@ -22,7 +23,7 @@
 ;;; Code:
 
 
-(require 'cl)
+(require 'cl-lib)
 
 
 ;;; User customization
@@ -101,7 +102,7 @@
 
 (defun mmanager--prune-queue (manager condition)
   (setf (mmanager--manager-queue manager)
-        (remove-if condition (mmanager--manager-queue manager))))
+        (cl-remove-if condition (mmanager--manager-queue manager))))
 
 (defun mmanager--update-queue (manager message* priority)
   (let* ((queue (mmanager--manager-queue manager))
@@ -217,8 +218,8 @@
   (let ((message (mmanager--client-block manager client)))
     (when message
       (setf (mmanager--manager-message-blocks manager)
-            (remove* client (mmanager--manager-message-blocks manager)
-                     :key #'car :test #'string=))
+            (cl-remove client (mmanager--manager-message-blocks manager)
+                       :key #'car :test #'string=))
       (unless (eq message 'canceled)
         (mmanager--enqueue* manager message
                             (mmanager--message-priority message))))))
@@ -235,13 +236,13 @@
         (cursor (mmanager--manager-history-cursor manager)))
     (ecase which
       (current
-       (find cursor history :test #'eq))
+       (cl-find cursor history :test #'eq))
       (next
        (let ((next (rest (member* cursor history :test #'eq))))
          (when next
            (setf (mmanager--manager-history-cursor manager) (first next)))))
       (previous
-       (let ((pos (position cursor history :test #'eq)))
+       (let ((pos (cl-position cursor history :test #'eq)))
          (when (and pos (> pos 0))
            (setf (mmanager--manager-history-cursor manager)
                  (nth (1- pos) history)))))
