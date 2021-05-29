@@ -670,7 +670,8 @@ If QUIET is non-nil, don't echo success report."
     ("key")
     ("quit")
     ("block" ("end"))
-    ("set" ("self" ("rate") ("pitch") ("volume") ("voice") ("language")))))
+    ("set" ("self" ("rate") ("pitch") ("volume") ("voice") ("language")
+                   ("punctuation") ("cap_let_recogn") ("ssml_mode")))))
 
 (defun speechd--block-command-p (command &optional allowed)
   (unless allowed
