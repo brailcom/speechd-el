@@ -618,7 +618,9 @@ to the end of the line."
    (let* ((inhibit-field-text-motion t)
           (in-isearch-p (and isearch-mode (not (called-interactively-p 'interactive))))
           (beg (if (and rest-only (not in-isearch-p)) (point) (line-beginning-position)))
-          (end (line-end-position)))
+          (end (if truncate-lines
+                   (line-end-position)
+                 (save-excursion (end-of-visual-line) (point)))))
      (when speechd-speak-separator-regexp
        (save-match-data
          (save-excursion

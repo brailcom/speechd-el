@@ -429,10 +429,12 @@ Braille output).
 @table @kbd
 @item C-e l
 @kindex C-e l
+@cindex truncate-lines
 @findex speechd-speak-read-line
 Read current line (@code{speechd-speak-read-line}).  With the prefix
 argument, read the line only from the current cursor position to the
-end of line.
+end of line.  If @code{truncate-lines} is @code{nil}, read the line
+only to its visual end.
 
 @item C-e b
 @kindex C-e b
