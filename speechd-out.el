@@ -167,15 +167,14 @@
   (interactive)
   (speechd-out--loop-drivers-op #'speechd.repeat))
 
-(defun* speechd-out-icon (icon &key (priority speechd-default-sound-priority))
+(cl-defun speechd-out-icon (icon &key (priority speechd-default-sound-priority))
   (let ((icon-name (speechd-out--icon-name icon)))
     (when icon-name
       (speechd-out--loop-drivers (driver)
         (speechd.set driver 'priority priority)
         (speechd.icon driver icon-name)))))
 
-(defun* speechd-out-char (char &key (priority speechd-default-char-priority)
-                               icon)
+(cl-defun speechd-out-char (char &key (priority speechd-default-char-priority) icon)
   (let ((icon-name (speechd-out--icon-name icon)))
     (speechd-out--loop-drivers (driver)
       (speechd.set driver 'priority priority)
@@ -187,8 +186,7 @@
                                   (speechd.icon driver% icon-name%))
                                 (speechd.char driver% char%)))))))
 
-(defun* speechd-out-keys (keys &key (priority speechd-default-key-priority)
-                               text)
+(cl-defun speechd-out-keys (keys &key (priority speechd-default-key-priority) text)
   (speechd-out--loop-drivers (driver)
     (speechd.set driver 'priority priority)
     (lexical-let ((driver% driver)
@@ -200,8 +198,7 @@
                               (when text%
                                 (speechd.text driver% text% nil nil)))))))
 
-(defun* speechd-out-text (text &key (priority speechd-default-text-priority)
-                               icon cursor markers)
+(cl-defun speechd-out-text (text &key (priority speechd-default-text-priority) icon cursor markers)
   (let ((icon-name (speechd-out--icon-name icon)))
     (speechd-out--loop-drivers (driver)
       (speechd.set driver 'priority priority)

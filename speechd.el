@@ -447,8 +447,7 @@ current voice."
 ;;; Process management functions
 
 
-(defun* speechd--connection (&optional (name speechd-client-name)
-				       (create-if-needed t))
+(cl-defun speechd--connection (&optional (name speechd-client-name) (create-if-needed t))
   (or (gethash name speechd--connections)
       (and create-if-needed
 	   (let ((speechd-client-name name))
@@ -560,7 +559,7 @@ current voice."
      "Error on opening Speech Dispatcher connection")
 
 ;;;###autoload
-(defun* speechd-open (&optional method &key host port socket-name quiet force-reopen)
+(cl-defun speechd-open (&optional method &key host port socket-name quiet force-reopen)
   "Open connection to Speech Dispatcher using the given method.
 If the connection corresponding to the current `speechd-client-name' value
 already exists, close it and reopen again, with the same connection parameters.
@@ -652,7 +651,7 @@ Return the opened connection on success, nil otherwise."
             (setf (speechd--connection-forced-priority connection) t)))))
     connection))
 
-(defun* speechd-close (&optional (name speechd-client-name))
+(cl-defun speechd-close (&optional (name speechd-client-name))
   "Close speechd connection named NAME."
   (interactive)
   (let ((connection (speechd--connection name nil)))
@@ -741,7 +740,7 @@ If QUIET is non-nil, don't echo success report."
          (or (not rest-allowed)
              (speechd--block-command-p (rest command) rest-allowed)))))
 
-(defun* speechd--send-command (command)
+(cl-defun speechd--send-command (command)
   (unless (listp command)
     (setq command (list command)))
   (speechd--with-current-connection
@@ -1029,8 +1028,7 @@ the `speechd--set-parameter' function."
   (concat "<speak>" text "</speak>"))
 
 ;;;###autoload
-(defun* speechd-say-text (text &key (priority speechd-default-text-priority)
-                               say-if-empty markers)
+(cl-defun speechd-say-text (text &key (priority speechd-default-text-priority) say-if-empty markers)
   "Speak the given TEXT, represented by a string.
 The key argument `priority' defines the priority of the message and must be one
 of the symbols `important', `message', `text', `notification' or
@@ -1078,7 +1076,7 @@ is empty."
               (speechd--send-text substring))
             (setq beg end)))))))
 
-(defun* speechd-say-sound (name &key (priority speechd-default-sound-priority))
+(cl-defun speechd-say-sound (name &key (priority speechd-default-sound-priority))
   "Ask speechd to play an auditory icon.
 NAME is the name of the icon, any string acceptable by speechd.
 The key argument `priority' defines the priority of the message and must be one
@@ -1087,7 +1085,7 @@ of the symbols `important', `message', `text', `notification' or
   (speechd--set-parameter 'message-priority priority)
   (speechd--send-command (list "SOUND_ICON" name)))
 
-(defun* speechd-say-char (char &key (priority speechd-default-char-priority))
+(cl-defun speechd-say-char (char &key (priority speechd-default-char-priority))
   "Speak the given CHAR, any UTF-8 character.
 The key argument `priority' defines the priority of the message and must be one
 of the symbols `important', `message', `text', `notification' or
@@ -1102,7 +1100,7 @@ of the symbols `important', `message', `text', `notification' or
                                    (?\n "linefeed")
                                    (t (char-to-string char)))))))))
 
-(defun* speechd-say-key (key &key (priority speechd-default-key-priority))
+(cl-defun speechd-say-key (key &key (priority speechd-default-key-priority))
   "Speak the given KEY, represented by a key event.
 The key argument `priority' defines the priority of the message and must be one
 of the symbols `important', `message', `text', `notification' or

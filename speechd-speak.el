@@ -872,12 +872,10 @@ FUNCTION is invoked interactively."
        (prog1 ad-do-it
          (speechd-speak--speak-piece start)))))
 
-(defun* speechd-speak--next-property-change (&optional (point (point))
-                                                       (limit (point-max)))
+(cl-defun speechd-speak--next-property-change (&optional (point (point)) (limit (point-max)))
   (next-char-property-change point limit))
 
-(defun* speechd-speak--previous-property-change (&optional (point (point))
-                                                           (limit (point-min)))
+(cl-defun speechd-speak--previous-property-change (&optional (point (point)) (limit (point-min)))
   ;; Let's be careful about isearch overlays not to cut texts in isearch
   (let* ((i-overlays (and isearch-mode
                           (cl-intersection (overlays-at (- point 2))
