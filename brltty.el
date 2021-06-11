@@ -131,7 +131,7 @@ available, from the  environment variable CONTROLVT."
     (?K . key)
     (?C . credentials)))
 
-(defstruct brltty--connection
+(cl-defstruct brltty--connection
   process
   (protocol-version nil)
   (display-width nil)
@@ -287,8 +287,8 @@ available, from the  environment variable CONTROLVT."
      (brltty--disable-connection connection err))))
 
 (defun brltty--read-input (connection)
-  (destructuring-bind (type . data) (brltty--read-packet connection)
-    (case type
+  (cl-destructuring-bind (type . data) (brltty--read-packet connection)
+    (cl-case type
      (err
       (let ((err-number (brltty--read-integer data)))
         (if (= err-number brltty--protocol-version-error)
@@ -357,7 +357,7 @@ available, from the  environment variable CONTROLVT."
                                     (cond
 				     ((integerp data) 4)
                                      ((consp data)
-                                      (ecase (car data)
+                                      (cl-ecase (car data)
                                         (integer64 8)))
 				     (t (length data))))))
         (process (brltty--connection-process connection)))
@@ -370,10 +370,10 @@ available, from the  environment variable CONTROLVT."
                       (encode-coding-string
                        (apply #'format "%c%c%c%c"
                               (funcall #'reverse
-                                       (loop for i from 1 to 4
-                                             for x = n then (/ x 256)
-                                             for rem = (% x 256)
-                                             collect rem)))
+                                       (cl-loop for i from 1 to 4
+                                                for x = n then (/ x 256)
+                                                for rem = (% x 256)
+                                                collect rem)))
                        brltty-coding))))
               (send-integer length)
               (send-integer (cdr (assoc packet-id brltty--packet-types)))
@@ -387,8 +387,8 @@ available, from the  environment variable CONTROLVT."
                      process
                      (encode-coding-string (format "%c" (aref data i)) brltty-coding))))
                  ((consp data)
-                  (destructuring-bind (n1 n2 n3) (cdr data)
-                    (ecase (car data)
+                  (cl-destructuring-bind (n1 n2 n3) (cdr data)
+                    (cl-ecase (car data)
                       (integer64
                        (process-send-string
                         process
@@ -437,7 +437,7 @@ respectively."
       ;; In protocol >= 8 server initiates communication, let's look if
       ;; there is any
       (let* ((connection (brltty--open-connection host port key-handler))
-             (version (or (first (brltty--read-answer connection 'version t))
+             (version (or (cl-first (brltty--read-answer connection 'version t))
                           7)))
         (if (> version 7)
             (progn

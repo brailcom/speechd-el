@@ -731,7 +731,7 @@ This function works only in Emacs 22 or higher."
 (speechd-speak--def-speak-object page)
 (speechd-speak--def-speak-object sexp)
 
-(defstruct speechd-speak--command-info-struct
+(cl-defstruct speechd-speak--command-info-struct
   marker
   modified
   (changes '())
@@ -921,7 +921,7 @@ Language must be an RFC 1766 language code, as a string."
       (while (re-search-forward regexp nil t)
         (push (list (cl-incf speechd-speak--marker-counter) (point-marker))
               markers)))
-    (mapcar #'(lambda (m) (cons (- (marker-position (second m)) beg) m))
+    (mapcar #'(lambda (m) (cons (- (marker-position (cl-second m)) beg) m))
             markers)))
 
 
@@ -1259,7 +1259,7 @@ Only single characters are allowed in the keymap.")
                         :priority priority))))
 
 (defun speechd-speak--add-command-text (info beg end)
-  (let ((last (first (speechd-speak--cinfo changes)))
+  (let ((last (cl-first (speechd-speak--cinfo changes)))
         (last-end (speechd-speak--cinfo change-end))
         (text (speechd-speak--buffer-substring beg end t)))
     (setf (speechd-speak--cinfo change-end) end)
@@ -1403,7 +1403,7 @@ Only single characters are allowed in the keymap.")
 
 (defmacro speechd-speak--post-defun (name shy new-state guard &rest body)
   (let* ((name (speechd-speak--name 'speechd-speak--post-read name))
-         (state-condition (case shy
+         (state-condition (cl-case shy
                             ((t) `(eq state nil))
                             (sometimes `(not (eq state t)))
                             (t t))))
@@ -1445,7 +1445,7 @@ Only single characters are allowed in the keymap.")
     (and (stringp deleted-chars)
          (or (null changes)
              (and (= (length changes) 1)
-                  (equal (first changes) deleted-chars)))))
+                  (equal (cl-first changes) deleted-chars)))))
   (when (eq speechd-speak-read-command-keys t)
     ;; Cancel reading the DEL key etc. -- perhaps too daring?
     (speechd-out-cancel))
@@ -1519,8 +1519,8 @@ Only single characters are allowed in the keymap.")
                                       (reverse changes))
                              " ")))
         (when (and self-insert
-                   (> (length (first changes)) 1))
-          (setq text (concat text " " (first changes))))
+                   (> (length (cl-first changes)) 1))
+          (setq text (concat text " " (cl-first changes))))
         (cond
          ((and (eq speechd-speak-buffer-insertions 'whole-buffer)
                (not self-insert))
@@ -1535,7 +1535,7 @@ Only single characters are allowed in the keymap.")
                speechd-speak-echo
                (not (memq 'self-insert-command
                           speechd-speak-ignore-command-keys)))
-      (case speechd-speak-echo
+      (cl-case speechd-speak-echo
         (word
          (let ((point (point)))
            (when (and (> point 1)
@@ -1804,9 +1804,8 @@ When the mode is enabled, all spoken text is spelled."
 
 (defvar speechd-speak--info-updates nil)
 
-(defmacro* speechd-speak--watch (name get-function
-                                 &key on-change info info-string key)
-  `(locally
+(cl-defmacro speechd-speak--watch (name get-function &key on-change info info-string key)
+  `(progn
      (fset (quote ,(speechd-speak--name 'speechd-speak--get name))
            ,get-function)
      ,(when info
@@ -1921,17 +1920,17 @@ When the mode is enabled, all spoken text is spelled."
 
 (speechd-speak--watch minor-modes
   #'(lambda ()
-      (loop for mode-spec in minor-mode-alist
-            for mode = (car mode-spec)
-            when (and (boundp mode) (symbol-value mode))
-            collect (if (memq mode speechd-speak-display-modes)
-                        (cadr mode-spec)
-                      mode)))
+      (cl-loop for mode-spec in minor-mode-alist
+               for mode = (car mode-spec)
+               when (and (boundp mode) (symbol-value mode))
+               collect (if (memq mode speechd-speak-display-modes)
+                           (cadr mode-spec)
+                         mode)))
   :on-change #'(lambda (old new)
                  (cl-flet ((set-difference (x y)
-                          (loop for i in x
-                                unless (memq i y)
-                                collect i)))
+                          (cl-loop for i in x
+                                   unless (memq i y)
+                                   collect i)))
                    (let ((disabled (set-difference old new))
                          (enabled (set-difference new old)))
                      (when enabled

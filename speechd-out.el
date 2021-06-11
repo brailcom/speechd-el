@@ -23,7 +23,7 @@
 ;;; Code:
 
 
-(eval-when-compile (require 'cl))
+(require 'cl-lib)
 (require 'eieio)
 
 (require 'speechd-common)
@@ -64,8 +64,8 @@
               (push ,$err ,$speechd-out-errors)))))
        (when ,$speechd-out-errors
          ;; How to signal all the errors?
-         (destructuring-bind
-             (,$error . ,$error-data) (first ,$speechd-out-errors)
+         (cl-destructuring-bind
+             (,$error . ,$error-data) (cl-first ,$speechd-out-errors)
            (setq ,$speechd-out-errors (cdr ,$speechd-out-errors))
            (while (and ,$speechd-out-errors
                        (eq (caar ,$speechd-out-errors) ,$error))
@@ -138,7 +138,7 @@
 ;;; Interface functions and variables
 
 
-(defstruct speechd-out-update
+(cl-defstruct speechd-out-update
   text
   cursor
   group)

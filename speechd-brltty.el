@@ -1,6 +1,7 @@
 ;;; speechd-brltty.el --- BRLTTY output driver
 
-;; Copyright (C) 2004, 2005, 2006, 2008 Brailcom, o.p.s.
+;; Copyright (C) 2021 Milan Zamazal <pdm@zamazal.org>
+;; Copyright (C) 2004-2008 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -24,8 +25,7 @@
 ;;; Code:
 
 
-(eval-when-compile
-  (require 'cl))
+(require 'cl-lib)
 
 (require 'brltty)
 (require 'mmanager)
@@ -109,7 +109,7 @@ is not recommended to assign or call user commands here."
     connection))
 
 (defun speechd-brltty--display (manager message &optional scroll)
-  (multiple-value-bind (connection text cursor) message
+  (cl-multiple-value-bind (connection text cursor) message
     (let ((display-width (car (brltty-display-size connection))))
       (when display-width
         (when (and cursor (>= cursor display-width) (not scroll))
@@ -168,7 +168,7 @@ is not recommended to assign or call user commands here."
          (message (mmanager-history manager 'current)))
     (when scrolling
       (speechd-braille--stop manager)
-      (destructuring-bind (connection text cursor) message
+      (cl-destructuring-bind (connection text cursor) message
         (let ((display-width (or (car (brltty-display-size connection)) 0)))
           (when display-width
             (setq scrolling (if eolp

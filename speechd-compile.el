@@ -1,6 +1,6 @@
 ;;; speechd-compile.el --- Maintenance utilities
 
-;; Copyright (C) 2004, 2013 Milan Zamazal <pdm@zamazal.org>
+;; Copyright (C) 2004, 2013, 2021 Milan Zamazal <pdm@zamazal.org>
 
 ;; Author: Milan Zamazal <pdm@zamazal.org>
 

@@ -1,7 +1,7 @@
 ;;; speechd-bug.el --- reporting speechd-el and speechd bugs
 
+;; Copyright (C) 2012, 2021 Milan Zamazal <pdm@zamazal.org>
 ;; Copyright (C) 2003, 2004, 2005 Brailcom, o.p.s.
-;; Copyright (C) 2012 Milan Zamazal <pdm@zamazal.org>
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -23,7 +23,7 @@
 ;;; Code:
 
 
-(eval-when-compile (require 'cl))
+(require 'cl-lib)
 (require 'speechd-speak)
   
 
@@ -199,7 +199,7 @@
 
 (defun speechd-bug--generate-repro-id ()
   (let ((time (current-time)))
-    (format "speechd-el-%d-%d-%d" (first time) (second time) (third time))))
+    (format "speechd-el-%d-%d-%d" (cl-first time) (cl-second time) (cl-third time))))
   
 (defun speechd-bug-reproduce ()
   "Start reproducing a speechd-el or Speech Dispatcher bug.

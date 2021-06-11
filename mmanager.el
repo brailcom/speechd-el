@@ -39,7 +39,7 @@
 
 ;;; Data structures
 
-(defstruct mmanager--manager
+(cl-defstruct mmanager--manager
   (queue '())
   (current-message nil)
   (message-blocks '())
@@ -54,7 +54,7 @@
   (history '())
   (history-cursor nil))
 
-(defstruct mmanager--message
+(cl-defstruct mmanager--message
   messages
   priority
   client
@@ -125,7 +125,7 @@
 (defun mmanager--enqueue* (manager message* priority)
   (when (mmanager--message-messages message*)
     (let ((queue (mmanager--manager-queue manager)))
-      (ecase priority
+      (cl-ecase priority
         (important
          (mmanager--pause manager))
         ((message text)
@@ -234,20 +234,20 @@
 (defun mmanager-history (manager which)
   (let ((history (mmanager--manager-history manager))
         (cursor (mmanager--manager-history-cursor manager)))
-    (ecase which
+    (cl-ecase which
       (current
        (cl-find cursor history :test #'eq))
       (next
-       (let ((next (rest (member* cursor history :test #'eq))))
+       (let ((next (cl-rest (cl-member cursor history :test #'eq))))
          (when next
-           (setf (mmanager--manager-history-cursor manager) (first next)))))
+           (setf (mmanager--manager-history-cursor manager) (cl-first next)))))
       (previous
        (let ((pos (cl-position cursor history :test #'eq)))
          (when (and pos (> pos 0))
            (setf (mmanager--manager-history-cursor manager)
                  (nth (1- pos) history)))))
       (first
-       (setf (mmanager--manager-history-cursor manager) (first history)))
+       (setf (mmanager--manager-history-cursor manager) (cl-first history)))
       (last
        (setf (mmanager--manager-history-cursor manager)
              (car (last history)))))))

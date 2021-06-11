@@ -39,8 +39,7 @@
 ;;; Code:
 
 
-(eval-when-compile (require 'cl))
-
+(require 'cl-lib)
 (require 'xml)
 
 (require 'speechd-common)
@@ -112,7 +111,7 @@ launch it."
 
 (defmacro speechd--generate-customization-options (var)
   (let ((value (symbol-value var)))
-    `(quote (choice :value ,(cdr (first value))
+    `(quote (choice :value ,(cdr (cl-first value))
                     ,@(mapcar #'(lambda (o)
                                   `(const :tag ,(car o) ,(cdr o)))
                               value)))))
@@ -296,7 +295,7 @@ current voice."
   '((voices
      "VOICES" identity)
     (synthesis-voices
-     "SYNTHESIS_VOICES" (lambda (line) (first (split-string line))))))
+     "SYNTHESIS_VOICES" (lambda (line) (cl-first (split-string line))))))
 
 (defconst speechd--parameter-value-mappings
   '((message-priority
@@ -330,7 +329,7 @@ current voice."
 ;;; Internal variables
 
 
-(defstruct speechd--connection
+(cl-defstruct speechd--connection
   name
   host
   port
@@ -344,7 +343,7 @@ current voice."
   (forced-priority nil)
   (last-command nil))
 
-(defstruct speechd--request
+(cl-defstruct speechd--request
   string)
 
 (defvar speechd--connections (make-hash-table :test 'equal)
@@ -402,8 +401,8 @@ current voice."
        (unwind-protect
            (let ((,$cparameters (speechd--connection-parameters connection)))
              (while ,$parameters
-               (let* ((,$p (first ,$parameters))
-                      (,$v (second ,$parameters))
+               (let* ((,$p (cl-first ,$parameters))
+                      (,$v (cl-second ,$parameters))
                       (,$orig-v (plist-get ,$cparameters ,$p)))
                  (when (and (not (equal ,$v ,$orig-v))
                             (or ,$v
@@ -478,12 +477,12 @@ current voice."
     ;; There can be additional index marks inserted by Speech Dispatcher,
     ;; let's skip them and find the first meaningful index mark.
     (while notifications
-      (destructuring-bind (code separator message) (car notifications)
+      (cl-destructuring-bind (code separator message) (car notifications)
         (setq notifications (cdr notifications))
         (when (and (equal code speechd--index-mark-code)
                    (equal separator " "))
           (when notifications
-            (destructuring-bind (code separator message) (car notifications)
+            (cl-destructuring-bind (code separator message) (car notifications)
               (when (and (equal code speechd--index-mark-code)
                          (equal separator "-"))
                 (speechd--jump-to-marker message)
@@ -638,7 +637,7 @@ Return the opened connection on success, nil otherwise."
                                    (list 'language speechd--default-language)))
           (let ((already-set '(client-name)))
             (while parameters
-              (destructuring-bind (parameter value . next) parameters
+              (cl-destructuring-bind (parameter value . next) parameters
                 (unless (memq parameter already-set)
                   (push parameter already-set)
                   (speechd--set-parameter parameter value))
@@ -672,8 +671,8 @@ If QUIET is non-nil, don't echo success report."
     (maphash #'(lambda (name _)
 		 (let ((speechd-client-name name))
 		   (if (speechd-open nil :quiet t :force-reopen t)
-		       (incf number-of-connections)
-		     (incf number-of-failures))))
+		       (cl-incf number-of-connections)
+		     (cl-incf number-of-failures))))
 	     speechd--connections)
     (unless quiet
       (message (format "%d connections successfully reopened, %d failures"
@@ -734,11 +733,11 @@ If QUIET is non-nil, don't echo success report."
 (defun speechd--block-command-p (command &optional allowed)
   (unless allowed
     (setq allowed speechd--block-commands))
-  (let* ((match (assoc (downcase (first command)) allowed))
+  (let* ((match (assoc (downcase (cl-first command)) allowed))
          (rest-allowed (cdr match)))
     (and match
          (or (not rest-allowed)
-             (speechd--block-command-p (rest command) rest-allowed)))))
+             (speechd--block-command-p (cl-rest command) rest-allowed)))))
 
 (cl-defun speechd--send-command (command)
   (unless (listp command)
@@ -752,7 +751,7 @@ If QUIET is non-nil, don't echo success report."
         :string (concat (mapconcat #'identity command " ") speechd--eol))))))
 
 (defun speechd--send-text (text)
-  (when (first (or (speechd--send-command "SPEAK") '(t)))
+  (when (cl-first (or (speechd--send-command "SPEAK") '(t)))
     ;; We must be careful here.  There is no answer from SSIP until all data
     ;; including the terminator is sent.  Thus, if we send the data in pieces,
     ;; there may be noticeable delays when waiting for TCP packet
@@ -775,10 +774,10 @@ If QUIET is non-nil, don't echo success report."
     ;; We must remove text properties from the string, otherwise Emacs does
     ;; strange things when recoding non-ASCII characters to UTF-8.
     (set-text-properties 0 (length text) nil text)
-    (unless (first (or (speechd--send-request
-                        (make-speechd--request
-                         :string (concat text speechd--eol "." speechd--eol)))
-                       '(t)))
+    (unless (cl-first (or (speechd--send-request
+                           (make-speechd--request
+                            :string (concat text speechd--eol "." speechd--eol)))
+                          '(t)))
       ;; We must reset the connection on failure, to bring it back to the
       ;; command state from the text reading state.
       (speechd-close))))
@@ -788,9 +787,9 @@ If QUIET is non-nil, don't echo success report."
 
 
 (defun speechd--list (parameter)
-  (multiple-value-bind (command processor)
+  (cl-multiple-value-bind (command processor)
       (cdr (assoc parameter speechd--list-parameters))
-    (mapcar processor (second (speechd--send-command (list "LIST" command))))))
+    (mapcar processor (cl-second (speechd--send-command (list "LIST" command))))))
 
 
 ;;; Parameter setting functions
@@ -830,7 +829,7 @@ If QUIET is non-nil, don't echo success report."
                     (not (speechd--connection-forced-priority connection)))))
       (let ((answer (speechd--call-set-parameter parameter value nil)))
         (setq connection (speechd--connection))
-        (when (first answer)
+        (when (cl-first answer)
           (setf (speechd--connection-parameters connection)
                 (plist-put (speechd--connection-parameters connection)
                            parameter value))))
@@ -942,15 +941,15 @@ If called with a prefix argument, set it for all connections."
                           (connection-parameters
                            (speechd--connection-parameters connection)))
                       (while connection-parameters
-                        (destructuring-bind (p v . next) connection-parameters
+                        (cl-destructuring-bind (p v . next) connection-parameters
                           (unless (memq p '(client-name message-priority
                                             spelling-mode))
                             (push
                              (cons
-                              (case p
+                              (cl-case p
                                 (voice 'name)
                                 (t p))
-                              (case p
+                              (cl-case p
                                 (punctuation-mode
                                  (cdr (assoc
                                        v speechd--punctuation-modes)))
@@ -1013,7 +1012,7 @@ the `speechd--set-parameter' function."
 (defun speechd--ssml (text beg markers)
   (let ((end (1- (+ beg (length text)))))
     (dolist (m markers)
-      (destructuring-bind (pos index marker) m
+      (cl-destructuring-bind (pos index marker) m
         (when (<= beg pos end)
           (let ((text-pos (- pos beg)))
             (put-text-property text-pos (1+ text-pos) 'index index text))))))
@@ -1064,8 +1063,8 @@ is empty."
               (setq speechd--markers
                     (mapcar #'(lambda (m)
                                 (cons (format "%s%s" speechd--index-mark-prefix
-                                              (second m))
-                                      (third m)))
+                                              (cl-second m))
+                                      (cl-third m)))
                             markers))
               (setq substring (speechd--ssml substring beg markers)))
             (speechd-block* `(message-priority ,priority
@@ -1095,7 +1094,7 @@ of the symbols `important', `message', `text', `notification' or
     (speechd--with-connection-parameters
         `(language ,(speechd--current-language))
       (speechd--send-command
-       (list "CHAR" (format "%s" (case char
+       (list "CHAR" (format "%s" (cl-case char
                                    (?  "space")
                                    (?\n "linefeed")
                                    (t (char-to-string char)))))))))
@@ -1135,8 +1134,8 @@ of the symbols `important', `message', `text', `notification' or
   (cond
    ((not all)
     (when (or repeatable
-              (not (equal (first (speechd--connection-last-command
-                                  (speechd--connection)))
+              (not (equal (cl-first (speechd--connection-last-command
+                                     (speechd--connection)))
                           command)))
       (speechd--send-command (list command "self"))))
    ((eq all 'some)
@@ -1203,8 +1202,8 @@ clients."
   (interactive)
   (if t
       (message "Not yet implemented in speechd")
-    (let ((id (car (second (speechd--send-command
-                            '("HISTORY" "GET" "LAST"))))))
+    (let ((id (car (cl-second (speechd--send-command
+                               '("HISTORY" "GET" "LAST"))))))
       (when id
         (speechd--send-command (list "HISTORY" "SAY" id))))))
 
