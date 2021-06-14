@@ -1836,7 +1836,7 @@ When the mode is enabled, all spoken text is spelled."
         `(add-to-list 'speechd-speak--info-updates (quote ,name)))))
 
 (speechd-speak--watch buffer-name #'buffer-name
-  :on-change #'(lambda (old new)
+  :on-change #'(lambda (_old new)
                  (speechd-speak--text (format "Buffer %s" new))))
 
 (speechd-speak--watch buffer-identification
@@ -1845,17 +1845,17 @@ When the mode is enabled, all spoken text is spelled."
         (let ((ident (format-mode-line mode-line-buffer-identification)))
           (set-text-properties 0 (length ident) nil ident)
           ident)))
-  :on-change #'(lambda (old new)
+  :on-change #'(lambda (_old new)
                  (speechd-speak--text
                   (format "New buffer identification: %s" new))))
 
 (speechd-speak--watch buffer-modified #'buffer-modified-p
-  :on-change #'(lambda (old new)
+  :on-change #'(lambda (_old new)
                  (speechd-speak--text
                   (if new "Buffer modified" "No buffer modification"))))
 
 (speechd-speak--watch buffer-read-only #'(lambda () buffer-read-only)
-  :on-change #'(lambda (old new)
+  :on-change #'(lambda (_old new)
                  (speechd-speak--text
                   (if new "Buffer writable" "Buffer read-only"))))
 
@@ -1885,7 +1885,7 @@ When the mode is enabled, all spoken text is spelled."
         (let ((ident (format-mode-line mode-line-frame-identification)))
           (set-text-properties 0 (length ident) nil ident)
           ident)))
-  :on-change #'(lambda (old new)
+  :on-change #'(lambda (_old new)
                  (speechd-speak--text
                   (format "Frame identification changed to: %s" new))))
 
@@ -1907,7 +1907,7 @@ When the mode is enabled, all spoken text is spelled."
           (let ((line (format-mode-line header-line-format)))
             (if (string= line "") "empty" line))
         "unknown"))
-  :on-change #'(lambda (old new)
+  :on-change #'(lambda (_old new)
                  (speechd-speak--text
                   (format "Header line changed to: %s" new)))
   :info-string "Header line: %s"

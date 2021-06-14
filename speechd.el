@@ -477,7 +477,7 @@ current voice."
     ;; There can be additional index marks inserted by Speech Dispatcher,
     ;; let's skip them and find the first meaningful index mark.
     (while notifications
-      (cl-destructuring-bind (code separator message) (car notifications)
+      (cl-destructuring-bind (code separator _message) (car notifications)
         (setq notifications (cdr notifications))
         (when (and (equal code speechd--index-mark-code)
                    (equal separator " "))
@@ -489,7 +489,7 @@ current voice."
                 (setq notifications nil))))))))
   output)
 
-(defun speechd--process-filter (process output)
+(defun speechd--process-filter (_process output)
   (speechd--with-current-connection
    (setf (speechd--connection-process-output connection)
          (speechd--process-notifications
@@ -1012,7 +1012,7 @@ the `speechd--set-parameter' function."
 (defun speechd--ssml (text beg markers)
   (let ((end (1- (+ beg (length text)))))
     (dolist (m markers)
-      (cl-destructuring-bind (pos index marker) m
+      (cl-destructuring-bind (pos index _marker) m
         (when (<= beg pos end)
           (let ((text-pos (- pos beg)))
             (put-text-property text-pos (1+ text-pos) 'index index text))))))

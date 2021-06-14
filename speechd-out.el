@@ -92,7 +92,7 @@
          :reader speechd-driver.name)))
 
 (cl-defmethod initialize-instance :after
-    ((this speechd-driver) slots)
+    ((this speechd-driver) _slots)
   (if (not (slot-boundp this 'name))
     (error "Driver name not given")))
 
@@ -108,29 +108,29 @@
                  (cons (car list) (replace (cdr list)))))))
       (setq speechd-out--drivers (replace speechd-out--drivers)))))
 
-(cl-defmethod speechd.cancel ((driver speechd-driver) all))
+(cl-defmethod speechd.cancel ((_driver speechd-driver) _all))
 
-(cl-defmethod speechd.stop ((driver speechd-driver) all))
+(cl-defmethod speechd.stop ((_driver speechd-driver) _all))
 
-(cl-defmethod speechd.pause ((driver speechd-driver) all))
+(cl-defmethod speechd.pause ((_driver speechd-driver) _all))
 
-(cl-defmethod speechd.resume ((driver speechd-driver) all))
+(cl-defmethod speechd.resume ((_driver speechd-driver) _all))
 
-(cl-defmethod speechd.repeat ((driver speechd-driver)))
+(cl-defmethod speechd.repeat ((_driver speechd-driver)))
 
-(cl-defmethod speechd.block ((driver speechd-driver) function))
+(cl-defmethod speechd.block ((_driver speechd-driver) _function))
 
-(cl-defmethod speechd.text ((driver speechd-driver) text cursor markers))
+(cl-defmethod speechd.text ((_driver speechd-driver) _text _cursor _markers))
 
-(cl-defmethod speechd.icon ((driver speechd-driver) icon))
+(cl-defmethod speechd.icon ((_driver speechd-driver) _icon))
 
-(cl-defmethod speechd.char ((driver speechd-driver) char))
+(cl-defmethod speechd.char ((_driver speechd-driver) _char))
 
-(cl-defmethod speechd.key ((driver speechd-driver) key))
+(cl-defmethod speechd.key ((_driver speechd-driver) _key))
 
-(cl-defmethod speechd.set ((driver speechd-driver) parameter value))
+(cl-defmethod speechd.set ((_driver speechd-driver) _parameter _value))
 
-(cl-defmethod speechd.shutdown ((driver speechd-driver)))
+(cl-defmethod speechd.shutdown ((_driver speechd-driver)))
 
 (defvar speechd-update nil)
 

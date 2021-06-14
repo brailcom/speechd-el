@@ -1,4 +1,4 @@
-;;; speechd-braille.el --- Emacs braille emulator driver
+;;; speechd-braille.el --- Emacs braille emulator driver  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2012-2021 Milan Zamazal <pdm@zamazal.org>
 ;; Copyright (C) 2004-2008 Brailcom, o.p.s.
@@ -74,12 +74,12 @@
           (run-at-time speechd-braille-display-time nil
                        #'mmanager-next manager))))
 
-(defun speechd-braille--stop (manager)
+(defun speechd-braille--stop (_manager)
   (when speechd-braille--display-timer
     (cancel-timer speechd-braille--display-timer))  
   (setq speechd-braille--display-timer nil))
 
-(defun speechd-braille--pause (manager)
+(defun speechd-braille--pause (_manager)
   (push speechd-braille--last-message speechd-braille--paused-messages))
 
 (defun speechd-braille--resume (manager)
@@ -87,7 +87,7 @@
     (when message
       (speechd-braille--display manager message))))
 
-(defun speechd-braille--busy (manager)
+(defun speechd-braille--busy (_manager)
   (and speechd-braille--display-timer
        (< (- (speechd-braille--time) speechd-braille--last-message-time)
           speechd-braille-display-time)))
@@ -121,30 +121,30 @@
   (priority)))
 
 (cl-defmethod initialize-instance :after
-    ((this speechd-braille-emu-driver) slots)
+    ((this speechd-braille-emu-driver) _slots)
   (progn
     (oset this priority speechd-default-text-priority)
     (oset this manager (speechd-braille--create-manager #'speechd-braille--display))))
 
 (cl-defmethod speechd-braille--make-message
-    ((driver speechd-braille-emu-driver) text cursor)
+    ((_driver speechd-braille-emu-driver) text cursor)
   (list text cursor))
 
-(cl-defmethod speechd.cancel ((driver speechd-braille-emu-driver) all)
+(cl-defmethod speechd.cancel ((driver speechd-braille-emu-driver) _all)
   (mmanager-cancel (slot-value driver 'manager) speechd-client-name))
 
-(cl-defmethod speechd.stop ((driver speechd-braille-emu-driver) all)
+(cl-defmethod speechd.stop ((driver speechd-braille-emu-driver) _all)
   (mmanager-next (slot-value driver 'manager)))
 
-(cl-defmethod speechd.pause ((driver speechd-braille-emu-driver) all)
+(cl-defmethod speechd.pause ((_driver speechd-braille-emu-driver) _all)
   ;; do nothing
   )
 
-(cl-defmethod speechd.resume ((driver speechd-braille-emu-driver) all)
+(cl-defmethod speechd.resume ((_driver speechd-braille-emu-driver) _all)
   ;; do nothing
   )
 
-(cl-defmethod speechd.repeat ((driver speechd-braille-emu-driver))
+(cl-defmethod speechd.repeat ((_driver speechd-braille-emu-driver))
   ;; do nothing
   )
 
@@ -154,7 +154,7 @@
   (unwind-protect (funcall function)
     (mmanager-finish-block (slot-value driver 'manager) speechd-client-name)))  
 
-(cl-defmethod speechd.text ((driver speechd-braille-emu-driver) text cursor markers)
+(cl-defmethod speechd.text ((driver speechd-braille-emu-driver) text cursor _markers)
   (speechd-braille--maybe-enqueue
    driver text (speechd-braille--make-message driver text cursor)))
 
@@ -177,7 +177,7 @@
   (when (eq parameter 'priority)
     (setf (slot-value driver 'priority) value)))
 
-(cl-defmethod speechd.shutdown ((driver speechd-braille-emu-driver))
+(cl-defmethod speechd.shutdown ((_driver speechd-braille-emu-driver))
   ;; do nothing
   )
 

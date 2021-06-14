@@ -1,7 +1,7 @@
 ;;; speechd-ssip.el --- SSIP driver
 
-;; Copyright (C) 2018 Milan Zamazal <pdm@zamazal.org>
-;; Copyright (C) 2004, 2006, 2008, 2018 Brailcom, o.p.s.
+;; Copyright (C) 2018-2021 Milan Zamazal <pdm@zamazal.org>
+;; Copyright (C) 2004-2018 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -34,44 +34,44 @@
    (host :initform speechd-host :initarg :host)
    (port :initform speechd-port :initarg :port)))
   
-(cl-defmethod speechd.cancel ((driver speechd-ssip-driver) all)
+(cl-defmethod speechd.cancel ((_driver speechd-ssip-driver) all)
   (speechd-cancel all))
 
-(cl-defmethod speechd.stop ((driver speechd-ssip-driver) all)
+(cl-defmethod speechd.stop ((_driver speechd-ssip-driver) all)
   (speechd-stop all))
 
-(cl-defmethod speechd.pause ((driver speechd-ssip-driver) all)
+(cl-defmethod speechd.pause ((_driver speechd-ssip-driver) all)
   (speechd-pause all))
 
-(cl-defmethod speechd.resume ((driver speechd-ssip-driver) all)
+(cl-defmethod speechd.resume ((_driver speechd-ssip-driver) all)
   (speechd-resume all))
 
-(cl-defmethod speechd.repeat ((driver speechd-ssip-driver))
+(cl-defmethod speechd.repeat ((_driver speechd-ssip-driver))
   (speechd-repeat))
 
-(cl-defmethod speechd.block ((driver speechd-ssip-driver) function)
+(cl-defmethod speechd.block ((_driver speechd-ssip-driver) function)
   (speechd-block function))
 
-(cl-defmethod speechd.text ((driver speechd-ssip-driver) text cursor markers)
+(cl-defmethod speechd.text ((_driver speechd-ssip-driver) text _cursor markers)
   (speechd-say-text text :markers markers))
 
-(cl-defmethod speechd.icon ((driver speechd-ssip-driver) icon)
+(cl-defmethod speechd.icon ((_driver speechd-ssip-driver) icon)
   (speechd-say-sound icon))
 
-(cl-defmethod speechd.char ((driver speechd-ssip-driver) char)
+(cl-defmethod speechd.char ((_driver speechd-ssip-driver) char)
   (speechd-say-char char))
 
-(cl-defmethod speechd.key ((driver speechd-ssip-driver) key)
+(cl-defmethod speechd.key ((_driver speechd-ssip-driver) key)
   (speechd-say-key key))
 
 (defconst speechd-ssip--parameter-names (mapcar 'car speechd--parameter-names))
-(cl-defmethod speechd.set ((driver speechd-ssip-driver) parameter value)
+(cl-defmethod speechd.set ((_driver speechd-ssip-driver) parameter value)
   (when (eq parameter 'priority)
     (setq parameter 'message-priority))
   (when (memq parameter speechd-ssip--parameter-names)
     (speechd--set-parameter parameter value)))
 
-(cl-defmethod speechd.shutdown ((driver speechd-ssip-driver))
+(cl-defmethod speechd.shutdown ((_driver speechd-ssip-driver))
   (speechd-close-all))
 
 

@@ -86,7 +86,7 @@
   (speechd-bug--insert "===" file ":begin===")
   (let ((file-name
          (or (speechd-bug--look-for-file file directories)
-             (condition-case c
+             (condition-case _c
                  (read-file-name
                   (format "Configuration file `%s' not found, please type its location manually: " file))
                (quit)))))
@@ -176,7 +176,7 @@
           (unwind-protect
               (progn
                 (set-process-filter process
-                                    #'(lambda (p str)
+                                    #'(lambda (_p str)
                                         (setq output (concat output str))))
                 (process-send-string process "server_log_file\n")
                 (while output

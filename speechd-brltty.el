@@ -168,7 +168,7 @@ is not recommended to assign or call user commands here."
          (message (mmanager-history manager 'current)))
     (when scrolling
       (speechd-braille--stop manager)
-      (cl-destructuring-bind (connection text cursor) message
+      (cl-destructuring-bind (connection text _cursor) message
         (let ((display-width (or (car (brltty-display-size connection)) 0)))
           (when display-width
             (setq scrolling (if eolp
@@ -212,7 +212,7 @@ is not recommended to assign or call user commands here."
   "Discard all messages from the display queue."
   (speechd.cancel driver 'all))
 
-(defun speechd-brltty-command-key (driver key)
+(defun speechd-brltty-command-key (_driver key)
   "Put given key to the command queue."
   (setq unread-command-events (append unread-command-events (list key))))
 
@@ -242,7 +242,7 @@ is not recommended to assign or call user commands here."
    (brltty-last-try-time :initform 0)))
 
 (cl-defmethod initialize-instance :after
-    ((this speechd-brltty-driver) slots)
+    ((this speechd-brltty-driver) _slots)
   (oset this manager (speechd-brltty--create-manager)))
 
 (cl-defmethod speechd-braille--make-message
