@@ -132,7 +132,7 @@
 
 (cl-defmethod speechd.shutdown ((driver speechd-driver)))
 
-(defvar speechd.update nil)
+(defvar speechd-update nil)
 
 
 ;;; Interface functions and variables
@@ -144,7 +144,7 @@
   group)
 
 (defmacro speechd-out-with-updated-text (spec &rest body)
-  `(let ((speechd.update ,spec))
+  `(let ((speechd-update ,spec))
      ,@body))
 
 (defun speechd-out-cancel (&optional all)

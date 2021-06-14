@@ -1,7 +1,7 @@
 ;;; speechd-braille.el --- Emacs braille emulator driver
 
-;; Copyright (C) 2012, 2018 Milan Zamazal <pdm@zamazal.org>
-;; Copyright (C) 2004, 2005, 2006, 2008 Brailcom, o.p.s.
+;; Copyright (C) 2012-2021 Milan Zamazal <pdm@zamazal.org>
+;; Copyright (C) 2004-2008 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
 
@@ -103,13 +103,13 @@
 
 (defun speechd-braille--maybe-enqueue (driver text message)
   (with-slots (manager priority) driver
-    (if speechd.update
+    (if speechd-update
         (mmanager-enqueue manager speechd-client-name
                           (speechd-braille--make-message
                            driver
-                           (speechd-out-update-text speechd.update)
-                           (speechd-out-update-cursor speechd.update))
-                          priority (speechd-out-update-group speechd.update))
+                           (speechd-out-update-text speechd-update)
+                           (speechd-out-update-cursor speechd-update))
+                          priority (speechd-out-update-group speechd-update))
       (unless (string= text "")
         (mmanager-enqueue manager speechd-client-name message priority)))))
 
