@@ -29,6 +29,7 @@
 
 
 (require 'cl-lib)
+(require 'wid-edit)
 
 (require 'speechd)
 (require 'speechd-common)
