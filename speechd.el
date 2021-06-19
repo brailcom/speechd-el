@@ -124,6 +124,13 @@ launch it."
                                              ("spell" . spell)
                                              ("icon" .  icon)))
 
+(defun speechd--set-variable-and-reopen (name value)
+  (let ((orig-value (when (default-boundp name) (default-value name))))
+    (set-default name value)
+    (when (and (not (equal orig-value value))
+               (fboundp 'speechd-reopen))
+      (speechd-reopen))))
+
 (defcustom speechd-voices '()
   "Alist of voice identifiers and their parameters.
 
@@ -192,10 +199,7 @@ definition of its parameters is optional."
 		  (speechd-priority-tag :value text))
 	    (cons :tag "Output module" (const :format "" output-module)
 		  string))))
-  :set #'(lambda (name value)
-           (set-default name value)
-           (when (fboundp 'speechd-reopen)
-             (speechd-reopen)))           
+  :set #'speechd--set-variable-and-reopen
   :group 'speechd)
 
 (defcustom speechd-connection-voices '()
@@ -210,10 +214,7 @@ For connections that are not specified here, the voice named nil is used.
 You must reopen the connections to apply the changes to this variable."
   :type '(alist :key-type (string :tag "Connection name")
                 :value-type (speechd-voice-tag :tag "Voice"))
-  :set #'(lambda (name value)
-           (set-default name value)
-           (when (fboundp 'speechd-reopen)
-             (speechd-reopen)))           
+  :set #'speechd--set-variable-and-reopen
   :group 'speechd)
 
 (defcustom speechd-cancelable-connections '()
