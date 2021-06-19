@@ -153,8 +153,10 @@ is not recommended to assign or call user commands here."
       (mmanager-put manager 'scrolling
                     (if bolp
                         0
-                      (max (- scrolling (or (car (brltty-display-size connection)) 0))
-                           0)))
+                      (let ((display-size (car (brltty-display-size
+                                                (speechd-brltty--connection driver)))))
+                        (max (- scrolling (or display-size 0))
+                             0))))
       (speechd-brltty--display manager (mmanager-history manager 'current) t))))
 
 (defun speechd-brltty-scroll-to-bol (driver)
