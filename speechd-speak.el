@@ -363,10 +363,12 @@ This may be useful when debugging speechd-el itself."
   :group 'speechd-speak)
 
 
-;;; Internal constants
+;;; Internal constants and variables
 
 
 (defconst speechd-speak--c-buffer-name "*Completions*")
+
+(defvar speechd-speak--info)
 
 
 ;;; Debugging support
@@ -747,13 +749,13 @@ This function works only in Emacs 22 or higher."
 
 (defmacro speechd-speak--cinfo (slot)
   `(,(speechd-speak--name 'speechd-speak--command-info-struct slot)
-    info))
+    speechd-speak--info))
 
-(defun speechd-speak--command-info-struct-buffer (info)
+(defun speechd-speak--command-info-struct-buffer (_info)
   (let ((marker (speechd-speak--cinfo marker)))
     (and marker (marker-buffer marker))))
 
-(defun speechd-speak--command-info-struct-point (info)
+(defun speechd-speak--command-info-struct-point (_info)
   (let ((marker (speechd-speak--cinfo marker)))
     (and marker (marker-position marker))))
 
@@ -805,8 +807,8 @@ This function works only in Emacs 22 or higher."
   (speechd-speak--set-command-start-info t))
 
 (defmacro speechd-speak--with-command-start-info (&rest body)
-  `(let ((info (speechd-speak--command-start-info)))
-     (when info
+  `(let ((speechd-speak--info (speechd-speak--command-start-info)))
+     (when speechd-speak--info
        ,@body)))
 
 (defmacro speechd-speak--defadvice (function class &rest body)
@@ -1258,7 +1260,7 @@ Only single characters are allowed in the keymap.")
       (speechd-out-keys (nreverse keys-to-output) :text text-to-output
                         :priority priority))))
 
-(defun speechd-speak--add-command-text (info beg end)
+(defun speechd-speak--add-command-text (beg end)
   (let ((last (cl-first (speechd-speak--cinfo changes)))
         (last-end (speechd-speak--cinfo change-end))
         (text (speechd-speak--buffer-substring beg end t)))
@@ -1297,9 +1299,8 @@ Only single characters are allowed in the keymap.")
                                  `(face ,face invisible ,invisible) text)))))
     text))
 
-(defun speechd-speak--minibuffer-update-report (info old new)
+(defun speechd-speak--minibuffer-update-report (old new)
   (speechd-speak--add-command-text
-   info
    (+ (minibuffer-prompt-end)
       (if (and (<= (length old) (length new))
                (string= old (substring new 0 (length old))))
@@ -1314,8 +1315,7 @@ Only single characters are allowed in the keymap.")
      (unless (or (eq old-content 'unset)
                  (string= old-content new-content))
        (setf (speechd-speak--cinfo minibuffer-contents) new-content)
-       (speechd-speak--minibuffer-update-report
-        info old-content new-content)))))
+       (speechd-speak--minibuffer-update-report old-content new-content)))))
 
 (defun speechd-speak--read-buffer-change (buffer-name text)
   (with-current-buffer (or (get-buffer buffer-name)
@@ -1362,7 +1362,7 @@ Only single characters are allowed in the keymap.")
             (progn
               (speechd-speak--read-other-changes)
               (speechd-speak--minibuffer-update))
-          (speechd-speak--add-command-text info beg end))))))
+          (speechd-speak--add-command-text beg end))))))
   (setq speechd-speak--current-change-string nil))
 
 (defconst speechd-speak--dont-cancel-on-commands
