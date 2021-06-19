@@ -815,14 +815,21 @@ This function works only in Emacs 22 or higher."
 (defmacro speechd-speak--defadvice (function class &rest body)
   (let* ((function* function)
          (functions (if (listp function*) function* (list function*)))
+         (class* class)
+         (where (intern (concat ":" (symbol-name class*))))
+         (aroundp (eq class* 'around))
+         (lambda-list (if aroundp '(orig-fun &rest args) '(&rest args)))
          (aname (if (listp function*) 'speechd-speak 'speechd-speak-user)))
     `(progn
        ,@(mapcar
           (lambda (fname)
-            `(defadvice ,fname (,class ,aname activate preactivate compile)
-               (if (not speechd-speak--started)
-                   ,(when (eq class 'around) 'ad-do-it)
-                 ,@body)))
+            `(define-advice ,fname (,where ,lambda-list ,aname)
+               (cl-flet ,(when aroundp `((call-orig-func () (apply orig-fun args))))
+                 (if (not speechd-speak--started)
+                     ,(if aroundp
+                          `(call-orig-func)
+                        'args)  ;; not nil, to silence warnings about unused `args'
+                   ,@body))))
           functions))))
 
 (defmacro speechd-speak--report (feedback &rest args)
@@ -862,7 +869,7 @@ FUNCTION is invoked interactively."
 			,(if (eq position* 'around)
 			     `(if (called-interactively-p 'interactive)
 				  ,body*
-				ad-do-it)
+				(call-orig-func))
 			   `(when (called-interactively-p 'interactive)
 			      ,body*))))
 		 commands*)
@@ -872,7 +879,7 @@ FUNCTION is invoked interactively."
 (defmacro speechd-speak--command-feedback-region (commands)
   `(speechd-speak--command-feedback ,commands around
      (let ((start (point)))
-       (prog1 ad-do-it
+       (prog1 (call-orig-func)
          (speechd-speak--speak-piece start)))))
 
 (cl-defun speechd-speak--next-property-change (&optional (point (point)) (limit (point-max)))
@@ -966,23 +973,23 @@ Language must be an RFC 1766 language code, as a string."
         (let ((speechd-speak--deleted-chars
                (when speechd-speak-deleted-char
                  (speechd-speak--buffer-substring
-                  (max (- (point) (or (ad-get-arg 0) 1))
+                  (max (- (point) (or (cl-first args) 1))
                        (point-min))
                   (point)))))
-          ad-do-it
+          (apply orig-fun args)
           (speechd-speak--store-deleted-chars (if speechd-speak-deleted-char
                                                   speechd-speak--deleted-chars
                                              (format "%c" (preceding-char))))))
-    ad-do-it))
+    (call-orig-func)))
   
 (speechd-speak--defadvice (delete-forward-char delete-char) around
   (let ((speechd-speak--deleted-chars
          (when speechd-speak-deleted-char
            (speechd-speak--buffer-substring
             (point)
-            (min (+ (point) (or (ad-get-arg 0) 1))
+            (min (+ (point) (or (cl-first args) 1))
                  (point-max))))))
-    ad-do-it
+    (call-orig-func)
     (speechd-speak--store-deleted-chars (if speechd-speak-deleted-char
                                             speechd-speak--deleted-chars
                                           (format "%c" (following-char))))))
@@ -1025,7 +1032,7 @@ Language must be an RFC 1766 language code, as a string."
 
 (speechd-speak--command-feedback (kill-region completion-kill-region) around
   (let ((nlines (count-lines (region-beginning) (region-end))))
-    (prog1 ad-do-it
+    (prog1 (call-orig-func)
       (speechd-speak--maybe-speak*
         (message "Killed region containing %s lines" nlines)))))
 
@@ -1100,8 +1107,8 @@ Language must be an RFC 1766 language code, as a string."
 
 (speechd-speak--defadvice read-from-minibuffer around
   (let ((speechd-speak--minibuffer-inherited-language
-         (and (ad-get-arg 6) speechd-language)))
-    ad-do-it))
+         (and (cl-seventh args) speechd-language)))
+    (call-orig-func)))
 
 (defun speechd-speak--prompt (prompt &optional no-icon)
   (speechd-speak--text prompt :priority 'message
@@ -1170,7 +1177,7 @@ This command applies to buffers defined in
     (apply #'speechd-speak--text prompt args)))
                           
 (speechd-speak--command-feedback minibuffer-message after
-  (speechd-speak--minibuffer-prompt (ad-get-arg 0) :priority 'notification))
+  (speechd-speak--minibuffer-prompt (cl-first args) :priority 'notification))
 
 ;; Some built-in functions, reading a single character answer, prompt in the
 ;; echo area.  They don't invoke minibuffer-setup-hook and may put other
@@ -1189,15 +1196,15 @@ This command applies to buffers defined in
 ;; The following functions don't invoke `minibuffer-setup-hook' and don't put
 ;; the cursor into the echo area.  Sigh.
 (speechd-speak--defadvice read-key-sequence before
-  (let ((prompt (ad-get-arg 0))
+  (let ((prompt (cl-first args))
         (speechd-speak--emulate-minibuffer t))
     (when prompt
       (speechd-speak--minibuffer-prompt prompt :priority 'message))))
 (speechd-speak--defadvice read-event before
-  (let ((prompt (ad-get-arg 0)))
+  (let ((prompt (cl-first args)))
     (when prompt
       (let ((speechd-speak--emulate-minibuffer t)
-            (speechd-language (speechd-speak--language (not (ad-get-arg 1)))))
+            (speechd-language (speechd-speak--language (not (cl-second args)))))
         (speechd-speak--minibuffer-prompt prompt :priority 'message)))))
 
 
@@ -1216,15 +1223,14 @@ Only single characters are allowed in the keymap.")
   (if speechd-speak-allow-prompt-commands
       (let ((char nil))
         (while (not char)
-          ad-do-it
-          (setq char ad-return-value)
+          (setq char (call-orig-func))
           (let ((command (lookup-key speechd-speak-read-char-keymap
                                      (vector char))))
             (when command
               (setq char nil)
               (call-interactively command))))
         char)
-    ad-do-it))
+    (call-orig-func)))
 
 
 ;;; Commands
@@ -1744,7 +1750,7 @@ Only single characters are allowed in the keymap.")
 (speechd-speak--defadvice widget-choose around
   (let ((widget-menu-minibuffer-flag (or speechd-speak-mode
                                          widget-menu-minibuffer-flag)))
-    ad-do-it))
+    (call-orig-func)))
 
 
 ;;; Other functions and packages
