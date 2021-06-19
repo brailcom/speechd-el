@@ -1721,7 +1721,7 @@ Only single characters are allowed in the keymap.")
 
 (defun speechd-speak--speak-completion ()
   ;; Taken from `choose-completion'
-  (let (beg end completion (buffer completion-reference-buffer))
+  (let (beg end completion)
     (if (and (not (eobp)) (get-text-property (point) 'mouse-face))
 	(setq end (point) beg (1+ (point))))
     (if (and (not (bobp)) (get-text-property (1- (point)) 'mouse-face))
