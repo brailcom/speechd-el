@@ -611,27 +611,23 @@ Return the opened connection on success, nil otherwise."
                           (t
                            default-parameters)))
              (connection-error nil)
-	     (id (cond
-		  ((or (not connection)
-		       (not (speechd--connection-failure-p connection))
-		       force-reopen)
-                   (condition-case err (speechd--open-connection
-                                        (or method 'unix-socket)
-                                        host port socket-name)
-                     (file-error
-                      (setq connection-error err)
-                      nil)))
-		  ((and connection
-			(not (speechd--connection-failure-p connection)))
-		   (speechd--connection-id connection)))))
-        (when (or id (not quiet))
+	     (process (when (or (not connection)
+		                (not (speechd--connection-failure-p connection))
+		                force-reopen)
+                        (condition-case err (speechd--open-connection
+                                             (or method 'unix-socket)
+                                             host port socket-name)
+                          (file-error
+                           (setq connection-error err)
+                           nil)))))
+        (when (or process (not quiet))
           (setq connection (make-speechd--connection
-                            :name name :host host :port port :process id))
+                            :name name :host host :port port :process process))
           (puthash name connection speechd--connections))
-        (when (and (not id) (not quiet))
+        (when (and (not process) (not quiet))
           (speechd--permanent-connection-failure connection)
           (signal 'ssip-connection-error connection-error))
-	(when id
+	(when process
 	  (speechd--set-connection-name name)
           (setq parameters (append parameters
                                    (list 'language speechd--default-language)))
