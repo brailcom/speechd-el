@@ -1,4 +1,4 @@
-;;; speechd-out.el --- Alternative output interface
+;;; speechd-out.el --- Alternative output interface  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2018-2021 Milan Zamazal <pdm@zamazal.org>
 ;; Copyright (C) 2004, 2005, 2006, 2008 Brailcom, o.p.s.
@@ -178,9 +178,9 @@
   (let ((icon-name (speechd-out--icon-name icon)))
     (speechd-out--loop-drivers (driver)
       (speechd.set driver 'priority priority)
-      (lexical-let ((icon-name% icon-name)
-                    (driver% driver)
-                    (char% char))
+      (let ((icon-name% icon-name)
+            (driver% driver)
+            (char% char))
         (speechd.block driver (lambda ()
                                 (when icon-name%
                                   (speechd.icon driver% icon-name%))
@@ -189,9 +189,9 @@
 (cl-defun speechd-out-keys (keys &key (priority speechd-default-key-priority) text)
   (speechd-out--loop-drivers (driver)
     (speechd.set driver 'priority priority)
-    (lexical-let ((driver% driver)
-                  (keys% keys)
-                  (text% text))
+    (let ((driver% driver)
+          (keys% keys)
+          (text% text))
       (speechd.block driver (lambda ()
                               (dolist (k keys%)
                                 (speechd.key driver% k))
@@ -202,11 +202,11 @@
   (let ((icon-name (speechd-out--icon-name icon)))
     (speechd-out--loop-drivers (driver)
       (speechd.set driver 'priority priority)
-      (lexical-let ((icon-name% icon-name)
-                    (driver% driver)
-                    (text% text)
-                    (cursor% cursor)
-                    (markers% markers))
+      (let ((icon-name% icon-name)
+            (driver% driver)
+            (text% text)
+            (cursor% cursor)
+            (markers% markers))
         (speechd.block driver (lambda ()
                                 (when icon-name%
                                   (speechd.icon driver% icon-name%))

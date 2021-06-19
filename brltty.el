@@ -1,4 +1,4 @@
-;;; brltty.el --- Interface to BRLTTY
+;;; brltty.el --- Interface to BRLTTY  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2012-2021 Milan Zamazal <pdm@zamazal.org>
 ;; Copyright (C) 2004-2008 Brailcom, o.p.s.
@@ -151,8 +151,8 @@ available, from the  environment variable CONTROLVT."
 (unless brltty--emacs-process-ok
   (defvar brltty--process-connections '()))
 
-(lexical-let ((last-selected-frame 'uninitialized)
-              (last-terminal-spec 'uninitialized))
+(let ((last-selected-frame 'uninitialized)
+      (last-terminal-spec 'uninitialized))
   (defun brltty--terminal-spec ()
     (if (eq (selected-frame) last-selected-frame)
         last-terminal-spec

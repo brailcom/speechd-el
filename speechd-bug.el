@@ -1,4 +1,4 @@
-;;; speechd-bug.el --- reporting speechd-el and speechd bugs
+;;; speechd-bug.el --- reporting speechd-el and speechd bugs  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2012, 2021 Milan Zamazal <pdm@zamazal.org>
 ;; Copyright (C) 2003, 2004, 2005 Brailcom, o.p.s.

@@ -1,4 +1,4 @@
-;;; braille.el --- Simple Emacs braille display emulator
+;;; braille.el --- Simple Emacs braille display emulator  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2012-2021 Milan Zamazal <pdm@zamazal.org>
 ;; Copyright (C) 2004 Brailcom, o.p.s.
@@ -139,6 +139,7 @@ instead of undefined characters.")
   "Mode for displaying braille display emulator."
   (setq buffer-read-only t)
   (setq truncate-lines t)
+  (defvar speechd-speak-mode)
   (set (make-local-variable 'speechd-speak-mode) nil))
 
 

@@ -1,4 +1,4 @@
-;;; speechd-ssip.el --- SSIP driver
+;;; speechd-ssip.el --- SSIP driver  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2018-2021 Milan Zamazal <pdm@zamazal.org>
 ;; Copyright (C) 2004-2018 Brailcom, o.p.s.

@@ -1,4 +1,4 @@
-;;; mmanager.el --- Message manager
+;;; mmanager.el --- Message manager  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2021 Milan Zamazal <pdm@zamazal.org>
 ;; Copyright (C) 2004, 2005 Brailcom, o.p.s.

@@ -1,4 +1,4 @@
-;;; speechd-el-pkg.el --- speechd-el package definition
+;;; speechd-el-pkg.el --- speechd-el package definition  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2013-2021 Milan Zamazal
 

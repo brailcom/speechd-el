@@ -1,4 +1,4 @@
-;;; speechd-speak.el --- simple speechd-el based Emacs client
+;;; speechd-speak.el --- simple speechd-el based Emacs client  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2012-2021 Milan Zamazal <pdm@zamazal.org>
 ;; Copyright (C) 2003-2010 Brailcom, o.p.s.

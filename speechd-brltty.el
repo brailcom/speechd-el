@@ -1,4 +1,4 @@
-;;; speechd-brltty.el --- BRLTTY output driver
+;;; speechd-brltty.el --- BRLTTY output driver  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2021 Milan Zamazal <pdm@zamazal.org>
 ;; Copyright (C) 2004-2008 Brailcom, o.p.s.
@@ -93,7 +93,7 @@ is not recommended to assign or call user commands here."
       (let ((first-time (eq connection 'uninitialized)))
         (if dont-open
             (setq connection nil)
-          (lexical-let ((driver driver))
+          (let ((driver driver))
             (setq connection (condition-case err 
                                  (brltty-open
                                   nil nil

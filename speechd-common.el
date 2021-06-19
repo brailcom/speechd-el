@@ -1,4 +1,4 @@
-;;; speechd-common.el --- Code common to all parts of speechd-el
+;;; speechd-common.el --- Code common to all parts of speechd-el  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2004, 2005, 2008 Brailcom, o.p.s.
 

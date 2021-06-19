@@ -1,4 +1,4 @@
-;;; speechd-compile.el --- Maintenance utilities
+;;; speechd-compile.el --- Maintenance utilities  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2004, 2013, 2021 Milan Zamazal <pdm@zamazal.org>
 
@@ -22,7 +22,7 @@
 ;;; Code:
 
 
-(require 'cl)
+(require 'cl-lib)
 
 (defun speechd-compile ()
   (let ((load-path (cons default-directory load-path)))

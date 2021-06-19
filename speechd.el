@@ -1,4 +1,4 @@
-;;; speechd.el --- Library for accessing Speech Dispatcher
+;;; speechd.el --- Library for accessing Speech Dispatcher  -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2012-2021 Milan Zamazal <pdm@zamazal.org>
 ;; Copyright (C) 2003-2010 Brailcom, o.p.s.
