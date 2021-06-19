@@ -124,28 +124,27 @@
 
 (defun mmanager--enqueue* (manager message* priority)
   (when (mmanager--message-messages message*)
-    (let ((queue (mmanager--manager-queue manager)))
-      (cl-ecase priority
-        (important
-         (mmanager--pause manager))
-        ((message text)
-         (mmanager--prune-queue
-          manager
-          #'(lambda (m) (memq (mmanager--message-priority m)
-                              '(text notification))))
-         (when (not (memq (mmanager--current-priority manager)
-                          '(important message)))
-           (mmanager--stop manager)))
-        (notification
-         (when (and (or (not (mmanager--busy manager))
-                        (eq (mmanager--current-priority manager)
-                            'notification))
-                    (not (mmanager--manager-queue manager)))
-           (mmanager--stop manager)))
-        (progress
-         (mmanager--prune-queue
-          manager
-          #'(lambda (m) (eq (mmanager--message-priority m) 'progress))))))
+    (cl-ecase priority
+      (important
+       (mmanager--pause manager))
+      ((message text)
+       (mmanager--prune-queue
+        manager
+        #'(lambda (m) (memq (mmanager--message-priority m)
+                            '(text notification))))
+       (when (not (memq (mmanager--current-priority manager)
+                        '(important message)))
+         (mmanager--stop manager)))
+      (notification
+       (when (and (or (not (mmanager--busy manager))
+                      (eq (mmanager--current-priority manager)
+                          'notification))
+                  (not (mmanager--manager-queue manager)))
+         (mmanager--stop manager)))
+      (progress
+       (mmanager--prune-queue
+        manager
+        #'(lambda (m) (eq (mmanager--message-priority m) 'progress)))))
     (mmanager--update-queue manager message* priority)
     (mmanager-next manager)))
 
