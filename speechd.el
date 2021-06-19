@@ -351,6 +351,8 @@ current voice."
 
 (defvar speechd--retry-time 1.0)
 
+(defvar speechd-client-name)
+
 
 ;;; Utilities
 
@@ -359,7 +361,10 @@ current voice."
   `(maphash #'(lambda (_ connection) ,@body) speechd--connections))
 
 (defmacro speechd--iterate-clients (&rest body)
-  `(maphash #'(lambda (speechd-client-name _) ,@body) speechd--connections))
+  `(maphash #'(lambda (name _)
+                (let ((speechd-client-name name))
+                  ,@body))
+            speechd--connections))
 
 (defun speechd-connection-names ()
   "Return the list of all present connection names."
