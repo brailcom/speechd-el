@@ -36,7 +36,7 @@
 (defgroup brltty ()
   "BRLTTY interface."
   :group 'speechd-el)
-  
+
 (defcustom brltty-default-host "localhost"
   "Default BRLTTY host to connect to."
   :type 'string

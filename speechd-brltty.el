@@ -94,7 +94,7 @@ is not recommended to assign or call user commands here."
         (if dont-open
             (setq connection nil)
           (let ((driver driver))
-            (setq connection (condition-case err 
+            (setq connection (condition-case err
                                  (brltty-open
                                   nil nil
                                   (lambda (key)

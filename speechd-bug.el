@@ -26,7 +26,7 @@
 (require 'cl-lib)
 (require 'reporter)
 (require 'speechd-speak)
-  
+
 
 (defvar speechd-bug--log-extractor "speechd-log-extractor")
 
@@ -36,7 +36,7 @@
   '(("festival-czech") ("festival-freebsoft-utils") ("sbts")
     ("speech-dispatcher") ("speechd-el") ("unknown")))
 
-  
+
 (defvar speechd-bug--repro-id nil)
 
 (defvar speechd-bug--marker nil)
@@ -73,7 +73,7 @@
           (setq directories (cdr directories)))))
     found))
 
-  
+
 ;;; General information insertion
 
 
@@ -201,7 +201,7 @@
 (defun speechd-bug--generate-repro-id ()
   (let ((time (current-time)))
     (format "speechd-el-%d-%d-%d" (cl-first time) (cl-second time) (cl-third time))))
-  
+
 (defun speechd-bug-reproduce ()
   "Start reproducing a speechd-el or Speech Dispatcher bug.
 All user and speechd actions are watched from this moment.

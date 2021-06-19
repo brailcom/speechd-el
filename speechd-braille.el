@@ -76,7 +76,7 @@
 
 (defun speechd-braille--stop (_manager)
   (when speechd-braille--display-timer
-    (cancel-timer speechd-braille--display-timer))  
+    (cancel-timer speechd-braille--display-timer))
   (setq speechd-braille--display-timer nil))
 
 (defun speechd-braille--pause (_manager)
@@ -152,7 +152,7 @@
   (mmanager-start-block (slot-value driver 'manager) speechd-client-name
                         (slot-value driver 'priority))
   (unwind-protect (funcall function)
-    (mmanager-finish-block (slot-value driver 'manager) speechd-client-name)))  
+    (mmanager-finish-block (slot-value driver 'manager) speechd-client-name)))
 
 (cl-defmethod speechd.text ((driver speechd-braille-emu-driver) text cursor _markers)
   (speechd-braille--maybe-enqueue

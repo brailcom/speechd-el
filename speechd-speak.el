@@ -452,7 +452,7 @@ This variable is reset to nil before each command in pre-command-hook.")
                          nil
                        (cons major-mode (buffer-name)))))
     (cond
-     (speechd-speak--client-name-set 
+     (speechd-speak--client-name-set
       speechd-client-name)
      ((and (not speechd-speak--client-name-set)
            (eq speechd-speak-connections speechd-speak--last-connections)
@@ -981,7 +981,7 @@ Language must be an RFC 1766 language code, as a string."
                                                   speechd-speak--deleted-chars
                                              (format "%c" (preceding-char))))))
     (call-orig-func)))
-  
+
 (speechd-speak--defadvice (delete-forward-char delete-char) around
   (let ((speechd-speak--deleted-chars
          (when speechd-speak-deleted-char
@@ -1175,7 +1175,7 @@ This command applies to buffers defined in
   (let ((speechd-language (speechd-speak--language t))
         (speechd-speak-input-method-languages nil))
     (apply #'speechd-speak--text prompt args)))
-                          
+
 (speechd-speak--command-feedback minibuffer-message after
   (speechd-speak--minibuffer-prompt (cl-first args) :priority 'notification))
 
@@ -1643,7 +1643,7 @@ Only single characters are allowed in the keymap.")
   (and speechd-speak-on-minibuffer-exit
        (/= (minibuffer-depth) speechd-speak--last-minibuffer-depth))
   (speechd-speak-read-line t))
-                           
+
 (defvar speechd-speak--last-minibuffer-depth 0)
 
 (defvar speechd-speak--post-command-speaking-defaults
@@ -1803,7 +1803,7 @@ When the mode is enabled, all spoken text is spelled."
   (interactive)
   (unless speechd-speak-spell-mode
     (setq speechd-speak-spell-command t)))
-  
+
 
 
 ;;; Informatory commands
@@ -2106,7 +2106,7 @@ Null prefix argument turns off the mode."
 With no argument, this command toggles the mode.
 Non-null prefix argument turns on the mode.
 Null prefix argument turns off the mode.
-     
+
 When speechd-speak mode is enabled, speech output is provided to Speech
 Dispatcher on many actions.
 

@@ -24,7 +24,7 @@
 
 ;; This library allows you to communicate with Speech Dispatcher.
 ;; Usually, the communication goes like this:
-;; 
+;;
 ;;   (speechd-open)
 ;;   ...
 ;;   (speechd-say-text "Hello, world!")
@@ -1153,7 +1153,7 @@ of the symbols `important', `message', `text', `notification' or
                  (member speechd-client-name speechd-cancelable-connections))
          (speechd--control-command command nil repeatable)))))
    ((numberp all)
-    (speechd--iterate-clients 
+    (speechd--iterate-clients
      (speechd--control-command command nil repeatable)))
    (t
     (speechd--send-command (list command "all")))))
