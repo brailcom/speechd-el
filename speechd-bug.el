@@ -24,6 +24,7 @@
 
 
 (require 'cl-lib)
+(require 'reporter)
 (require 'speechd-speak)
   
 
@@ -245,7 +246,6 @@ generating new bug report."
 (defun speechd-bug ()
   "Send a bug report on speechd-el or Speech Dispatcher."
   (interactive)
-  (require 'reporter)
   (let ((package (completing-read "Package: " speechd-bug-packages))
         (reporter-prompt-for-summary-p t))
     (reporter-submit-bug-report
