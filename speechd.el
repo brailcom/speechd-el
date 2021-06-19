@@ -353,12 +353,17 @@ current voice."
 
 (defvar speechd-client-name)
 
+(defvar speechd--current-connection)
+
 
 ;;; Utilities
 
 
 (defmacro speechd--iterate-connections (&rest body)
-  `(maphash #'(lambda (_ connection) ,@body) speechd--connections))
+  `(maphash #'(lambda (_ connection)
+                (let ((speechd--current-connection connection))
+                  ,@body))
+            speechd--connections))
 
 (defmacro speechd--iterate-clients (&rest body)
   `(maphash #'(lambda (name _)
@@ -374,13 +379,13 @@ current voice."
     names))
 
 (defmacro speechd--with-current-connection (&rest body)
-  `(let ((connection (speechd--connection)))
-     (when (and (speechd--connection-failure-p connection)
-                (>= (- (float-time) (speechd--connection-last-try-time connection))
+  `(let ((speechd--current-connection (speechd--connection)))
+     (when (and (speechd--connection-failure-p speechd--current-connection)
+                (>= (- (float-time) (speechd--connection-last-try-time speechd--current-connection))
                     speechd--retry-time))
        (ignore-errors (speechd-reopen t))
-       (setq connection (speechd--connection)))
-     (unless (speechd--connection-failure-p connection)
+       (setq speechd--current-connection (speechd--connection)))
+     (unless (speechd--connection-failure-p speechd--current-connection)
        ,@body)))
 
 (defmacro speechd--with-connection-setting (var value &rest body)
@@ -404,7 +409,7 @@ current voice."
     `(let* ((,$parameters ,parameters)
             (,$orig-parameters ()))
        (unwind-protect
-           (let ((,$cparameters (speechd--connection-parameters connection)))
+           (let ((,$cparameters (speechd--connection-parameters speechd--current-connection)))
              (while ,$parameters
                (let* ((,$p (cl-first ,$parameters))
                       (,$v (cl-second ,$parameters))
@@ -496,9 +501,9 @@ current voice."
 
 (defun speechd--process-filter (_process output)
   (speechd--with-current-connection
-   (setf (speechd--connection-process-output connection)
+   (setf (speechd--connection-process-output speechd--current-connection)
          (speechd--process-notifications
-          (concat (speechd--connection-process-output connection) output)))))
+          (concat (speechd--connection-process-output speechd--current-connection) output)))))
 
 (defun speechd--open-connection (method host port socket-name)
   (let ((process
@@ -704,7 +709,7 @@ If QUIET is non-nil, don't echo success report."
   (speechd--with-current-connection
    (save-match-data
      (let ((answer (speechd--send-connection
-                    connection (speechd--request-string request))))
+                    speechd--current-connection (speechd--request-string request))))
        (let ((data '())
              success)
          (while (and answer
@@ -744,9 +749,9 @@ If QUIET is non-nil, don't echo success report."
   (unless (listp command)
     (setq command (list command)))
   (speechd--with-current-connection
-    (when (or (not (speechd--connection-in-block connection))
+    (when (or (not (speechd--connection-in-block speechd--current-connection))
               (speechd--block-command-p command))
-      (setf (speechd--connection-last-command connection) command)
+      (setf (speechd--connection-last-command speechd--current-connection) command)
       (speechd--send-request
        (make-speechd--request
         :string (concat (mapconcat #'identity command " ") speechd--eol))))))
@@ -819,7 +824,7 @@ If QUIET is non-nil, don't echo success report."
     (speechd--send-command (list "SET" (if globally "all" "self") p v))))
 
 (defun speechd--set-connection-parameter (parameter value)
-  (let* ((plist (speechd--connection-parameters connection))
+  (let* ((plist (speechd--connection-parameters speechd--current-connection))
          (orig-value (if (plist-member plist parameter)
                          (plist-get plist parameter)
                        'unknown)))
@@ -827,17 +832,17 @@ If QUIET is non-nil, don't echo success report."
               (and (not (equal orig-value value))
                    (or
                     (not (eq parameter 'message-priority))
-                    (not (speechd--connection-forced-priority connection)))))
+                    (not (speechd--connection-forced-priority speechd--current-connection)))))
       (let ((answer (speechd--call-set-parameter parameter value nil)))
-        (setq connection (speechd--connection))
+        (setq speechd--current-connection (speechd--connection))
         (when (cl-first answer)
-          (setf (speechd--connection-parameters connection)
-                (plist-put (speechd--connection-parameters connection)
+          (setf (speechd--connection-parameters speechd--current-connection)
+                (plist-put (speechd--connection-parameters speechd--current-connection)
                            parameter value))))
       ;; Speech Dispatcher bug work-around
       (when (eq parameter 'language)
         (let ((output-module (plist-get
-                              (speechd--connection-parameters connection)
+                              (speechd--connection-parameters speechd--current-connection)
                               'output-module)))
           (when output-module
             (speechd--set-connection-parameter 'output-module
@@ -940,7 +945,7 @@ If called with a prefix argument, set it for all connections."
               (cons voice
                     (let ((voice-parameters ())
                           (connection-parameters
-                           (speechd--connection-parameters connection)))
+                           (speechd--connection-parameters speechd--current-connection)))
                       (while connection-parameters
                         (cl-destructuring-bind (p v . next) connection-parameters
                           (unless (memq p '(client-name message-priority
@@ -979,19 +984,20 @@ If called with a prefix argument, set it for all connections."
   "Call FUNCTION inside an SSIP block.
 FUNCTION is called without any arguments."
   (speechd--with-current-connection
-    (let ((%block-connection connection)
-          (nested (and connection (speechd--connection-in-block connection))))
+    (let ((%block-connection speechd--current-connection)
+          (nested (and speechd--current-connection
+                       (speechd--connection-in-block speechd--current-connection))))
       (speechd--with-connection-parameters parameters
-        (let ((speechd-client-name (speechd--connection-name connection)))
+        (let ((speechd-client-name (speechd--connection-name speechd--current-connection)))
           (unless nested
             (speechd--send-command '("BLOCK BEGIN"))
-            (when connection
-              (setf (speechd--connection-in-block connection) t)))
+            (when speechd--current-connection
+              (setf (speechd--connection-in-block speechd--current-connection) t)))
           (unwind-protect (funcall function)
             (unless nested
-              (let ((connection %block-connection))
-                (when connection
-                  (setf (speechd--connection-in-block connection) nil)
+              (let ((speechd--current-connection %block-connection))
+                (when speechd--current-connection
+                  (setf (speechd--connection-in-block speechd--current-connection) nil)
                   (speechd--send-command '("BLOCK END")))))))))))
 
 (defmacro speechd-block* (parameters &rest body)
@@ -1178,9 +1184,9 @@ If the optional argument ALL is non-nil, pause speaking in all clients."
   (interactive "P")
   (if all
       (speechd--iterate-connections
-        (setf (speechd--connection-paused-p connection) t))
+        (setf (speechd--connection-paused-p speechd--current-connection) t))
     (speechd--with-current-connection
-      (setf (speechd--connection-paused-p connection) t)))
+      (setf (speechd--connection-paused-p speechd--current-connection) t)))
   (speechd--control-command "PAUSE" (not (not all))))
 
 ;;;###autoload
@@ -1190,12 +1196,12 @@ If the optional argument ALL is non-nil, resume speaking messages of all
 clients."
   (interactive "P")
   (speechd--with-current-connection
-    (when (or all (speechd--connection-paused-p connection))
+    (when (or all (speechd--connection-paused-p speechd--current-connection))
       (speechd--control-command "RESUME" (not (not all)))
       (if all
-          (setf (speechd--connection-paused-p connection) nil)
+          (setf (speechd--connection-paused-p speechd--current-connection) nil)
         (speechd--iterate-connections
-          (setf (speechd--connection-paused-p connection) nil))))))
+          (setf (speechd--connection-paused-p speechd--current-connection) nil))))))
 
 ;;;###autoload
 (defun speechd-repeat ()
