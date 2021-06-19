@@ -1307,7 +1307,7 @@ Only single characters are allowed in the keymap.")
         0))
    (point-max)))
 
-(defun speechd-speak--minibuffer-update (beg end len)
+(defun speechd-speak--minibuffer-update ()
   (speechd-speak--with-command-start-info
    (let ((old-content (speechd-speak--cinfo minibuffer-contents))
          (new-content (minibuffer-contents)))
@@ -1330,7 +1330,7 @@ Only single characters are allowed in the keymap.")
   (unless speechd-speak--current-change-string
     (setq speechd-speak--current-change-string
           (buffer-substring-no-properties beg end))))
-(defun speechd-speak--after-change-hook (beg end len)
+(defun speechd-speak--after-change-hook (beg end _len)
   (speechd-speak--enforce-speak-mode)
   (speechd-speak--with-command-start-info
     (unless (or (= beg end)
@@ -1361,7 +1361,7 @@ Only single characters are allowed in the keymap.")
         (if (speechd-speak--in-minibuffer-p)
             (progn
               (speechd-speak--read-other-changes)
-              (speechd-speak--minibuffer-update beg end len))
+              (speechd-speak--minibuffer-update))
           (speechd-speak--add-command-text info beg end))))))
   (setq speechd-speak--current-change-string nil))
 
