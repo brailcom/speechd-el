@@ -1409,6 +1409,8 @@ Only single characters are allowed in the keymap.")
                             (t t))))
     `(defun ,name (state buffer-changed buffer-modified point-moved
                    in-minibuffer other-buffer)
+       ;; Avoid compiler warnings about unused variables
+       (list buffer-changed buffer-modified point-moved in-minibuffer other-buffer)
        (if (and ,state-condition
                 ,guard)
            (let ((speechd-speak--debug-mark (quote ,name)))
