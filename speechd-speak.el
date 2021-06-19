@@ -918,7 +918,7 @@ Language must be an RFC 1766 language code, as a string."
       (setq regexp (or sentence-end "[.,;!?]+")))
     (save-excursion
       (goto-char beg)
-      (while (re-search-forward regexp nil t)
+      (while (re-search-forward regexp end t)
         (push (list (cl-incf speechd-speak--marker-counter) (point-marker))
               markers)))
     (mapcar #'(lambda (m) (cons (- (marker-position (cl-second m)) beg) m))
