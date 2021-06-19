@@ -81,7 +81,7 @@
   (speechd-bug--insert (format "Version of `%s':" program))
   (shell-command (format "%s --version | head -1" program) t))
 
-(defun speechd-bug--insert-config-file (file directories comment-start)
+(defun speechd-bug--insert-config-file (file directories comment-prefix)
   (speechd-bug--ensure-empty-line)
   (speechd-bug--insert "===" file ":begin===")
   (let ((file-name
@@ -93,7 +93,7 @@
     (if file-name
         (let ((point (point)))
           (insert-file-contents file-name)
-          (flush-lines (format "^[ \t]*\\(%s.*\\)?$" comment-start)
+          (flush-lines (format "^[ \t]*\\(%s.*\\)?$" comment-prefix)
                        point (point-max-marker)))
       (speechd-bug--insert "---not-found---")))
   (speechd-bug--insert "===" file ":end==="))
