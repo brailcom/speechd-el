@@ -1,5 +1,25 @@
 User-visible changes to speechd-el:
 
+* Changes in speechd-el 2.11
+
+** Index marking support
+
+Set speechd-speak-use-index-marks variable to `t' to enable index
+marking.  Note that it may have performance or other issues.  How well
+index marking actually works is also dependent on the speech
+synthesizer used.
+
+** Improvement of reading wrapped lines
+
+If truncate-lines is nil, lines are read only to their visual ends
+(thanks to Nicolas Graner).
+
+** Internal cleanup
+
+The code has been updated to match current Emacs practices and all
+compilation warnings have been resolved.
+
+
 * Changes in speechd-el 2.10
 
 ** New user option speechd-speak-emacs-language.
