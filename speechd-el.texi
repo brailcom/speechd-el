@@ -124,7 +124,7 @@ Providing advanced accessible user environment that works out of the
 box and utilizes standard Emacs features wherever possible.  Emacs
 accessibility should work as much as possible on the general level
 without necessity to implement direct support for particular Emacs
-packages.  speechd-el should also preferrably use standard Emacs
+packages.  speechd-el should also preferably use standard Emacs
 features if possible instead of implementing its own solutions.
 
 @item
@@ -1911,7 +1911,7 @@ Some examples:
 
 @cindex ispell
 When you invoke the @code{ispell-word} command and the checked word is
-mispelled, ispell offers you the list of alternative spellings.  You
+misspelled, ispell offers you the list of alternative spellings.  You
 can let speechd-el repeat the list by pressing @kbd{C-a} in the ispell
 prompt.  When you want to review the choices closely, press @kbd{C-r}
 to enter recursive edit and then switch to the @code{*Choices*} window
