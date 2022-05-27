@@ -96,7 +96,7 @@ available, from the  environment variable CONTROLVT."
     (2 . "A connection is already running in this tty")
     (3 . "A connection is already using RAW or suspend mode")
     (4 . "Not implemented in protocol")
-    (5 . "Forbiden in current mode")
+    (5 . "Forbidden in current mode")
     (6 . "Out of range or have no sense")
     (7 . "Invalid size")
     (8 . "Connection refused")
