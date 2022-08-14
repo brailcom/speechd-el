@@ -1,6 +1,6 @@
 speechd-el is an Emacs client to speech synthesizers, Braille displays and
-other alternative output interfaces. It provides full speech and Braille output
-environment for Emacs.
+other alternative output interfaces.  It provides full speech and Braille
+output environment for Emacs.
 
 It is aimed primarily at visually impaired users who need non-visual
 communication with Emacs, but it can be used by anybody who needs sophisticated
@@ -9,15 +9,18 @@ Emacs a completely speech and BRLTTY enabled application suitable for visually
 impaired users or, depending on its configuration, it can only speak in certain
 situations or when asked, to serve needs of any Emacs user.
 
-For more information about speechd-el features see the Texinfo manual or the
-project web page http://www.freebsoft.org/speechd-el (you can also find some
-comparison with Emacspeak there).
+Home page of the project is https://github.com/brailcom/speechd-el.
+For more information about speechd-el features, see the Texinfo manual
+or the old no longer maintained project web page
+http://www.freebsoft.org/speechd-el (you can also find some comparison
+with Emacspeak there).
 
 Installation:
 
-- If you use Emacs older than 23.2 then install the `eieio' Elisp library,
-  available from http://cedet.sourceforge.net/eieio.shtml or perhaps from your
-  favorite operating system distribution.
+- The easiest way to install speechd-el is using one of the Emacs
+  package managers, such as MELPA (https://melpa.org/#/speechd-el) or
+  straight.el (https://github.com/radian-software/straight.el).  In
+  such a case, you can skip the following steps.
 
 - Copy the speechd-el *.el files somewhere to your Emacs load path.  This may
   be typically the directory /usr/local/share/emacs/site-lisp/.
@@ -58,6 +61,8 @@ Installation:
 
 - Install the `speechd-log-extractor' script somewhere to your shell PATH (this
   step is optional, the script is used only for bug reporting).
+
+Running:
 
 - Start Speech Dispatcher and/or BRLTTY.
 
