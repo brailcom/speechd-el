@@ -85,8 +85,6 @@ available, from the  environment variable CONTROLVT."
 (defconst brltty--emacs-accept-ok
   (condition-case _ (progn (accept-process-output nil 0 0 1) t) (error)))
 
-(defconst brltty--emacs-process-ok (fboundp 'process-put))
-
 (defconst brltty--supported-protocol-versions '(8 7))
 
 (defconst brltty--protocol-version-error 13)
@@ -147,9 +145,6 @@ available, from the  environment variable CONTROLVT."
 
 (defun brltty--next-answer (connection)
   (pop (brltty--connection-answers connection)))
-
-(unless brltty--emacs-process-ok
-  (defvar brltty--process-connections '()))
 
 (let ((last-selected-frame 'uninitialized)
       (last-terminal-spec 'uninitialized))
@@ -215,16 +210,12 @@ available, from the  environment variable CONTROLVT."
         (set-process-query-on-exit-flag process nil))
       (let ((connection (make-brltty--connection :process process
                                                  :key-handler key-handler)))
-        (if brltty--emacs-process-ok
-            (process-put process 'brltty-connection connection)
-          (push (cons process connection) brltty--process-connections))
+        (process-put process 'brltty-connection connection)
         (set-process-filter process #'brltty--process-filter)
         connection))))
 
 (defun brltty--process-connection (process)
-  (if brltty--emacs-process-ok
-      (process-get process 'brltty-connection)
-    (cdr (assq process brltty--process-connections))))
+  (process-get process 'brltty-connection))
 
 (defun brltty--disable-connection (connection error)
   (let ((process (brltty--connection-process connection)))
@@ -474,10 +465,6 @@ respectively."
     (when (brltty--connection-terminal-spec connection)
       (brltty--send-packet connection 'ack 'leavetty))
     (let ((process (brltty--connection-process connection)))
-      (unless brltty--emacs-process-ok
-        (setq brltty--process-connections
-              (remove (assq process brltty--process-connections)
-                      brltty--process-connections)))
       (when process
         (delete-process process)))))
 
