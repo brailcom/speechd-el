@@ -1793,7 +1793,7 @@ Only single characters are allowed in the keymap.")
 (define-minor-mode speechd-speak-spell-mode
   "Toggle spelling.
 When the mode is enabled, all spoken text is spelled."
-  nil " Spell" nil
+  :lighter " Spell"
   (set (make-local-variable 'speechd-spell) speechd-speak-spell-mode))
 
 (defvar speechd-speak-spell-command nil)
@@ -2087,7 +2087,7 @@ The following symbols are valid state change identifiers: `buffer-name',
 With no argument, this command toggles the mode.
 Non-null prefix argument turns on the mode.
 Null prefix argument turns off the mode."
-  nil nil speechd-speak--mode-map)
+  :keymap speechd-speak--mode-map)
 
 (easy-mmode-define-global-mode
  global-speechd-speak-map-mode speechd-speak-map-mode
@@ -2115,7 +2115,8 @@ the value of the `speechd-speak-prefix' variable:
 
 \\{speechd-speak-mode-map}
 "
-  nil " S" speechd-speak--mode-map
+  :lighter " S"
+  :keymap speechd-speak--mode-map
   (if speechd-speak-mode
       (progn
         (speechd-speak-map-mode 1)
