@@ -575,7 +575,7 @@ If the connection corresponding to the current `speechd-client-name' value
 already exists, close it and reopen again, with the same connection parameters.
 
 Available methods are `unix-socket' and `inet-socket' for communication
-over Unix sockets and TCP sockets respectively.  Default is 'unix-socket'.
+over Unix sockets and TCP sockets respectively.  Default is `unix-socket'.
 
 The key arguments HOST and PORT are only relevant to the `inet-socket'
 communication method and identify the speechd server location.  They can
