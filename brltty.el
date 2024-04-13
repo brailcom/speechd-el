@@ -327,7 +327,7 @@ available, from the  environment variable CONTROLVT."
      (version
       (let ((version (brltty--read-integer (substring data 0 4))))
         (brltty--add-answer connection (list type version))))
-     (nil
+     ((nil)
       ;; unknown packet type -- ignore
       )
      (getdisplaysize
