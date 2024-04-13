@@ -30,9 +30,7 @@
 
 
 (defclass speechd-ssip-driver (speechd-driver)
-  ((name :initform 'ssip)
-   (host :initform speechd-host :initarg :host)
-   (port :initform speechd-port :initarg :port)))
+  ((name :initform 'ssip)))
 
 (cl-defmethod speechd.cancel ((_driver speechd-ssip-driver) all)
   (speechd-cancel all))
