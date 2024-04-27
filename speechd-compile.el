@@ -1,6 +1,6 @@
 ;;; speechd-compile.el --- Maintenance utilities  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2004, 2013, 2021 Milan Zamazal <pdm@zamazal.org>
+;; Copyright (C) 2004, 2013, 2021, 2024 Milan Zamazal <pdm@zamazal.org>
 
 ;; Author: Milan Zamazal <pdm@zamazal.org>
 
@@ -25,13 +25,15 @@
 (require 'cl-lib)
 
 (defun speechd-compile ()
-  (let ((load-path (cons default-directory load-path)))
+  (let ((load-path (cons default-directory load-path))
+        (native (native-comp-available-p)))
     (dolist (file (directory-files "." nil "\\.el$"))
       (unless (member file '("speechd-compile.el"
                              "speechd-el-pkg.el"))
         (load file)
-        (byte-compile-file file)))))
-
+        (byte-compile-file file)
+        (when native
+          (native-compile file))))))
 
 ;;; Announce
 
