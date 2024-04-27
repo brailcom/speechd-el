@@ -1,6 +1,6 @@
 ;;; speechd.el --- Library for accessing Speech Dispatcher  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012-2021 Milan Zamazal <pdm@zamazal.org>
+;; Copyright (C) 2012-2024 Milan Zamazal <pdm@zamazal.org>
 ;; Copyright (C) 2003-2010 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
@@ -194,6 +194,9 @@ definition of its parameters is optional."
 		  (const :format "" capital-character-mode)
 		  ,(speechd--generate-customization-options
 		    speechd--capital-character-modes))
+            ;;
+            (cons :tag "SSML mode" (const :format "" ssml-mode) boolean)
+            (cons :tag "Index marks" (const :format "" index-marks) boolean)
             ;;
 	    (cons :tag "Message priority" (const :format "" message-priority)
 		  (speechd-priority-tag :value text))
@@ -956,14 +959,7 @@ If called with a prefix argument, set it for all connections."
                               (cl-case p
                                 (voice 'name)
                                 (t p))
-                              (cl-case p
-                                (punctuation-mode
-                                 (cdr (assoc
-                                       v speechd--punctuation-modes)))
-                                (capital-character-mode
-                                 (cdr (assoc
-                                       v speechd--capital-character-modes)))
-                                (t v)))
+                              v)
                              voice-parameters))
                           (setq connection-parameters next)))
                       (nreverse voice-parameters))))
