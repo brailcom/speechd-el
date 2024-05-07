@@ -1,6 +1,6 @@
 ;;; speechd-out.el --- Alternative output interface  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2018-2021 Milan Zamazal <pdm@zamazal.org>
+;; Copyright (C) 2018-2024 Milan Zamazal <pdm@zamazal.org>
 ;; Copyright (C) 2004, 2005, 2006, 2008 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
@@ -207,10 +207,13 @@
             (text% text)
             (cursor% cursor)
             (markers% markers))
-        (speechd.block driver (lambda ()
-                                (when icon-name%
-                                  (speechd.icon driver% icon-name%))
-                                (speechd.text driver% text% cursor% markers%)))))))
+        ;; Some parameters, e.g. spelling, cannot be set inside blocks;
+        ;; use a block only if necessary.
+        (if icon-name%
+            (speechd.block driver (lambda ()
+                                    (speechd.icon driver% icon-name%)
+                                    (speechd.text driver% text% cursor% markers%)))
+          (speechd.text driver% text% cursor% markers%))))))
 
 (defun speechd-out-set (parameter value)
   (speechd-out--loop-drivers (driver)
