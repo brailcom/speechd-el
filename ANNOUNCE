@@ -38,9 +38,6 @@ speechd-el 2.12 released
 
   - Free Software, distributed under the GPL.
 
-  More information about speechd-el (including comparison with
-  Emacspeak) can be found on http://devel.freebsoft.org/speechd-el .
-
 * What is new in the 2.12 version?
 
   Bug fixes and cleanups.
@@ -48,8 +45,8 @@ speechd-el 2.12 released
 * Where to get it?
 
   The easiest way to install speechd-el is to use the package from MELPA
-  (http://melpa.milkbox.net/) or from Debian (if you use Debian or one
-  of its derivatives).  You'll also need Speech Dispatcher and/or BRLTTY.
+  (https://melpa.org/) or another Emacs package repository.  You'll also
+  need Speech Dispatcher and/or BRLTTY.
 
   The source code is available on GitHub:
   https://github.com/brailcom/speechd-el
