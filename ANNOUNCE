@@ -1,4 +1,4 @@
-speechd-el 2.11 released
+speechd-el 2.12 released
 ========================
 
 * What is speechd-el?
@@ -41,24 +41,9 @@ speechd-el 2.11 released
   More information about speechd-el (including comparison with
   Emacspeak) can be found on http://devel.freebsoft.org/speechd-el .
 
-* What is new in the 2.11 version?
+* What is new in the 2.12 version?
 
-  ** Index marking support
-
-  Set speechd-speak-use-index-marks variable to `t' to enable index
-  marking.  Note that it may have performance or other issues.  How well
-  index marking actually works is also dependent on the speech
-  synthesizer used.
-
-  ** Improvement of reading wrapped lines
-
-  If truncate-lines is nil, lines are read only to their visual ends
-  (thanks to Nicolas Graner).
-
-  ** Internal cleanup
-
-  The code has been updated to match current Emacs practices and all
-  compilation warnings have been resolved.
+  Bug fixes and cleanups.
 
 * Where to get it?
 
@@ -70,7 +55,7 @@ speechd-el 2.11 released
   https://github.com/brailcom/speechd-el
 
   The source package of the released version is available at
-  https://github.com/brailcom/speechd-el/releases/download/speechd-el-2.11/speechd-el-2.11.tar.gz .
+  https://github.com/brailcom/speechd-el/releases/download/speechd-el-2.12/speechd-el-2.12.tar.gz .
 
 
 Local Variables:

@@ -21,7 +21,7 @@
 
 ;;; Code:
 
-(define-package "speechd-el" "2.11"
+(define-package "speechd-el" "2.12"
   "Client to speech synthesizers and Braille displays.")
 
 ;;; Announce
