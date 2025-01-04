@@ -1,6 +1,6 @@
 ;;; speechd.el --- Library for accessing Speech Dispatcher  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2012-2024 Milan Zamazal <pdm@zamazal.org>
+;; Copyright (C) 2012-2025 Milan Zamazal <pdm@zamazal.org>
 ;; Copyright (C) 2003-2010 Brailcom, o.p.s.
 
 ;; Author: Milan Zamazal <pdm@brailcom.org>
@@ -48,11 +48,22 @@
 ;;; User variables
 
 
+(defun speechd--speechd-address ()
+  (let ((address (getenv "SPEECHD_ADDRESS")))
+    (if address
+        (split-string address ":")
+      '(nil nil nil))))
+
 (defgroup speechd ()
   "SSIP interface."
   :group 'speechd-el)
 
-(defcustom speechd-connection-method 'unix-socket
+(defcustom speechd-connection-method
+  (if-let ((method-string (cl-first (speechd--speechd-address)))
+           (method (intern (string-replace "_" "-" method-string)))
+           (valid-p (memq method '(unix-socket inet-socket))))
+      method
+    'unix-socket)
   "Connection method to Speech Dispatcher.
 Possible values are `unix-socket' for Unix domain sockets and
 `inet-socket' for Internet sockets on a given host and port (see
@@ -61,7 +72,10 @@ Possible values are `unix-socket' for Unix domain sockets and
                  (const :tag "Internet socket" inet-socket))
   :group 'speechd)
 
-(defcustom speechd-host (or (getenv "SPEECHD_HOST") "localhost")
+(defcustom speechd-host
+  (or (and (eq speechd-connection-method 'inet-socket)
+           (cl-second (speechd--speechd-address)))
+      "localhost")
   "Name of the default host running speechd to connect to.
 Value of this variable matters only when Internet sockets are
 used for communication with Speech Dispatcher."
@@ -69,14 +83,25 @@ used for communication with Speech Dispatcher."
   :group 'speechd)
 
 (defcustom speechd-port
-  (or (condition-case _
-          (car (read-from-string (getenv "SPEECHD_PORT")))
-        (error))
-      6560)
+  (if-let ((port-string (cl-third (speechd--speechd-address)))
+           (port (ignore-errors (car (read-from-string port-string)))))
+      port
+    6560)
   "Default port of speechd.
 Value of this variable matters only when Internet sockets are
 used for communication with Speech Dispatcher."
   :type 'integer
+  :group 'speechd)
+
+(defcustom speechd-socket-name
+  (and (eq speechd-connection-method 'unix-socket)
+       (cl-second (speechd--speechd-address)))
+  "Name of the default socket running speechd to connect to.
+If nil, use the Speech Dispatcher default socket.
+Value of this variable matters only when Unix domain sockets are
+used for communication with Speech Dispatcher."
+  :type '(choice (const :tag "Default" nil)
+                 (string :tag "Socket file"))
   :group 'speechd)
 
 (defcustom speechd-autospawn t
@@ -516,11 +541,10 @@ current voice."
            (make-network-process
             :name "speechd" :family "local"
             :remote (or socket-name
-                        (or (getenv "SPEECHD_SOCK")
-                            (expand-file-name
-			     (let ((runtime-dir (getenv "XDG_RUNTIME_DIR")))
-			       (concat (if runtime-dir (concat runtime-dir "/") "~/.")
-                                       "speech-dispatcher/speechd.sock")))))))
+                        (expand-file-name
+			 (let ((runtime-dir (getenv "XDG_RUNTIME_DIR")))
+			   (concat (if runtime-dir (concat runtime-dir "/") "~/.")
+                                   "speech-dispatcher/speechd.sock"))))))
           ((eq method 'inet-socket)
            (open-network-stream "speechd" nil host port))
           (t (error "Invalid communication method: `%s'" method)))))
@@ -598,6 +622,7 @@ Return the opened connection on success, nil otherwise."
   (let ((connection (gethash speechd-client-name speechd--connections)))
     (let ((method (or method speechd-connection-method))
 	  (host (or host speechd-host))
+          (socket-name (or socket-name speechd-socket-name))
 	  (port (or port speechd-port)))
       (when connection
 	(speechd--close-connection connection)

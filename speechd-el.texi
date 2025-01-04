@@ -10,7 +10,7 @@
 @copying
 This manual is for speechd-el, @value{VERSION}.
 
-Copyright @copyright{} 2012-2021 Milan Zamazal
+Copyright @copyright{} 2012-2025 Milan Zamazal
 Copyright @copyright{} 2003-2010 Brailcom, o.p.s.
 
 @quotation
@@ -892,22 +892,32 @@ Speech Dispatcher connection options:
 @item speechd-connection-method
 Connection method to Speech Dispatcher.  Possible values are symbols
 @code{unix-socket} for Unix domain sockets and @code{inet-socket} for
-Internet sockets on a given host and port.
+Internet sockets on a given host and port.  Default is either as
+specified in @code{SPEECHD_ADDRESS} environment variable if set, or
+@code{unix-socket}.
 
 @item speechd-host
 @cindex host
 Name of the host running Speech Dispatcher to connect to, given as a
-string.  Default is either the contents of the shell variable
-@code{SPEECHD_HOST} variable if set, or @code{"localhost"}.  Value of
+string.  Default is either as specified in @code{SPEECHD_ADDRESS}
+environment variable variable if set, or @code{"localhost"}.  Value of
 this variable matters only when Internet sockets are used for
 communication with Speech Dispatcher.
 
 @item speechd-port
 @cindex port
-Port number to connect to.  Default is either the contents of the
-shell variable @code{SPEECHD_PORT} if set, or the default Speech
-Dispatcher port.  Value of this variable matters only when Internet
-sockets are used for communication with Speech Dispatcher.
+Port number to connect to.  Default is either as specified in
+@code{SPEECHD_ADDRESS} environment variable if set, or the default
+Speech Dispatcher port.  Value of this variable matters only when
+Internet sockets are used for communication with Speech Dispatcher.
+
+@item speechd-socket-name
+@cindex socket
+Name of the Unix domain socket to connect to.  Default is either as
+specified in @code{SPEECHD_ADDRESS} environment variable if set, or the
+default Speech Dispatcher socket.  Value of this variable matters only
+when Unix domain sockets are used for communication with Speech
+Dispatcher.
 
 @item speechd-autospawn
 If non-@code{nil}, Emacs will attempt to automatically start Speech

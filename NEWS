@@ -1,5 +1,18 @@
 User-visible changes to speechd-el:
 
+* Changes in speechd-el 2.13
+
+** SPEECHD_ADDRESS environment variable is used now.
+
+Instead of the old variables SPEECHD_HOST, SPEECHD_PORT and
+SPEECHD_SOCK.  It is also used to initialize
+`speechd-connection-method'.
+
+** New user option speechd-socket-name.
+
+It can override the default Speech Dispatcher socket name.
+
+
 * Changes in speechd-el 2.12
 
 ** Index marking support
