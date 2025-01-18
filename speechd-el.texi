@@ -1207,6 +1207,10 @@ List of minor modes to be read by their display string rather than
 name.  To use the display form of a mode identification may be useful
 in cases when the display form is more concise than the mode name or
 when the display form changes without actual change of the mode.
+
+@item speechd-speak-unreadable-modes
+List of major modes with unreadable content.  Typically modes for displaying
+images or various kinds of non-text documents.
 @end vtable
 
 @node Signalling, Text Properties, Reading State, Customization

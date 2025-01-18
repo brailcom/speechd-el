@@ -249,6 +249,13 @@ If ACTION is a function, it is invoked, with no arguments."
   :type '(repeat symbol)
   :group 'speechd-speak)
 
+(defcustom speechd-speak-unreadable-modes
+  '(doc-view-mode image-mode pdf-view-mode)
+  "List of major modes with unreadable content.
+Typically modes for displaying images or various kinds of non-text documents."
+  :type '(repeat symbol)
+  :group 'speechd-speak)
+
 (defcustom speechd-speak-whole-line nil
   "If non-nil, speak whole line on movement by default.
 Otherwise speak from the point to the end of line on movement by default."
@@ -600,7 +607,8 @@ If INDEX-MARKS is non-nil, insert index marks to the spoken text."
           (end (or end (point)))
           (text (speechd-speak--buffer-substring beg end)))
      (cond
-      ((string= text "")
+      ((or (string= text "")
+           (memq major-mode speechd-speak-unreadable-modes))
        (speechd-speak-report (or empty-text 'empty)
                              :priority speechd-default-text-priority))
       ((save-match-data (string-match "\\`[ \t]+\\'" text))

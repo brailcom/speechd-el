@@ -12,6 +12,10 @@ SPEECHD_SOCK.  It is also used to initialize
 
 It can override the default Speech Dispatcher socket name.
 
+** New user option speechd-speak-unreadable-modes.
+
+It lists major modes with unreadable content.
+
 
 * Changes in speechd-el 2.12
 
