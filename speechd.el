@@ -324,7 +324,7 @@ current voice."
   '((voices
      "VOICES" identity)
     (synthesis-voices
-     "SYNTHESIS_VOICES" (lambda (line) (cl-first (split-string line))))))
+     "SYNTHESIS_VOICES" (lambda (line) (cl-first (split-string line "\t"))))))
 
 (defconst speechd--parameter-value-mappings
   '((message-priority
