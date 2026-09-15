@@ -1439,7 +1439,8 @@ Only single characters are allowed in the keymap.")
        (memq this-command '(forward-char backward-char right-char left-char)))
   (speechd-speak--with-updated-text
     (cond
-     ((looking-at "^")
+     ((and (looking-at "^")
+       (memq 'beginning-of-line speechd-speak-signal-events))
       (speechd-speak--char (following-char) :icon 'beginning-of-line))
      ((looking-at "$")
       (speechd-speak-report 'end-of-line
